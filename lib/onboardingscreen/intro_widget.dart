@@ -1,4 +1,5 @@
 import 'package:pixidrugs/constant/all.dart';
+import 'package:pixidrugs/login/mobileLoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class IntroWidget extends StatelessWidget {
@@ -70,34 +71,50 @@ class IntroWidget extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () {},
-                    child: const Text('Skip Now', style: TextStyle(color: AppColors.kPrimary),),
+                    child: const Text('Skip Now', style: TextStyle(color: AppColors.kPrimary,fontSize:16,fontWeight:FontWeight.normal),),
                   ),
                   GestureDetector(
                     onTap: onTab,
                     child: Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: AppColors.kPrimary,
                         borderRadius: BorderRadius.circular(50)
                       ),
-                      child: const Icon(Icons.arrow_forward, color: Colors.white, size: 30),
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                              color: AppColors.kWhiteColor,
+                              borderRadius: BorderRadius.circular(50)
+                          ),
+                          child: const Icon(Icons.arrow_forward, color: AppColors.kPrimary, size: 30)),
                     ),
                   )
                 ],
               )
-              :  SizedBox(
-                height: 46,
+              : SizedBox(
+                height: 50,
                 child: MaterialButton(
                   color: AppColors.kPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   onPressed: () async {
-                    final prefs =
-                    await SharedPreferences.getInstance();
-                    await prefs.setBool(
-                        'onboarding_completed', true);
-                    AppRoutes.navigateToHome(context);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('onboarding_completed', true);
+                    AppRoutes.navigateTo(context,MobileLoginScreen());
                   },
-                  child: const Text('Get Started', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold)),
+                  child: const Center(
+                    child: Text(
+                      'Get Started',
+                      style: TextStyle(
+                        color: AppColors.kWhiteColor, // Use a color that contrasts the primary color
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               )
             ),

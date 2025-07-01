@@ -34,6 +34,15 @@ dependencies:
   percent_indicator: ^4.2.3
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.17
+  circular_bottom_navigation: ^2.4.0
+  flutter_bloc: ^8.1.6
+  intl: ^0.20.2
+  cached_network_image: ^3.4.1
+  dio: ^5.4.0
+  connectivity_plus: ^5.0.2
+  barcode_scan2: ^4.5.1
+  aws_common: ^0.7.7
+  aws_signature_v4: ^0.6.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8

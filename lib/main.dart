@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pixidrugs/SplashScreen.dart';
 
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 void main() {
   runApp(const MyApp());
 }
@@ -17,7 +19,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      navigatorObservers: [routeObserver],
+      home:SplashScreen(),
     );
   }
 }
