@@ -1,26 +1,56 @@
-import 'package:flutter/material.dart';
+import 'package:pixidrugs/HomePageScreen.dart';
 import 'package:pixidrugs/SplashScreen.dart';
+import 'package:pixidrugs/constant/all.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      debugShowCheckedModeBanner: false,
-      navigatorObservers: [routeObserver],
-      home:SplashScreen(),
+    final apiRepository = ApiRepository();
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => CartCubit()),
+        BlocProvider(create: (_) => ApiCubit(apiRepository)),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        navigatorObservers: [routeObserver],
+        routes: {
+          '/home': (context) => HomePage(),
+        },
+        onGenerateRoute: (settings) {
+          /*if (settings.name == '/detail' || settings.name == '/slot') {
+            final doctor = settings.arguments as DoctorModel;
+            return MaterialPageRoute(
+              builder: (_) => DetailsScreen(type: AppString.Doctor, data: doctor,slot:settings.name == '/slot'),
+            );
+          }
+         */
+          return null;
+        },
+        home: SplashScreen(),
+      )
     );
   }
+
 }

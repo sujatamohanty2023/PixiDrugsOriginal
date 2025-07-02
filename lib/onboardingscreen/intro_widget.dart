@@ -84,10 +84,10 @@ class IntroWidget extends StatelessWidget {
                       child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                              color: AppColors.kWhiteColor,
+                              color: AppColors.kPrimary,
                               borderRadius: BorderRadius.circular(50)
                           ),
-                          child: const Icon(Icons.arrow_forward, color: AppColors.kPrimary, size: 30)),
+                          child: const Icon(Icons.arrow_forward, color: AppColors.kWhiteColor, size: 30)),
                     ),
                   )
                 ],

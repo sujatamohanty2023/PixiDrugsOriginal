@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
+import 'package:pixidrugs/Cart/CartTab.dart';
 import 'package:pixidrugs/HomeTab.dart';
+import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class HomePage extends StatefulWidget {
@@ -28,7 +30,7 @@ class _HomePageState extends State<HomePage> {
     ),
     TabItem(
       Icons.receipt,
-      "Report",
+      "Product",
       AppColors.kWhiteColor,
       labelStyle: TextStyle(color:AppColors.kPrimary,fontWeight: FontWeight.bold),
 
@@ -58,9 +60,9 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return HomeTab();
       case 1:
-        return Center(child: Text("🔍 Cart Screen", style: TextStyle(fontSize: 24)));
+        return CartTab(barcodeScan: true, onPressedProduct: () {  },);
       case 2:
-        return Center(child: Text("👤 Report Screen", style: TextStyle(fontSize: 24)));
+        return ProductListPage();
       case 3:
         return Center(child: Text("👤 Profile Screen", style: TextStyle(fontSize: 24)));
       default:

@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import '../constant/all.dart';
+import 'package:pixidrugs/constant/all.dart';
 
 class AppUtils {
   // Common spacing

@@ -42,7 +42,7 @@ class AppStyles {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFDFF7F8),
+            AppColors.kPrimaryLight,
             AppColors.kWhiteColor,
           ],
           stops: [0.0, 1.0],
