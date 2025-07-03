@@ -9,6 +9,7 @@ class MyEdittextfield extends StatelessWidget {
   bool readOnly, login;
   Function()? onTap;
   String? Function(String?)? validator;
+  final Function(String)? onChanged;
   MyEdittextfield({
     required this.controller,
     required this.hintText,
@@ -17,7 +18,8 @@ class MyEdittextfield extends StatelessWidget {
     this.readOnly = false,
     this.login = false,
     this.onTap,
-    this.validator
+    this.validator,
+    this.onChanged,
   });
 
   @override
@@ -60,6 +62,7 @@ class MyEdittextfield extends StatelessWidget {
             },
         readOnly: readOnly, // Make the TextField read-only
         onTap: onTap,
+        onChanged: onChanged,
       ),
     );
   }

@@ -17,11 +17,8 @@ class AppUtils {
       TabBar? bottom}) {
     return AppBar(
       backgroundColor: AppColors
-          .kPrimaryLight, // Set to transparent so we can add custom decoration
-      elevation: 0, // Remove default elevation shadow
-      flexibleSpace: Container(
-        decoration: AppStyles.Custom_Appbar_bg(),
-      ),
+          .kPrimary, // Set to transparent so we can add custom decoration
+      elevation: 0,
       title: MyTextfield.textStyle_w800(title, 20, AppColors.kWhiteColor),
       leading: leading
           ? IconButton(

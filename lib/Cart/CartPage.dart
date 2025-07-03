@@ -12,7 +12,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteAware {
-  String? address = '';
+  String? name,phone,address = '';
 
   @override
   void initState() {
@@ -53,6 +53,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           return _buildLoadingOrError(state);
         }
         if (state is CartLoaded) {
+          name=widget.barcodeScan ? state.customerName:'';
+          phone=widget.barcodeScan ? state.customerPhone:'';
+          address=widget.barcodeScan ? state.customerAddress:'';
           return _buildCartLoadedUI(
             context,
             widget.barcodeScan?state.barcodeCartItems:state.cartItems,
@@ -82,9 +85,17 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       ) {
 
     return Scaffold(
-      backgroundColor: AppColors.kWhiteColor,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.myGradient),
+      backgroundColor: AppColors.kPrimary,
+      body:  Container(
+        height:  double.infinity,
+        padding: EdgeInsets.only(top: 20),
+        decoration: BoxDecoration(
+          gradient: AppColors.myGradient,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(30),
+            topLeft: Radius.circular(30),
+          ),
+        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 50.0, left: 10, right: 10),
           child: Column(
@@ -92,11 +103,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             children: [
 
               if (widget.barcodeScan)
-                address != null && address!.isNotEmpty
+                name != null && name!.isNotEmpty
                     ?_buildAddressSection()
                     :SizedBox(),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 5),
 
               CustomListView<InvoiceItem>(
                 data: cartItems,
@@ -133,7 +144,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: MyElevatedButton(
             onPressed: (){
                 if(address != null && address!.isNotEmpty){
-                  AppRoutes.navigateTo(context, ReceiptPrinterPage(products:cartItems));
+                  AppRoutes.navigateTo(context, ReceiptPrinterPage());
                 }else {
                   _onButtonSalePressed();
                 }
@@ -156,10 +167,20 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       )),
       isScrollControlled: false,
       builder: (_) => CustomerDetailBottomSheet(
-        onSubmit: (name, phone, submittedAddress) {
+        name:name,
+        phone:phone,
+        address:address,
+        onSubmit: (name1, phone1, submittedAddress1) {
           setState(() {
-            address = '$name \n $phone \n $submittedAddress';
+           name=name1;
+           phone=phone1;
+           address=submittedAddress1;
           });
+          context.read<CartCubit>().setBarcodeCustomerDetails(
+            name: name1,
+            phone: phone1,
+            address: submittedAddress1,
+          );
         },
       ),
     );
@@ -177,7 +198,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
-                MyTextfield.textStyle_w600(address ?? '', 14, Colors.grey[700]!),
+                MyTextfield.textStyle_w600('${name}\n${phone}\n${address}' ?? '', 14, Colors.grey[700]!),
               ],
             ),
           ),

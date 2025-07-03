@@ -1,16 +1,42 @@
 
 import 'package:pixidrugs/constant/all.dart';
 
-class CartItemCard extends StatelessWidget {
+class CartItemCard extends StatefulWidget {
   final InvoiceItem item;
   final bool barcodeScan;
 
-  const CartItemCard({
-    super.key,
-    required this.item,
-    this.barcodeScan = false,
-  });
+  const CartItemCard({super.key, required this.item, this.barcodeScan = false});
 
+  @override
+  State<CartItemCard> createState() => _CartItemCardState();
+}
+
+class _CartItemCardState extends State<CartItemCard> {
+  late TextEditingController discController;
+  late InvoiceItem item;
+  late bool barcodeScan;
+
+  @override
+  void initState() {
+    super.initState();
+    item=widget.item;
+    barcodeScan=widget.barcodeScan;
+    discController = TextEditingController(text: widget.item.discount);
+  }
+
+  @override
+  void didUpdateWidget(covariant CartItemCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.discount != widget.item.discount) {
+      discController.text = widget.item.discount;
+    }
+  }
+
+  @override
+  void dispose() {
+    discController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final cartCubit = context.read<CartCubit>();
@@ -38,7 +64,7 @@ class CartItemCard extends StatelessWidget {
                     children: [
                       _buildProductImage(),
                       const SizedBox(width: 10),
-                      Expanded(child: _buildProductDetails()),
+                      Expanded(child: _buildProductDetails(context, cartCubit)),
                     ],
                   ),
                   _buildQuantityControls(context, cartCubit),
@@ -85,8 +111,7 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProductDetails() {
-    final discController = TextEditingController();
+  Widget _buildProductDetails(BuildContext context, CartCubit cartCubit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -99,15 +124,50 @@ class CartItemCard extends StatelessWidget {
           Colors.green,
         ),
         SizedBox(height: 2),
-        SizedBox(
-          height: 35,
-          width: 80,
-          child: MyEdittextfield(
-              controller: discController,
-              hintText: "Discount",
-              keyboardType: TextInputType.numberWithOptions(decimal: true)
-          ),
+        Row(
+          children: [
+            SizedBox(
+              height: 35,
+              width: 80,
+              child: MyEdittextfield(
+                controller: discController,
+                hintText: "Discount",
+                keyboardType: TextInputType.number,
+                onChanged: (val) {
+                  final discount = double.tryParse(val) ?? 0.0;
+                  cartCubit.updateItemDiscount(
+                    item.id,
+                    discount,
+                    type: barcodeScan ? CartType.barcode : CartType.main,
+                    discountType: item.discountType, // default for now
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            DropdownButton<DiscountType>(
+              value: item.discountType,
+              icon: const Icon(Icons.arrow_drop_down),
+              onChanged: (DiscountType? newType) {
+                if (newType != null) {
+                  cartCubit.updateItemDiscount(
+                    item.id,
+                    double.tryParse(discController.text) ?? 0.0,
+                    type: barcodeScan ? CartType.barcode : CartType.main,
+                    discountType: newType,
+                  );
+                }
+              },
+              items: DiscountType.values.map((DiscountType type) {
+                return DropdownMenuItem<DiscountType>(
+                  value: type,
+                  child: Text(type == DiscountType.flat ? '₹ Flat' : '% Off'),
+                );
+              }).toList(),
+            ),
+          ],
         ),
+
       ],
     );
   }

@@ -7,6 +7,8 @@ class CommonConfirmationDialog {
     required String title,
     required String content,
     required Function(T) onConfirmed,
+    String negativeButton = 'No',
+    String positiveButton = 'Yes',
   }) async {
     bool? confirmed = await showDialog<bool>(
       context: context,
@@ -17,16 +19,12 @@ class CommonConfirmationDialog {
           content: MyTextfield.textStyle_w300(content, 16, Colors.black54),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false); // User canceled
-              },
-              child: MyTextfield.textStyle_w600('No', 16, Colors.green),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: MyTextfield.textStyle_w600(negativeButton, 16, Colors.green),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true); // User confirmed
-              },
-              child: MyTextfield.textStyle_w600('Yes', 16, Colors.red),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: MyTextfield.textStyle_w600(positiveButton, 16, Colors.red),
             ),
           ],
         );

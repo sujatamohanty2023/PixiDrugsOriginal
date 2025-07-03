@@ -1,7 +1,11 @@
 
+import 'package:pixidrugs/Dialog/show_image_picker.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class HomeTab extends StatefulWidget {
+  final VoidCallback onGoToCart;
+
+  const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
   @override
   _HomeTabState createState() => _HomeTabState();
 }
@@ -42,50 +46,87 @@ class _HomeTabState extends State<HomeTab> {
     _pageController.dispose();
     super.dispose();
   }
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient:AppColors.myGradient,
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Info
-                Row(
+  void _onNotificationTap() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Notification tapped")),
+    );
+  }
+  PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onNotificationTap) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(80),
+      child: Container(
+        color: AppColors.kPrimary,
+        child: Container(
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 15.0, left: 12, right: 48), // right padding adjusted
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage("assets/images/splash.jpg"), // Replace with actual image
+                      backgroundImage: AssetImage("assets/images/splash.jpg"),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text("Dorthy Miller",
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 4),
-                        Text("Bada Bazar,Berhampur",
-                            style: TextStyle(color: Colors.grey)),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:  [
+                        MyTextfield.textStyle_w600('PixiDrugs', 20, Colors.white),
+                        MyTextfield.textStyle_w300('Bada Bazar, Berhampur', 16, AppColors.kWhiteColor.withOpacity(0.5)),
                       ],
-                    )
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-                Container(
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: GestureDetector(
+                    onTap: onNotificationTap,
+                    child: SvgPicture.asset(
+                      AppImages.notification,
+                      height: 24,
+                      color: AppColors.kWhiteColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor:  AppColors.kPrimary,
+      appBar: customAppBarHome(context, _onNotificationTap),
+      body:Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(30),
+              topLeft: Radius.circular(30),
+            ),
+          ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
                   height: 200,
-                  margin: EdgeInsets.symmetric(vertical: 10),
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: bannerList.length,
                     itemBuilder: (context, index) {
                       return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 0),
+                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
@@ -97,55 +138,102 @@ class _HomeTabState extends State<HomeTab> {
                     },
                   ),
                 ),
-                // Health Report
                 const SizedBox(height: 5),
-                Text("My DashBoard",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                // Grid
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildTaskCard(
-                          color: const Color(0xFFD2F9F2),
-                          progressColor: Colors.teal,
-                          title: "Upload Invoice",
-                          tasks: "Create a new invoice",
-                          percent: 0.81,
-                          icon: 'assets/svg/add_invoice.svg',
-                          arrowColor: Colors.teal),
-                      _buildTaskCard(
-                          color: const Color(0xFFDCEBFF),
-                          progressColor: Colors.blue,
-                          title: "Invoice History",
-                          tasks: "View all previous invoices",
-                          percent: 0.60,
-                          icon: 'assets/svg/invoice_list.svg',
-                          arrowColor: Colors.blue),
-                      _buildTaskCard(
-                          color: const Color(0xFFFFE2E5),
-                          progressColor: Colors.red,
-                          title: "New Sale Entry",
-                          tasks: "Record a new sale",
-                          percent: 0.42,
-                          icon: 'assets/svg/sale.svg',
-                          arrowColor: Colors.red),
-                      _buildTaskCard(
-                          color: const Color(0xFFFFF1D7),
-                          progressColor: Colors.orange,
-                          title: "Sales Report",
-                          tasks: "Track sales summary",
-                          percent: 0.90,
-                          icon: 'assets/svg/sale_list.svg',
-                          arrowColor: Colors.orange),
-
-                    ],
-                  ),
+                const Text(
+                  "My DashBoard",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 10),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  children: [
+                    GestureDetector(
+                      onTap: _UploadInvoice,
+                      child: _buildTaskCard(
+                        color: const Color(0xFFD2F9F2),
+                        progressColor: Colors.teal,
+                        title: "Upload Invoice",
+                        tasks: "Create a new invoice",
+                        percent: 0.81,
+                        icon: AppImages.add_invoice,
+                        arrowColor: Colors.teal,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate to Invoice History
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFDCEBFF),
+                        progressColor: Colors.blue,
+                        title: "Invoice History",
+                        tasks: "View all previous invoices",
+                        percent: 0.60,
+                        icon: AppImages.invoice_list,
+                        arrowColor: Colors.blue,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _newSaleEntry,
+                      child: _buildTaskCard(
+                        color: const Color(0xFFE8F5E9),
+                        progressColor: Colors.green,
+                        title: "New Sale Entry",
+                        tasks: "Record a new sale",
+                        percent: 0.42,
+                        icon: AppImages.sale,
+                        arrowColor: Colors.green,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Sales Report navigation
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFEDE7F6),
+                        progressColor: Colors.deepPurple,
+                        title: "Sales Report",
+                        tasks: "Track sales summary",
+                        percent: 0.90,
+                        icon: AppImages.sale_list,
+                        arrowColor: Colors.deepPurple,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Expired Product
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFFFE2E5),
+                        progressColor: Colors.red,
+                        title: "Expired Product",
+                        tasks: "View expired items",
+                        percent: 0.30,
+                        icon: AppImages.expired,
+                        arrowColor: Colors.red,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Expiring Product
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFFFF1D7),
+                        progressColor: Colors.orange,
+                        title: "Expiring Product",
+                        tasks: "Track nearing expiry",
+                        percent: 0.55,
+                        icon: AppImages.notification,
+                        arrowColor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20), // bottom spacing
               ],
             ),
           ),
@@ -154,6 +242,46 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
+  Future<void> _UploadInvoice() async {
+    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 1);
+  }
+  void _setSelectedImage(List<File> file) {
+    Future.delayed(Duration(milliseconds: 100), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddPurchaseBill(path: file[0].path),
+        ),
+      );
+    });
+  }
+  Future<void> _newSaleEntry() async {
+    CommonConfirmationDialog.show<int>(
+        context: context,
+        id: 0,
+        // Pass whether it's a medical record or leave record
+        title: 'Start New Sale',
+        content: 'This will clear the previous cart. Do you want to continue?',
+        negativeButton:'Cancel',
+        positiveButton:'Yes, Start New',
+        onConfirmed: (int) async{
+          context.read<CartCubit>().clearCart(type: CartType.barcode);
+          _scanBarcode();
+        });
+  }
+  Future<void> _scanBarcode() async {
+    try {
+      var result = await BarcodeScanner.scan();
+      if (result.rawContent.isNotEmpty) {
+        context.read<ApiCubit>().BarcodeScan(code: result.rawContent);
+        widget.onGoToCart();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to scan barcode')),
+      );
+    }
+  }
   Widget _buildTaskCard({
     required Color color,
     required Color progressColor,

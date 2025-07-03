@@ -19,17 +19,6 @@ class ProductTile extends StatelessWidget {
     final bool isExpiringSoon =
         !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
 
-    String expiryMessage = '';
-    Color? expiryColor;
-
-    if (!isOutOfStock && isExpired) {
-      expiryMessage = 'Product Expired';
-      expiryColor = Colors.red;
-    } else if (!isOutOfStock && isExpiringSoon) {
-      expiryMessage = 'Product will expire soon';
-      expiryColor = Colors.orange;
-    }
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
       child: Row(
@@ -99,38 +88,78 @@ class ProductTile extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        isOutOfStock
-                            ? "Out of Stock"
-                            : "Stock: ${product!.qty}",
-                        style: TextStyle(
-                          color: isOutOfStock ? Colors.red : Colors.teal,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isOutOfStock
+                                ? "Out of Stock"
+                                : "Stock: ${product!.qty}",
+                            style: TextStyle(
+                              color: isOutOfStock ? Colors.red : Colors.teal,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 2,),
+                          if (!isOutOfStock)
+                            Text(
+                              "Ex. Date: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry))}",
+                              style: TextStyle(fontSize: 13),
+                            ),
+                        ],
                       ),
                     ),
-                    if (!isOutOfStock)
-                      Text(
-                        "Ex. Date: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry))}",
-                        style: TextStyle(fontSize: 13),
-                      ),
+
+                    if (isOutOfStock)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          // border: Border.all(color: Colors.red),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          "Out of Stock",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    else if (isExpired)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          // border: Border.all(color: Colors.red),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          "Expired",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    else if (isExpiringSoon)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            // border: Border.all(color: Colors.orange),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            "Expiring Soon",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                   ],
                 ),
-                if (expiryMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        expiryMessage,
-                        style: TextStyle(
-                          color: expiryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
                 const Divider(color: AppColors.kPrimaryDark),
               ],
             ),

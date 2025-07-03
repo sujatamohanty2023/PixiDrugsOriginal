@@ -34,7 +34,7 @@ dependencies:
   percent_indicator: ^4.2.3
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.17
-  circular_bottom_navigation: ^2.4.0
+  convex_bottom_bar: ^3.2.0
   flutter_bloc: ^8.1.6
   intl: ^0.20.2
   cached_network_image: ^3.4.1
@@ -43,6 +43,9 @@ dependencies:
   barcode_scan2: ^4.5.1
   aws_common: ^0.7.7
   aws_signature_v4: ^0.6.5
+  image: ^3.0.1
+  image_picker: ^0.8.7+4
+  file_picker: ^9.0.2
 
   esc_pos_printer: ^4.0.3
   esc_pos_utils: ^1.1.0

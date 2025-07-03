@@ -9,6 +9,9 @@ export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:flutter_svg/svg.dart';
 export 'package:barcode_scan2/platform_wrapper.dart';
 export 'package:shared_preferences/shared_preferences.dart';
+export 'package:file_picker/file_picker.dart';
+export 'package:image_picker/image_picker.dart';
+
 
 export 'package:dio/dio.dart';
 export '../constant/color.dart';

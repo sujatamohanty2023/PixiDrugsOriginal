@@ -1,4 +1,5 @@
 
+enum DiscountType { flat, percent }
 class Invoice {
   String? invoiceId;
    String? invoiceDate;
@@ -94,8 +95,9 @@ class InvoiceItem {
    int qty_free;
    String gst;
    String total;
+   DiscountType discountType;
 
-  InvoiceItem({
+    InvoiceItem({
     this.id=0,
     this.hsn='',
     this.product='',
@@ -105,12 +107,13 @@ class InvoiceItem {
     this.mrp='',
     this.rate='',
     this.taxable='',
-    this.discount='',
+    this.discount='0',
     this.expiry='',
     this.qty=0,
     this.qty_free=0,
     this.gst='',
     this.total='',
+    this.discountType=DiscountType.percent
   });
    InvoiceItem copyWith({
      int? id,
@@ -128,6 +131,7 @@ class InvoiceItem {
      int? qty_free,
      String? gst,
      String? total,
+     DiscountType? discountType,
    }) {
      return InvoiceItem(
        id: id ?? this.id,
@@ -145,6 +149,7 @@ class InvoiceItem {
        qty_free: qty_free ?? this.qty_free,
        gst: gst ?? this.gst,
        total: total ?? this.total,
+       discountType: discountType??this.discountType
      );
    }
 
@@ -288,7 +293,7 @@ class InvoiceItem {
       mrp: mrpValue.toStringAsFixed(2),
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
-      discount: discountValue.toStringAsFixed(2),
+      discount: discountValue.toString(),
       expiry: normalized['expiry date'] ??
           normalized['expiry'] ??
           normalized['exp'] ??

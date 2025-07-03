@@ -4,7 +4,7 @@ import 'package:pixidrugs/constant/all.dart'; // adjust this import path to your
 class CustomerDetailBottomSheet extends StatefulWidget {
   final Function(String name, String phone, String address)? onSubmit;
 
-  const CustomerDetailBottomSheet({Key? key, this.onSubmit}) : super(key: key);
+  const CustomerDetailBottomSheet({Key? key, this.onSubmit, String? name, String? phone, String? address}) : super(key: key);
 
   @override
   _CustomerDetailBottomSheetState createState() => _CustomerDetailBottomSheetState();

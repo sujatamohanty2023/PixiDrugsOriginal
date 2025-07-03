@@ -50,7 +50,7 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kPrimaryLight,
+      backgroundColor: AppColors.kPrimary,
       appBar: customAppBar(context, _searchController, _onBarcodeScan),
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
@@ -65,9 +65,14 @@ class _ProductListPageState extends State<ProductListPage> {
         },
         child: isLoading==false && _filteredProducts.isEmpty
             ? _buildEmptyPage()
-            : Container(
+            :  Container(
+          padding: EdgeInsets.only(top: 20),
           decoration: BoxDecoration(
-            gradient:AppColors.myGradient,
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(30),
+              topLeft: Radius.circular(30),
+            ),
           ),
           child: ListView.builder(
             itemCount: _filteredProducts.length,
@@ -110,13 +115,7 @@ PreferredSizeWidget customAppBar(BuildContext context,
   return PreferredSize(
     preferredSize: const Size.fromHeight(120),
     child: Container(
-      decoration: const BoxDecoration(
-        color: AppColors.kPrimary, // Teal shade
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
+      color: AppColors.kPrimary,
       child: SafeArea(
         child: Column(
           children: [

@@ -29,6 +29,9 @@ class CartLoaded extends CartState {
   final double totalPrice;
   final double subTotal;
   final double discountAmount;
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
 
   CartLoaded({
     required List<InvoiceItem> cartItems,
@@ -36,6 +39,9 @@ class CartLoaded extends CartState {
     required this.totalPrice,
     required this.subTotal,
     required this.discountAmount,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
   }) : super(
     cartItems: cartItems,
     barcodeCartItems: barcodeCartItems,
@@ -47,6 +53,9 @@ class CartLoaded extends CartState {
     double? totalPrice,
     double? subTotal,
     double? discountAmount,
+    String? customerName,
+    String? customerPhone,
+    String? customerAddress,
   }) {
     return CartLoaded(
       cartItems: cartItems ?? this.cartItems,
@@ -54,6 +63,9 @@ class CartLoaded extends CartState {
       totalPrice: totalPrice ?? this.totalPrice,
       subTotal: subTotal ?? this.subTotal,
       discountAmount: discountAmount ?? this.discountAmount,
+      customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone,
+      customerAddress: customerAddress ?? this.customerAddress,
     );
   }
 
@@ -68,6 +80,9 @@ class CartLoaded extends CartState {
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       subTotal: (json['subTotal'] ?? 0).toDouble(),
       discountAmount: (json['discountAmount'] ?? 0).toDouble(),
+      customerName: json['customerName'] ?? '',
+      customerPhone: json['customerPhone'] ?? '',
+      customerAddress: json['customerAddress'] ?? '',
     );
   }
 
@@ -78,6 +93,9 @@ class CartLoaded extends CartState {
       'totalPrice': totalPrice,
       'subTotal': subTotal,
       'discountAmount': discountAmount,
+      'customerName': customerName,
+      'customerPhone': customerPhone,
+      'customerAddress': customerAddress,
     };
   }
 }
