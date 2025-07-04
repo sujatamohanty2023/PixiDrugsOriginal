@@ -1,5 +1,6 @@
 
 import 'package:pixidrugs/Dialog/show_image_picker.dart';
+import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class HomeTab extends StatefulWidget {
@@ -205,7 +206,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Expired Product
+                        Navigator.pushNamed(context, '/stockList',arguments: 2);
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFFFE2E5),
@@ -219,13 +220,13 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Expiring Product
+                        Navigator.pushNamed(context, '/stockList',arguments: 3);
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFFFF1D7),
                         progressColor: Colors.orange,
-                        title: "Expiring Product",
-                        tasks: "Track nearing expiry",
+                        title: "Expire Soon",
+                        tasks: "Track nearing expiry your product",
                         percent: 0.55,
                         icon: AppImages.notification,
                         arrowColor: Colors.orange,

@@ -1,12 +1,30 @@
+import 'package:flutter/foundation.dart';
 import 'package:pixidrugs/HomePageScreen.dart';
 import 'package:pixidrugs/SplashScreen.dart';
+import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
+import 'package:pixidrugs/login/FCMService.dart';
+import 'package:pixidrugs/login/mobileLoginScreen.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  if (message.data['type'] == 'video') {
 
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Dynamically choose the provider based on build mode
+  await FirebaseAppCheck.instance.activate(
+    androidProvider:
+    kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+  );
   runApp(const MyApp());
 }
 
@@ -21,6 +39,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    _initFCMToken();
+    // These need context and should be called from a widget lifecycle method
+    FCMService().initFCMMessage(context);
+  }
+  Future<void> _initFCMToken() async {
+    await FCMService().initFCMToken(context);
   }
 
   @override
@@ -37,15 +61,15 @@ class _MyAppState extends State<MyApp> {
         navigatorObservers: [routeObserver],
         routes: {
           '/home': (context) => HomePage(),
+          '/login': (context) => MobileLoginScreen(),
         },
         onGenerateRoute: (settings) {
-          /*if (settings.name == '/detail' || settings.name == '/slot') {
-            final doctor = settings.arguments as DoctorModel;
+          if (settings.name == '/stockList') {
+            final flag = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => DetailsScreen(type: AppString.Doctor, data: doctor,slot:settings.name == '/slot'),
+              builder: (_) => ProductListPage(flag: int.parse(flag.toString())),
             );
           }
-         */
           return null;
         },
         home: SplashScreen(),

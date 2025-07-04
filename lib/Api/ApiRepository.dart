@@ -297,7 +297,7 @@ class ApiRepository {
       throw Exception('Failed to cancel order: $e');
     }
   }
-  Future<List<dynamic>> stockList(String userId) async {
+  Future<Map<String, dynamic>> stockList(String userId,String apiName) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -305,7 +305,7 @@ class ApiRepository {
 
     try {
       final response = await dio.get(
-        '${AppString.baseUrl}api/stocklist/',
+        '${AppString.baseUrl}api/$apiName/',
         //queryParameters: {'user_id': userId},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');

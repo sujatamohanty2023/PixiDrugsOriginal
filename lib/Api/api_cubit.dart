@@ -177,11 +177,36 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> fetchStockList({required String user_id}) async {
     try {
       emit(StockListLoading());
-      final data = await apiRepository.stockList(user_id);
+      final response = await apiRepository.stockList(user_id,'stocklist');
+      final data = response['stock'] as List;
       final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(StockListLoaded(stockList: list));
     } catch (e) {
       emit(StockListError('Failed to load invoice: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> expiredStockList({required String user_id}) async {
+    try {
+      emit(ExpiredStockListLoading());
+      final response = await apiRepository.stockList(user_id,'expired');
+      final data = response['stock'] as List;
+      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      emit(ExpiredStockListLoaded(stockList: list));
+    } catch (e) {
+      emit(ExpiredStockListError('Failed to load invoice: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> expireSoonStockList({required String user_id}) async {
+    try {
+      emit(ExpireSoonStockListLoading());
+      final response = await apiRepository.stockList(user_id,'expiring');
+      final data = response['stock'] as List;
+      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      emit(ExpireSoonStockListLoaded(stockList: list));
+    } catch (e) {
+      emit(ExpireSoonStockListError('Failed to load invoice: $e'));
     }
   }
 }

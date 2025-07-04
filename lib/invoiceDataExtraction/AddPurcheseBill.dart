@@ -5,8 +5,10 @@ import 'package:pixidrugs/constant/all.dart';
 class AddPurchaseBill extends StatefulWidget {
   final String path;
   Invoice? invoice1;
+  final bool addProduct;
   AddPurchaseBill({
     super.key,
+    this.addProduct = false,
     this.path = '',
     Invoice? invoice,
   })  : invoice1 = invoice ?? Invoice();
@@ -60,15 +62,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       setState(() {
         invoice = loadedInvoice;
         productList = invoice!.items;
+
+        // ✅ If addProduct is true and no items exist, add an empty product
+        if (widget.addProduct && productList.isEmpty) {
+          final newItem = InvoiceItem(); // empty product
+          invoice!.invoiceId = '12345';
+          productList.add(newItem);
+
+          currentIndex = 0;
+          product = newItem;
+          _populateControllers();
+        }
+
         totalProducts = productList.length;
 
         total = 0;
         for (var item in productList) {
-          final sanitizedTotal = double.tryParse(item.total!.replaceAll(',', '')) ?? 0;
+          final sanitizedTotal = double.tryParse(item.total.replaceAll(',', '') ?? '') ?? 0;
           total += sanitizedTotal.round();
         }
 
         if (productList.isNotEmpty) {
+          currentIndex = 0;
           product = productList[currentIndex];
           _populateControllers();
         }
@@ -80,7 +95,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       );
     }
   }
-
   Future<Invoice> InvoiceRead()async{
     final bytes = await fileToBytes(widget.path);
     final jsonData = await analyzeDocumentWithTextract(bytes);

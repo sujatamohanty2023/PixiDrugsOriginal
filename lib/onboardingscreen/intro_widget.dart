@@ -103,7 +103,7 @@ class IntroWidget extends StatelessWidget {
                   onPressed: () async {
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboarding_completed', true);
-                    AppRoutes.navigateTo(context,MobileLoginScreen());
+                    Navigator.pushNamed(context, '/login');
                   },
                   child: const Center(
                     child: Text(

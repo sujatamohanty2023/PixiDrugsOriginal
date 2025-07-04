@@ -2,15 +2,60 @@ import 'package:pixidrugs/login/OtpVerificationScreen.dart';
 
 import 'package:pixidrugs/constant/all.dart';
 
-class MobileLoginScreen extends StatelessWidget {
+class MobileLoginScreen extends StatefulWidget {
+
+  @override
+  _MobileLoginScreenState createState() => _MobileLoginScreenState();
+}
+
+class _MobileLoginScreenState extends State<MobileLoginScreen> {
   final TextEditingController phoneController = TextEditingController();
+  String errorMessage = '';
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? verificationId;
+
+  Future<void> sendOTP() async {
+    final phoneNumber = '+91${phoneController.text.trim()}';
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential);
+        print("Automatically signed in");
+        verificationId = credential.verificationId;
+        AppRoutes.navigateTo(
+            context, OtpVerificationScreen(phoneNumber:phoneController.text, verificationId:verificationId!));
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        print("Verification failed: ${e.message}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+              Text('reCAPTCHA verification failed. Please try again.')),
+        );
+      },
+      codeSent: (String verId, int? resendToken) {
+        setState(() {
+          verificationId = verId;
+          AppRoutes.navigateTo(
+              context, OtpVerificationScreen(phoneNumber:phoneController.text,verificationId: verificationId!));
+        });
+        print("OTP Sent");
+      },
+      codeAutoRetrievalTimeout: (String verId) {
+        print("Auto retrieval timeout");
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: AppColors.kPrimaryLight,
+      backgroundColor: AppColors.kPrimary,
       body: SingleChildScrollView( // ✅ Handles keyboard scroll
         child: Column(
           children: [
@@ -126,7 +171,7 @@ class MobileLoginScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         onPressed: () {
-                           AppRoutes.navigateTo(context,OtpVerificationScreen(phoneNumber:phoneController.text.toString()));
+                           sendOTP();
                         },
                         child: const Text(
                           'Continue',

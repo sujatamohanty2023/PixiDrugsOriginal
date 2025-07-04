@@ -21,14 +21,16 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3)); // Simulates splash delay
     final prefs = await SharedPreferences.getInstance();
     final showOnboarding = prefs.getBool('onboarding_completed') ?? false;
-
-    if (!showOnboarding) {
+    final userId = await SessionManager.getUserId() ??'';
+    if (!showOnboarding && userId.isNotEmpty) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const IntroScreen()),
       );
-    } else {
+    } else if (userId.isNotEmpty) {
       AppRoutes.navigateToHome(context);
+    }else{
+      Navigator.pushNamed(context, '/login');
     }
   }
 

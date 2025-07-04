@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
       case 1:
         return CartTab(barcodeScan: true, onPressedProduct: () {});
       case 2:
-        return ProductListPage();
+        return ProductListPage(flag: 1);
       case 3:
         return ProfileScreen();
       default:

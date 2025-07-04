@@ -158,3 +158,26 @@ class StockListError extends ApiState {
   final String error;
   StockListError(this.error);
 }
+//--------------------------------------------------------------------
+class ExpiredStockListLoading extends ApiState {}
+
+class ExpiredStockListLoaded extends ApiState {
+  final List<InvoiceItem> stockList;
+  ExpiredStockListLoaded({required this.stockList});
+}
+
+class ExpiredStockListError extends ApiState {
+  final String error;
+  ExpiredStockListError(this.error);
+}//--------------------------------------------------------------------
+class ExpireSoonStockListLoading extends ApiState {}
+
+class ExpireSoonStockListLoaded extends ApiState {
+  final List<InvoiceItem> stockList;
+  ExpireSoonStockListLoaded({required this.stockList});
+}
+
+class ExpireSoonStockListError extends ApiState {
+  final String error;
+  ExpireSoonStockListError(this.error);
+}

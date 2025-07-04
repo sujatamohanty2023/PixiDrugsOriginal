@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1030308765129",
+    "project_id": "pixidrugs",
+    "storage_bucket": "pixidrugs.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030308765129:android:afe422c877c8b1d7609c18",
+        "android_client_info": {
+          "package_name": "com.pixiglam.pixidrugs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKMdQGIHySdDJf6gHP7uVXXavCzEDYS4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

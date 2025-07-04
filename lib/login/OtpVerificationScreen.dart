@@ -1,9 +1,11 @@
 import 'package:pixidrugs/constant/all.dart';
+import 'package:pixidrugs/login/FCMService.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
+  final String verificationId;
 
-  const OtpVerificationScreen({super.key, required this.phoneNumber});
+  const OtpVerificationScreen({super.key, required this.phoneNumber,required this.verificationId});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -15,10 +17,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final FocusNode _focusNode = FocusNode();
   int _resendSeconds = 30;
   late final Timer _timer;
-
+  late String _currentVerificationId;
   @override
   void initState() {
     super.initState();
+    _currentVerificationId = widget.verificationId;
     _startResendTimer();
   }
 
@@ -31,6 +34,93 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         setState(() => _resendSeconds--);
       }
     });
+  }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? otp;
+
+  Future<void> firebaseCheck() async {
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: _currentVerificationId,
+        smsCode: otp!,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      print("User signed in: ${userCredential.user?.uid}");
+      await loginApiCall();
+    } catch (e) {
+      print("OTP Verification Failed: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("OTP Verification Failed $otp")),
+      );
+    }
+  }
+
+  void _verifyOTP() {
+    otp = _enteredOtp;
+    if (otp?.length == 6) {
+      firebaseCheck();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid 6-digit OTP')),
+      );
+    }
+  }
+
+  Future<void> loginApiCall() async {
+    String? fcm_token = await FCMService.getFCMToken();
+
+    if (fcm_token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to get FCM token")),
+      );
+      return;
+    }
+    print('API URL: ${widget.phoneNumber}\n$fcm_token');
+    context.read<ApiCubit>().login(mobile: widget.phoneNumber, fcm_token: fcm_token,role:'user');
+
+    context.read<ApiCubit>().stream.listen((state) {
+      if (state is LoginLoaded) {
+        if(state.loginResponse.message.contains('Login successful')){
+          _saveRole(state.loginResponse);
+        }else if(state.loginResponse.message.contains('No data')){
+
+        }
+      } else if (state is LoginError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.error)),
+        );
+      }
+    });
+  }
+  Future<void> _saveRole(LoginModel loginResponse) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(loginResponse.message)),
+    );
+    await SessionManager.saveLoginResponse(loginResponse);
+    Navigator.pop(context);
+    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+  }
+  void _resendOtp() {
+    FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: widget.phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) {},
+      verificationFailed: (FirebaseAuthException e) {
+        print('Verification failed: ${e.message}');
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          _currentVerificationId = verificationId; // ✅ update it here
+          _resendSeconds = 30;
+          _startResendTimer();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("OTP Resent")),
+        );
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
+    );
   }
 
   @override
@@ -57,7 +147,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kPrimaryLight,
+      backgroundColor: AppColors.kPrimary,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -145,10 +235,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
                   /// ⏱ Resend text
                   TextButton(
-                    onPressed: _resendSeconds == 0 ? () {
-                      _startResendTimer();
-                      // Trigger resend logic
-                    } : null,
+                    onPressed:_resendSeconds == 0 ? _resendOtp : null,
                     child: Text(
                       _resendSeconds == 0
                           ? "Resend OTP"
@@ -174,20 +261,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      onPressed: () {
-                        final otp = _enteredOtp;
-                        if (otp.length == 6) {
-                          AppRoutes.navigateToHome(context);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please enter 6-digit OTP"),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: _verifyOTP,
                       child: const Text(
-                        "Verify",
+                        "Verify & Continue",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
