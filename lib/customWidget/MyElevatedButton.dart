@@ -18,12 +18,12 @@ class MyElevatedButton extends StatelessWidget {
       onPressed: onPressed,
       style: custom_design
           ? AppStyles.elevatedButton_cut_style(
-          color: AppColors.kPrimary)
+          color: backgroundColor)
           : AppStyles.elevatedButton_style(color: backgroundColor),
       child: MyTextfield.textStyle_w800(
           buttonText,
           custom_design ? 18 : 20,
-          AppColors.kWhiteColor),
+          custom_design ?AppColors.kPrimary:AppColors.kWhiteColor),
     );
   }
 }

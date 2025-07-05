@@ -3,14 +3,37 @@ class AnalyzeExpenseParser {
 
   AnalyzeExpenseParser(this.json);
 
+  /// Smart guess for field type when Textract returns "OTHER"
+  String guessLabelFromValue(String value) {
+    final lower = value.toLowerCase();
+
+    if (lower.contains('gm') || lower.contains('ml') || lower.contains('kg')) return 'packing';
+    if (lower.contains('batch') || RegExp(r'^[a-zA-Z]?\d{3,}$').hasMatch(lower)) return 'batch';
+    if (lower.contains('exp')) return 'expiry';
+    if (lower.contains('hsn') || RegExp(r'^\d{4,8}$').hasMatch(lower)) return 'hsn';
+    if (lower.contains('%') || lower.contains('gst')) return 'gst';
+    if (lower.contains('disc') || lower.contains('discount')) return 'discount';
+    if (lower.contains('mrp')) return 'mrp';
+
+    if (RegExp(r'^\d+(\.\d+)?$').hasMatch(value)) {
+      final num = double.tryParse(value) ?? 0.0;
+      if (num < 10) return 'qty';
+      if (num < 999) return 'rate';
+      return 'total';
+    }
+
+    return 'product';
+  }
+
+  /// Parse the full invoice
   Map<String, dynamic> parse() {
     final invoice = <String, dynamic>{
-      'invoiceId': '',
-      'invoiceDate': '',
-      'sellerName': '',
-      'sellerGstin': '',
-      'sellerAddress': '',
-      'netAmount': '',
+      'invoice_no': '',
+      'invoice_date': '',
+      'seller_name': '',
+      'gst_no': '',
+      'address': '',
+      'net_amount': '',
       'user_id': '',
       'items': <Map<String, String>>[],
     };
@@ -24,8 +47,8 @@ class AnalyzeExpenseParser {
     final summaryFields = doc['SummaryFields'] as List?;
     if (summaryFields != null) {
       for (final field in summaryFields) {
-        final type = field['Type']?['Text'];
-        final value = field['ValueDetection']?['Text'];
+        final type = field['Type']?['Text'] ?? '';
+        final value = field['ValueDetection']?['Text'] ?? '';
         switch (type) {
           case 'INVOICE_RECEIPT_ID':
             invoice['invoice_no'] = value;
@@ -43,7 +66,7 @@ class AnalyzeExpenseParser {
             invoice['gst_no'] = value;
             break;
           case 'TOTAL':
-            invoice['net_amount'] = value ?? '';
+            invoice['net_amount'] = value;
             break;
         }
       }
@@ -59,15 +82,29 @@ class AnalyzeExpenseParser {
         for (final item in lineItems) {
           final itemFields = item['LineItemExpenseFields'] as List?;
           final row = <String, String>{};
+
           if (itemFields != null) {
             for (final f in itemFields) {
-              final label = f['LabelDetection']?['Text'] ?? f['Type']?['Text'];
+              final typeText = f['Type']?['Text'] ?? '';
+              final label = f['LabelDetection']?['Text'] ?? typeText;
               final value = f['ValueDetection']?['Text'];
-              if (label != null && value != null) {
-                row[label] = value;
+              final valueConfidence = (f['ValueDetection']?['Confidence'] ?? 100).toDouble();
+
+              if (value == null || value.trim().isEmpty || valueConfidence < 30) {
+                continue; // Skip empty or low-confidence values
               }
+
+              // Clean key
+              final key = (label.toLowerCase() == 'other')
+                  ? guessLabelFromValue(value)
+                  : label.toLowerCase().trim();
+
+              row[key] = value.trim();
             }
-            if (row.isNotEmpty) invoice['items'].add(row);
+
+            if (row.isNotEmpty) {
+              invoice['items'].add(row);
+            }
           }
         }
       }
@@ -75,5 +112,4 @@ class AnalyzeExpenseParser {
 
     return invoice;
   }
-
 }

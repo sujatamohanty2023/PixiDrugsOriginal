@@ -5,13 +5,11 @@ import 'package:pixidrugs/constant/all.dart';
 class AddPurchaseBill extends StatefulWidget {
   final String path;
   Invoice? invoice1;
-  final bool addProduct;
   AddPurchaseBill({
     super.key,
-    this.addProduct = false,
     this.path = '',
     Invoice? invoice,
-  })  : invoice1 = invoice ?? Invoice();
+  })  : invoice1 = invoice ??  Invoice(items: [InvoiceItem()]);
 
   @override
   State<AddPurchaseBill> createState() => _AddPurchaseBillState();
@@ -63,17 +61,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         invoice = loadedInvoice;
         productList = invoice!.items;
 
-        // ✅ If addProduct is true and no items exist, add an empty product
-        if (widget.addProduct && productList.isEmpty) {
-          final newItem = InvoiceItem(); // empty product
-          invoice!.invoiceId = '12345';
-          productList.add(newItem);
-
-          currentIndex = 0;
-          product = newItem;
-          _populateControllers();
-        }
-
         totalProducts = productList.length;
 
         total = 0;
@@ -81,7 +68,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           final sanitizedTotal = double.tryParse(item.total.replaceAll(',', '') ?? '') ?? 0;
           total += sanitizedTotal.round();
         }
-
         if (productList.isNotEmpty) {
           currentIndex = 0;
           product = productList[currentIndex];
@@ -203,7 +189,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     mrpController.text = product?.mrp.toString() ?? '';
     discController.text = product?.discount.toString() ?? '';
     taxableController.text =product?.taxable.toString() ?? '';
-    totalController.text = product?.total.toString() ?? '';
+    totalController.text = product?.total.toString() ?? '0.0';
   }
   void _clearControllers() {
     batchNoController.clear();
@@ -275,13 +261,14 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                     _populateControllers(); // optional if you want to repopulate default values
                   });
                 },
+              backgroundColor: AppColors.kPrimaryLight,
               custom_design: true,
               buttonText: "Add Product",
             ),
           ): SizedBox()
         ],
       ),
-      body: invoice!.invoiceId!.isNotEmpty?Container(
+      body: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.myGradient,
           ),
@@ -448,9 +435,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             ],
           ),
         ),
-      ):const Center(child: CircularProgressIndicator(color: AppColors.kPrimary,)),
+      ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: invoice!.invoiceId!.isNotEmpty?Row(
+        floatingActionButton: Row(
           children: [
             if (currentIndex > 0)
               Expanded(
@@ -546,7 +533,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
               ),
             ),
           ],
-        ):SizedBox(),
+        ),
     );
   }
 
@@ -557,7 +544,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         Row(
           children: [
             MyTextfield.textStyle_w600(
-                label, AppUtils.size_16, Colors.black),
+                label, AppUtils.size_16, Colors.black54),
             MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red)
           ],
         ),

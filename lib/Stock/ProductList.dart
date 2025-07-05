@@ -56,7 +56,7 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   void _onAddProduct() {
-    AppRoutes.navigateTo(context, AddPurchaseBill(addProduct:true));
+    AppRoutes.navigateTo(context, AddPurchaseBill());
   }
 
   @override

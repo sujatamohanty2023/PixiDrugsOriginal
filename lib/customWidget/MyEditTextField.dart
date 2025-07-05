@@ -41,13 +41,13 @@ class MyEdittextfield extends StatelessWidget {
         controller: controller,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey),
+          hintStyle: TextStyle(color: Colors.grey.shade300),
           border: InputBorder.none, // Remove default border
           contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         ),
         style: MyTextfield.textStyle(
             login ? 18 : 14,
-            login ? AppColors.kPrimary : Colors.black45,
+            login ? AppColors.kPrimary : Colors.black,
             login ? FontWeight.w800 : FontWeight.w600),
         inputFormatters: keyboardType == TextInputType.number
             ? [

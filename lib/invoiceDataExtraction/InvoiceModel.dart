@@ -264,13 +264,13 @@ class InvoiceItem {
 
     final gstValue = parseCombinedGst(rawGstString);
 
-    final mrpValue = parseNumberFromString(
-        normalized['mrp'] ?? normalized['maximum_retail_price']);
+    final mrpValue = parseNumberFromString(normalized['mrp']??
+        normalized['mrp'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
     final rateValue =
-    parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']);
-    final taxableValue = parseNumberFromString(normalized['taxable']);
+    parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
+    final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']);
     final discountValue =
-    parseNumberFromString(normalized['disc'] ?? normalized['dis'] ?? normalized['discount']);
+    parseNumberFromString(normalized['disc'] ??normalized['Disc'] ?? normalized['dis'] ?? normalized['discount']);
 
     final qtyRaw = normalized['quantity'] ?? normalized['qty'] ?? '0';
     final qty = parseQty(qtyRaw);
@@ -278,8 +278,9 @@ class InvoiceItem {
 
     return InvoiceItem(
       id: parseId(normalized['id']??'0'),
-      hsn: normalized['hsn_code'] ?? normalized['hsn'] ?? '0',
+      hsn: normalized['hsn_code'] ?? normalized['hsn']?? normalized['HSN'] ?? normalized['Product_Code']??normalized['Product Code']??'',
       product: normalized['product name'] ??
+          normalized['product Name'] ??
           normalized['product_name']??
           normalized['item'] ??
           normalized['description'] ??
@@ -289,7 +290,7 @@ class InvoiceItem {
           '',
       composition: normalized['composition']??'',
       packing: normalized['pack'] ?? normalized['package'] ?? normalized['packing'] ?? '',
-      batch: normalized['batch no'] ??normalized['batch_no'] ?? normalized['batch'] ?? normalized['batch number'] ?? '',
+      batch:normalized['Batch No']?? normalized['batch no'] ??normalized['batch_no'] ?? normalized['batch'] ?? normalized['batch number'] ?? '',
       mrp: mrpValue.toStringAsFixed(2),
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
@@ -299,6 +300,7 @@ class InvoiceItem {
           normalized['exp'] ??
           normalized['exp.'] ??
           normalized['ex.dt'] ??
+          normalized['Ex.Dt'] ??
           '',
       qty: qty,
       qty_free: qtyFree,
