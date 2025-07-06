@@ -51,7 +51,6 @@ export '../Api/ApiRepository.dart';
 export '../Api/ApiState.dart';
 export '../login/LoginModel.dart';
 export '../onboardingscreen/BannerModel.dart';
-export '../DoctorProfileModel.dart';
 export '../UserProfileModel.dart';
 
 export '../login/SessionManager.dart';

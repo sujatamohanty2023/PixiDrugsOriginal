@@ -17,20 +17,6 @@ class LoginError extends ApiState {
   final String error;
   LoginError(this.error);
 }
-
-//--------------------------------------------------------------------
-class DoctorRegistrationLoading extends ApiState {}
-
-class DoctorRegistrationLoaded extends ApiState {
-  final String message;
-
-  DoctorRegistrationLoaded({required this.message});
-}
-
-class DoctorRegistrationError extends ApiState {
-  final String error;
-  DoctorRegistrationError(this.error);
-}
 //--------------------------------------------------------------------
 class BannerLoading extends ApiState {}
 
@@ -71,20 +57,6 @@ class EditProfileLoaded extends ApiState {
 class EditProfileError extends ApiState {
   final String error;
   EditProfileError(this.error);
-}
-
-//--------------------------------------------------------------------
-class DoctorProfileLoading extends ApiState {}
-
-class DoctorProfileLoaded extends ApiState {
-  final DoctorProfileModel doctorModel;
-
-  DoctorProfileLoaded({required this.doctorModel});
-}
-
-class DoctorProfileError extends ApiState {
-  final String error;
-  DoctorProfileError(this.error);
 }
 //--------------------------------------------------------------------
 class UpdateFCMTokenLoading extends ApiState {}

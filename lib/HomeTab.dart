@@ -3,6 +3,8 @@ import 'package:pixidrugs/Dialog/show_image_picker.dart';
 import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 
+import 'invoiceList/invoiceListScreen.dart';
+
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
 
@@ -166,7 +168,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to Invoice History
+                        AppRoutes.navigateTo(context, InvoiceListPage());
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFDCEBFF),

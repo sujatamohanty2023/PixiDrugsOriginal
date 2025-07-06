@@ -29,43 +29,6 @@ class ApiRepository {
       throw Exception('Failed to load posts: $e');
     }
   }
-  Future<Map<String, dynamic>> doctor_registation(
-      String name,String email,String phone_number, String reg_no, String role, String address,String city,String state,
-      String zip_code,String fcm_token,String latitude,String longitude) async {
-    bool isConnected = await ConnectivityService.isConnected();
-    if (!isConnected) {
-      throw Exception('No internet connection');
-    }
-
-    try {
-      final response = await dio.post(
-        '${AppString.baseUrl}api/regdoctor',
-        queryParameters: {
-          'name': name,
-          'email': email,
-          'phone_number':phone_number,
-          'reg_no':reg_no,
-          'role':role,
-          'address':address,
-          'city':city,
-          'state':state,
-          'zip_code':zip_code,
-          'fcm_token':fcm_token,
-          'latitude':latitude,
-          'reg_no':longitude,},
-      );
-      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
-      print('API URL: $response');
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('Failed to load posts');
-      }
-    } catch (e) {
-      throw Exception('Failed to load posts: $e');
-    }
-  }
-
   Future<Map<String, dynamic>> fetchBanner() async {
     try {
       final response = await dio.get(
@@ -139,30 +102,6 @@ class ApiRepository {
       throw Exception('Failed to load posts: $e');
     }
   }
-
-  Future<Map<String, dynamic>> GetDoctorProfile(
-      String doctor_id, String date) async {
-    bool isConnected = await ConnectivityService.isConnected();
-    if (!isConnected) {
-      throw Exception('No internet connection');
-    }
-
-    try {
-      final response = await dio.get(
-        '${AppString.baseUrl}api/doctorprofile',
-        queryParameters: {'doctor_id': doctor_id, 'date': date},
-      );
-      print('API URL: ${response.data}');
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('Failed to load posts');
-      }
-    } catch (e) {
-      throw Exception('Failed to load posts: $e');
-    }
-  }
-
   Future<Map<String, dynamic>> UpdateFCM(
       String user_id, String fcm_token) async {
     bool isConnected = await ConnectivityService.isConnected();
@@ -284,7 +223,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/invoicelist/',
-        queryParameters: {'user_id': userId,'page':1,'per_page':20},
+        queryParameters: {'user_id': '117','page':1,'per_page':20},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');

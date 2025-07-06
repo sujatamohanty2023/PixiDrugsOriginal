@@ -21,31 +21,6 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
 
-//------------------------------------------------------------------------------------
-  Future<void> doctorRegistration(
-      {required String name,
-        required String email,
-        required String phone_number,
-        required String reg_no,
-        required String role,
-        required String address,
-        required String city,
-        required String state,
-        required String zip_code,
-        required String fcm_token,
-        required String latitude,
-        required String longitude}) async {
-    try {
-      emit(DoctorRegistrationLoading());
-      final response = await apiRepository.doctor_registation(name,email,phone_number,reg_no,role,address,city,state,
-          zip_code,fcm_token,latitude,longitude);
-      final message = response['message'];
-      emit(DoctorRegistrationLoaded(message: message));
-    } catch (e) {
-      emit(DoctorRegistrationError('Failed to load login response: $e'));
-    }
-  }
-
   //------------------------------------------------------------------------------------
   Future<void> fetchBanner() async {
     try {
@@ -92,22 +67,6 @@ class ApiCubit extends Cubit<ApiState> {
       emit(EditProfileLoaded(userModel: model, message: message));
     } catch (e) {
       emit(EditProfileError('Failed to edit user profile: $e'));
-    }
-  }
-
-  //------------------------------------------------------------------------------------
-  Future<void> GetDoctorData({
-    required String doctorId,
-    required String date,
-  }) async {
-    try {
-      emit(DoctorProfileLoading());
-      final response = await apiRepository.GetDoctorProfile(doctorId, date);
-      final data = response['doctor'];
-      final doctorModel = DoctorProfileModel.fromJson(data);
-      emit(DoctorProfileLoaded(doctorModel: doctorModel));
-    } catch (e) {
-      emit(DoctorProfileError('Failed to load user profile: $e'));
     }
   }
 
