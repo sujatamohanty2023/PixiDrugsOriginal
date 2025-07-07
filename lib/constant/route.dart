@@ -1,5 +1,4 @@
-import 'package:pixidrugs/HomePageScreen.dart';
-import 'package:pixidrugs/HomeTab.dart';
+import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class AppRoutes {

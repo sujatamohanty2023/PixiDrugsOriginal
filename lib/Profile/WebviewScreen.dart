@@ -1,0 +1,41 @@
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:pixidrugs/constant/all.dart';
+
+class Webviewscreen extends StatefulWidget {
+  final String? tittle;
+  Webviewscreen({required this.tittle});
+
+  @override
+  _WebviewscreenState createState() => _WebviewscreenState();
+}
+
+class _WebviewscreenState extends State<Webviewscreen> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    var url = '';
+    if (widget.tittle == 'About Us') {
+      url = 'http://pixidrugs.com/about';
+    } else if (widget.tittle == 'Contact Us') {
+      url = 'http://pixidrugs.com/contact';
+    } else if (widget.tittle == 'Privacy Policy') {
+      url = 'http://pixidrugs.com/privacy';
+    } else if (widget.tittle == 'Terms & Conditions') {
+      url = 'http://pixidrugs.com/terms';
+    }
+    _controller = WebViewController()..loadRequest(Uri.parse(url));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppUtils.BaseAppBar(
+        context: context,
+        title: widget.tittle ?? "About Us",
+      ),
+      body: WebViewWidget(controller: _controller),
+    );
+  }
+}

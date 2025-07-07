@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:pixidrugs/HomePageScreen.dart';
+import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/SplashScreen.dart';
 import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';

@@ -147,6 +147,33 @@ class ApiRepository {
       throw Exception('Failed to barcodeScan: $e');
     }
   }
+  Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+    try {
+      final response = await dio.post(
+        '${AppString.baseUrl}api/checkout',
+        queryParameters: {
+          'seller_id': model.seller_id,
+          'name': model.name,
+          'phone': model.phone,
+          'email': model.email,
+          'address':model.address,
+          'items': model.toApiFormatProductOrder()
+        },
+      );
+      print('API URL: ${response}');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load leave');
+      }
+    } catch (e) {
+      throw Exception('Failed to load leave: $e');
+    }
+  }
   Future<Map<String, dynamic>> post_Invoice(Invoice invoice) async {
     // Check internet connection
     bool isConnected = await ConnectivityService.isConnected();

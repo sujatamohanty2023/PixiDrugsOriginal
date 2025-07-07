@@ -1,4 +1,4 @@
-import 'package:pixidrugs/PdfGenerate.dart';
+import 'package:pixidrugs/Dialog/success_dialog.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
 
@@ -144,7 +144,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: MyElevatedButton(
             onPressed: (){
                 if(address != null && address!.isNotEmpty){
-                  AppRoutes.navigateTo(context, ReceiptPrinterPage());
+                  _paymentPageCall(context);
                 }else {
                   _onButtonSalePressed();
                 }
@@ -152,6 +152,83 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             custom_design: true,
             buttonText:  address != null && address!.isNotEmpty?"CheckOut":"Confirm",
           )):SizedBox(),
+    );
+  }
+  Future<void> _paymentPageCall(BuildContext context) async {
+    String? userId = await SessionManager.getUserId();
+    final cartState = context.read<CartCubit>().state;
+
+    if (cartState is CartLoaded) {
+      if (cartState.cartItems.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Your cart is empty')),
+        );
+        return;
+      }
+
+      final model = OrderPlaceModel(
+        cartItems: cartState.cartItems,
+        seller_id: userId!,
+        name: name!,
+        phone: phone!,
+        email: '',
+        address: address!
+      );
+      placeOrderApiCall(model);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unexpected error occurred')),
+      );
+    }
+  }
+  void placeOrderApiCall(OrderPlaceModel model){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+    context.read<ApiCubit>().placeOrder(
+      orderPlaceModel: model,
+    );
+
+    // Listen for the API response
+    context
+        .read<ApiCubit>()
+        .stream
+        .listen((state) {
+      if (state is OrderPlaceLoaded) {
+        Navigator.pop(context); // Dismiss loading indicator
+
+        // Show success message using SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.message)),
+        );
+        if (state.message == "Order placed successfully") {
+          SuccessOrderPlaceCall(state.orderId);
+        }
+      } else if (state is OrderPlaceError) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to Book Appointment: ${state.error}')),
+        );
+      }
+    });
+  }
+  void SuccessOrderPlaceCall(int orderId) {
+    // ✅ Clear the cart
+    context.read<CartCubit>().clearCart();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => SuccessDialog(
+          SvgPicture.asset(
+            AppImages.check,
+            height: 60,
+            width: 60,
+          ),
+          "Your Placed Order Successful",
+          "Your order #${orderId} has been placed successfully."),
     );
   }
   void _onButtonSalePressed() {

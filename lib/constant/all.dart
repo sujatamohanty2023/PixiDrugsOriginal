@@ -5,12 +5,16 @@ export 'dart:async';
 export 'dart:io';
 export 'package:google_fonts/google_fonts.dart';
 export 'package:flutter_bloc/flutter_bloc.dart';
+export 'package:mime/mime.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:flutter_svg/svg.dart';
 export 'package:barcode_scan2/platform_wrapper.dart';
 export 'package:shared_preferences/shared_preferences.dart';
 export 'package:file_picker/file_picker.dart';
 export 'package:image_picker/image_picker.dart';
+export 'package:url_launcher/url_launcher.dart';
+export 'package:rating_dialog/rating_dialog.dart';
+export 'package:share_plus/share_plus.dart';
 
 export 'package:firebase_messaging/firebase_messaging.dart';
 export 'package:firebase_core/firebase_core.dart';
@@ -51,7 +55,7 @@ export '../Api/ApiRepository.dart';
 export '../Api/ApiState.dart';
 export '../login/LoginModel.dart';
 export '../onboardingscreen/BannerModel.dart';
-export '../UserProfileModel.dart';
+export '../Profile/UserProfileModel.dart';
 
 export '../login/SessionManager.dart';
 

@@ -1,9 +1,8 @@
 
 import 'package:pixidrugs/Dialog/show_image_picker.dart';
-import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 
-import 'invoiceList/invoiceListScreen.dart';
+import '../invoiceList/invoiceListScreen.dart';
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
@@ -67,9 +66,9 @@ class _HomeTabState extends State<HomeTab> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage("assets/images/splash.jpg"),
+                      backgroundImage: AssetImage(AppImages.AppIcon),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -142,10 +141,8 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  "My DashBoard",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                MyTextfield.textStyle_w800(
+                  "My DashBoard",20, Colors.black87),
                 const SizedBox(height: 10),
                 GridView.count(
                   shrinkWrap: true,
@@ -322,8 +319,7 @@ class _HomeTabState extends State<HomeTab> {
                             valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                           ),
                         ),
-                        Text("${(percent * 100).toInt()}%",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: progressColor)),
+                        MyTextfield.textStyle_w600("${(percent * 100).toInt()}%",16 ,progressColor),
                       ],
                     ),
                     SizedBox(width: 40,),
@@ -331,13 +327,9 @@ class _HomeTabState extends State<HomeTab> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: progressColor)),
+                MyTextfield.textStyle_w600(title,20,progressColor),
                 const SizedBox(height: 4),
-                Text(tasks, style: TextStyle(color: progressColor.withOpacity(0.6))),
+                MyTextfield.textStyle_w300(tasks,14,progressColor.withOpacity(0.6)),
               ],
             ),
           ),

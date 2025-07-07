@@ -39,25 +39,11 @@ class MyTextfield {
   // Central method to define text style
   static TextStyle textStyle(double size, Color color, FontWeight fontWeight,
       {TextDecoration decoration = TextDecoration.none}) {
-    return GoogleFonts.metrophobic(
+    return GoogleFonts.signika(
       color: color,
       fontSize: size,
       fontWeight: fontWeight,
       decoration: decoration,
     );
-  }
-
-  static TextStyle slotBooktextStyle(
-      double size,
-      Color color,
-      FontWeight fontWeight,
-      TextDecoration? decoration,
-      Color decorationColor) {
-    return GoogleFonts.metrophobic(
-        color: color,
-        fontSize: size,
-        fontWeight: fontWeight,
-        decoration: decoration,
-        decorationColor: decorationColor);
   }
 }

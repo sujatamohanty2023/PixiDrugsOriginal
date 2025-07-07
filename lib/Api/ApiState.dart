@@ -82,6 +82,21 @@ class BarcodeScanError extends ApiState {
   final String error;
   BarcodeScanError(this.error);
 }
+
+//--------------------------------------------------------------------
+class OrderPlaceLoading extends ApiState {}
+
+class OrderPlaceLoaded extends ApiState {
+  final String message;
+  final int orderId;
+
+  OrderPlaceLoaded({required this.message, required this.orderId});
+}
+
+class OrderPlaceError extends ApiState {
+  final String error;
+  OrderPlaceError(this.error);
+}
 //--------------------------------------------------------------------
 class InvoiceEditLoading extends ApiState {}
 

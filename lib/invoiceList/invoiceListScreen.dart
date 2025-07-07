@@ -227,7 +227,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> with WidgetsBindingOb
                   children: [
                     CircleAvatar(
                       radius: screenWidth * 0.08,
-                      backgroundColor: AppColors.kPrimaryDark,
+                      backgroundColor: AppColors.kWhiteColor,
                       child: Text(
                         getInitials(invoice.sellerName!),
                         style: TextStyle(

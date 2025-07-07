@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pixidrugs/Cart/CartTab.dart';
-import 'package:pixidrugs/HomeTab.dart';
+import 'package:pixidrugs/Home/HomeTab.dart';
 import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/profileScreen.dart';
+import 'package:pixidrugs/Profile/profileTab.dart';
 
 class HomePage extends StatefulWidget {
   @override

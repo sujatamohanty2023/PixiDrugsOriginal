@@ -1,3 +1,4 @@
+import 'package:pixidrugs/PdfGenerate.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class SuccessDialog extends StatefulWidget {
@@ -61,6 +62,6 @@ class _SuccessDialogState extends State<SuccessDialog> {
   }
 
   void _onButtonPressed() {
-    AppRoutes.navigateToHome(context);
+    AppRoutes.navigateTo(context,ReceiptPrinterPage());
   }
 }

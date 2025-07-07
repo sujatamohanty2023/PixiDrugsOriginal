@@ -3,15 +3,19 @@ import 'package:pixidrugs/constant/all.dart';
 
 class OrderPlaceModel {
   List<InvoiceItem> cartItems;
-  double totalPrice;
-  double subTotal;
-  double discountAmount;
+  String seller_id;
+  String name;
+  String phone;
+  String email;
+  String address;
 
   OrderPlaceModel({
     this.cartItems = const [],
-    this.totalPrice = 0.0,
-    this.subTotal = 0.0,
-    this.discountAmount = 0.0,
+    this.seller_id = '',
+    this.name = '',
+    this.phone = '',
+    this.email = '',
+    this.address = '',
   });
 
   List<Map<String, dynamic>> toApiFormatProductOrder() {
@@ -20,7 +24,9 @@ class OrderPlaceModel {
         'product_id': item.id,
         'product_name': item.product,
         'price': item.mrp,
-        'quantity': item.qty
+        'quantity': item.qty,
+        'discount': item.discount,
+        'gst': item.gst
       };
     }).toList();
   }
@@ -30,8 +36,10 @@ class OrderPlaceModel {
         cartItems: (json['cartItems'] as List<dynamic>)
             .map((item) => InvoiceItem.fromJson(item))
             .toList(),
-        totalPrice: (json['totalPrice'] ?? 0.0).toDouble(),
-        subTotal: (json['subTotal'] ?? 0.0).toDouble(),
-        discountAmount: (json['discountAmount'] ?? 0.0).toDouble()
+          seller_id: json['seller_id'] ?? '',
+        name: json['name'] ?? '',
+        phone: json['phone'] ?? '',
+        email: json['email'] ?? '',
+        address: json['address'] ?? '',
       );
 }

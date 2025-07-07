@@ -99,6 +99,19 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
+  Future<void> placeOrder({required OrderPlaceModel orderPlaceModel}) async {
+    try {
+      emit(OrderPlaceLoading());
+      final response = await apiRepository.PlaceOrderApi(orderPlaceModel);
+      final data = response['message'];
+      final orderId = response['billing_id'];
+
+      emit(OrderPlaceLoaded(message: data, orderId: orderId));
+    } catch (e) {
+      emit(OrderPlaceError('Failed to post appointment: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
   Future<void> InvoiceAdd({required Invoice invoice}) async {
     try {
       emit(InvoiceAddLoading());

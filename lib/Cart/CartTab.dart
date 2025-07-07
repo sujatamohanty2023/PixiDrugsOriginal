@@ -97,30 +97,4 @@ class _CartTabState extends State<CartTab> {
       );
     }
   }
-
-  /// Handles checkout button press
-  Future<void> _paymentPageCall(BuildContext context) async {
-    final cartState = context.read<CartCubit>().state;
-
-    if (cartState is CartLoaded) {
-      if (cartState.cartItems.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Your cart is empty')),
-        );
-        return;
-      }
-
-      final model = OrderPlaceModel(
-        cartItems: cartState.cartItems,
-        totalPrice: cartState.totalPrice,
-        subTotal: cartState.subTotal,
-        discountAmount: cartState.discountAmount,
-      );
-      Navigator.pushNamed(context, '/paymentAfterOrder',arguments: model);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unexpected error occurred')),
-      );
-    }
-  }
 }
