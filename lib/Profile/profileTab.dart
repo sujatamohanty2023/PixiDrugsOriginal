@@ -184,7 +184,7 @@ class ProfileScreen extends StatefulWidget {
       initialRating: 1.0,
       // your app's name?
       title:
-      MyTextfield.textStyle_w800("Rating Arya Cosmetics", 25, Colors.black),
+      MyTextfield.textStyle_w800("Rating PixiDrugs", 25, Colors.black),
       // encourage your user to leave a high rating?
       message: MyTextfield.textStyle_w600(
           "Tap a star to set your rating. Add more description here if you want.",
@@ -213,7 +213,7 @@ class ProfileScreen extends StatefulWidget {
 
 Future _launchUrl() async {
   final String url = "http://play.google.com/store/apps/details?id=";
-  final String packageName = "com.medirobo.pharma";
+  final String packageName = "com.pixiglam.pixidrugs";
   final Uri _url = Uri.parse(url + packageName);
   if (!await launchUrl(_url)) {
     throw Exception('Could not launch $_url');

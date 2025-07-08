@@ -1,5 +1,6 @@
 // api_cubit.dart
 
+import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class ApiCubit extends Cubit<ApiState> {
@@ -150,8 +151,7 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(StockListLoading());
       final response = await apiRepository.stockList(user_id,'stocklist');
-      final data = response['stock'] as List;
-      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(StockListLoaded(stockList: list));
     } catch (e) {
       emit(StockListError('Failed to load invoice: $e'));
@@ -162,8 +162,7 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(ExpiredStockListLoading());
       final response = await apiRepository.stockList(user_id,'expired');
-      final data = response['stock'] as List;
-      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(ExpiredStockListLoaded(stockList: list));
     } catch (e) {
       emit(ExpiredStockListError('Failed to load invoice: $e'));
@@ -174,11 +173,22 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(ExpireSoonStockListLoading());
       final response = await apiRepository.stockList(user_id,'expiring');
-      final data = response['stock'] as List;
-      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(ExpireSoonStockListLoaded(stockList: list));
     } catch (e) {
       emit(ExpireSoonStockListError('Failed to load invoice: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchSaleList({required String user_id}) async {
+    try {
+      emit(SaleListLoading());
+      final response = await apiRepository.saleList(user_id);
+      final data = response['bills'] as List;
+      final list = data.map((json) => SaleModel.fromJson(json)).toList();
+      emit(SaleListLoaded(saleList: list));
+    } catch (e) {
+      emit(SaleListError('Failed to load sale: $e'));
     }
   }
 }

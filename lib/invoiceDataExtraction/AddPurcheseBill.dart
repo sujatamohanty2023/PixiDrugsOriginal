@@ -262,6 +262,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                   });
                 },
               backgroundColor: AppColors.kPrimaryLight,
+              titleColor:AppColors.kPrimary,
               custom_design: true,
               buttonText: "Add Product",
             ),

@@ -1,3 +1,4 @@
+import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 abstract class ApiState {}
@@ -156,7 +157,8 @@ class ExpiredStockListLoaded extends ApiState {
 class ExpiredStockListError extends ApiState {
   final String error;
   ExpiredStockListError(this.error);
-}//--------------------------------------------------------------------
+}
+//--------------------------------------------------------------------
 class ExpireSoonStockListLoading extends ApiState {}
 
 class ExpireSoonStockListLoaded extends ApiState {
@@ -167,4 +169,16 @@ class ExpireSoonStockListLoaded extends ApiState {
 class ExpireSoonStockListError extends ApiState {
   final String error;
   ExpireSoonStockListError(this.error);
+}
+//--------------------------------------------------------------------
+class SaleListLoading extends ApiState {}
+
+class SaleListLoaded extends ApiState {
+  final List<SaleModel> saleList;
+  SaleListLoaded({required this.saleList});
+}
+
+class SaleListError extends ApiState {
+  final String error;
+  SaleListError(this.error);
 }

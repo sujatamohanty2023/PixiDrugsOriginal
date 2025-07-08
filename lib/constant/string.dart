@@ -12,6 +12,7 @@ class AppString {
   static String address = 'Address';
   static String enterAddress = 'Enter your Address';
   static String enterNumber = 'Enter your phone number';
+  static String enterGst = 'Enter your GSTIN NO.';
   static String enterEmail = 'Enter your email';
   static String upDate = 'Update';
 }

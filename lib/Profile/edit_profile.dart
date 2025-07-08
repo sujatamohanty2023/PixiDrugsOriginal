@@ -12,6 +12,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
+  TextEditingController gstController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
 
   bool image_changed = false;
   String _imageFile = '';
@@ -38,6 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         nameController.text = state.userModel.name;
         emailController.text = state.userModel.email;
         phoneController.text = state.userModel.phoneNumber;
+        gstController.text = state.userModel.phoneNumber;
+        addressController.text = state.userModel.phoneNumber;
         String imageUrl = state.userModel.profilePicture;
         setState(() {
           _imageFile = imageUrl;
@@ -192,6 +196,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     controller: phoneController,
                     hintText: AppString.enterNumber,
                     keyboardType: TextInputType.phone),
+                SizedBox(height: 8),
+                // Phone number input field
+                MyTextfield.textStyle_w600('GSTIN', 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    controller: gstController,
+                    hintText: AppString.enterGst,
+                    keyboardType: TextInputType.text),
+                SizedBox(height: 8),
+                // Phone number input field
+                MyTextfield.textStyle_w600(AppString.phone, 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    controller: addressController,
+                    hintText: AppString.enterAddress,
+                    keyboardType: TextInputType.text),
                 SizedBox(height: screenHeight * 0.015),
                 // Update button
                 /// **Bottom-Aligned Update Button**

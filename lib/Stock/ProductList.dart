@@ -26,17 +26,17 @@ class _ProductListPageState extends State<ProductListPage> {
     _searchController.dispose();
     super.dispose();
   }
-  void _fetchStockList() {
+  Future<void> _fetchStockList() async {
     setState(() {
       isLoading = true;
     });
-    final userId=SessionManager.getUserId();
+    String? userId=await SessionManager.getUserId();
     if(widget.flag==1) {
-      context.read<ApiCubit>().fetchStockList(user_id: userId.toString(),);
+      context.read<ApiCubit>().fetchStockList(user_id: userId!);
     }else if(widget.flag==2) {
-      context.read<ApiCubit>().expiredStockList(user_id: userId.toString(),);
+      context.read<ApiCubit>().expiredStockList(user_id: userId!);
     }else if(widget.flag==3) {
-      context.read<ApiCubit>().expireSoonStockList(user_id: userId.toString(),);
+      context.read<ApiCubit>().expireSoonStockList(user_id: userId!);
     }
   }
   void _onSearch() {

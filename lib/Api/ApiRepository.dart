@@ -250,7 +250,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/invoicelist/',
-        queryParameters: {'user_id': '117','page':1,'per_page':20},
+        queryParameters: {'user_id': userId,'page':1,'per_page':20},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
@@ -263,7 +263,7 @@ class ApiRepository {
       throw Exception('Failed to cancel order: $e');
     }
   }
-  Future<Map<String, dynamic>> stockList(String userId,String apiName) async {
+  Future<List<dynamic>> stockList(String userId,String apiName) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -272,7 +272,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/$apiName/',
-        //queryParameters: {'user_id': userId},
+        queryParameters: {'user_id': userId},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
@@ -283,6 +283,32 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to cancel order: $e');
+    }
+  }
+  Future<Map<String, dynamic>> saleList(String userId) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/salelist/',
+        queryParameters: {'user_id': userId,
+                          'from_date':'',
+                          'to_date':'',
+                          'range':''
+        },
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to fetch Sale List');
+      }
+    } catch (e) {
+      throw Exception('Failed to Sale list: $e');
     }
   }
 }

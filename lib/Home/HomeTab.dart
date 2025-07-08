@@ -1,8 +1,7 @@
 
 import 'package:pixidrugs/Dialog/show_image_picker.dart';
+import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
 import 'package:pixidrugs/constant/all.dart';
-
-import '../invoiceList/invoiceListScreen.dart';
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
@@ -165,7 +164,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        AppRoutes.navigateTo(context, InvoiceListPage());
+                        AppRoutes.navigateTo(context, ListScreen(type:'invoice'));
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFDCEBFF),
@@ -191,7 +190,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Sales Report navigation
+                        AppRoutes.navigateTo(context, ListScreen(type:'sale'));
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFEDE7F6),

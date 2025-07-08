@@ -3,13 +3,14 @@ import 'package:pixidrugs/constant/all.dart';
 class MyElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String buttonText;
-  Color backgroundColor;
+  Color backgroundColor,titleColor;
   bool custom_design;
   // Constructor to pass the button text and onPressed action
   MyElevatedButton(
       {required this.onPressed,
         required this.buttonText,
         this.backgroundColor = AppColors.kPrimary,
+        this.titleColor= AppColors.kWhiteColor,
         this.custom_design = false});
 
   @override
@@ -23,7 +24,7 @@ class MyElevatedButton extends StatelessWidget {
       child: MyTextfield.textStyle_w800(
           buttonText,
           custom_design ? 18 : 20,
-          custom_design ?AppColors.kPrimary:AppColors.kWhiteColor),
+          titleColor),
     );
   }
 }

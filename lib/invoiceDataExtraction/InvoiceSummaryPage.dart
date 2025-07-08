@@ -75,7 +75,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     );
   }
 
-  Widget _buildKeyValueTile(String key, dynamic value, {bool edit_icon = true, VoidCallback? onEdit}) {
+  Widget _buildKeyValueTile(String key, dynamic value, {VoidCallback? onEdit}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -95,7 +95,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           MyTextfield.textStyle_w600(key, AppUtils.size_14, AppColors.kBlackColor800),
-          MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red),
+          widget.edit==true?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
           const SizedBox(width: 20),
           Expanded(
             child: Row(
@@ -108,7 +108,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                     AppColors.kGreyColor700,
                   ),
                 ),
-                if (onEdit != null && edit_icon)
+                if (widget.edit==true)
                   GestureDetector(
                     onTap: onEdit,
                     child: Icon(Icons.edit, size: 18, color: AppColors.kPrimary),
@@ -219,7 +219,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSectionTitle("📋 Invoice Details"),
-              _buildKeyValueTile("Invoice ID", invoice.invoiceId ?? '', edit_icon: widget.edit!?false:true,onEdit: () => showEditDialog("Invoice Id", invoice.invoiceId!, (val) {
+              _buildKeyValueTile("Invoice ID", invoice.invoiceId ?? '', onEdit: () => showEditDialog("Invoice Id", invoice.invoiceId!, (val) {
                 setState(() {
                   invoice = invoice.copyWith(invoiceId: val);
                 });
@@ -267,7 +267,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Container(
+      floatingActionButton: widget.edit==true?Container(
         height: 50,
         width: double.infinity,
         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -283,7 +283,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
           },
           buttonText: widget.edit! ? "Update Invoice" : "Add Invoice",
         ),
-      ),
+      ):SizedBox(),
     );
   }
 
