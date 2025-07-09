@@ -21,7 +21,7 @@ class _CartItemCardState extends State<CartItemCard> {
     super.initState();
     item=widget.item;
     barcodeScan=widget.barcodeScan;
-    discController = TextEditingController(text: widget.item.discount);
+    discController = TextEditingController(text: widget.item.discountSale);
   }
 
   @override
@@ -326,31 +326,15 @@ class _CartItemCardState extends State<CartItemCard> {
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.clear, color: Colors.white),
+                      children: [
+                        SvgPicture.asset(
+                          AppImages.delete,
+                          height: 18,
+                          width: 18,
+                          color: AppColors.kWhiteColor,
+                        ),
                         SizedBox(width: 5),
                         Text("Remove", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w300, fontSize: 14)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      cartCubit.removeFromCart(item.id,type: barcodeScan?CartType.barcode:CartType.main);
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      side: BorderSide(color: AppColors.kPrimary, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.favorite_border, color: AppColors.kPrimary),
-                        const SizedBox(width: 5),
-                        Text("Move to Wishlist", style: TextStyle(color: AppColors.kPrimary, fontWeight: FontWeight.w300, fontSize: 14)),
                       ],
                     ),
                   ),

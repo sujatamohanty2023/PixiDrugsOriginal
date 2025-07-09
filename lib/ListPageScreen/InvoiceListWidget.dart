@@ -38,7 +38,7 @@ class InvoiceListWidget extends StatelessWidget {
           ),
         ),
         child: isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
             : invoices.isEmpty
             ? NoItemPage(
           onTap: onAddPressed,
@@ -49,6 +49,7 @@ class InvoiceListWidget extends StatelessWidget {
           button_tittle: 'Add Invoice',
         )
             : ListView.builder(
+          padding: EdgeInsets.zero,
           itemCount: filteredInvoices.length,
           itemBuilder: (_, index) {
             final invoice = filteredInvoices[index];
@@ -66,7 +67,7 @@ class InvoiceListWidget extends StatelessWidget {
       },
       child: Card(
         color: Colors.white,
-        margin: EdgeInsets.only(top: 0,left: 10,right: 10),
+        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
         child: IntrinsicHeight(

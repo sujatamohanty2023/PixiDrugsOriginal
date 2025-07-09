@@ -105,11 +105,11 @@ class ApiCubit extends Cubit<ApiState> {
       emit(OrderPlaceLoading());
       final response = await apiRepository.PlaceOrderApi(orderPlaceModel);
       final data = response['message'];
-      final orderId = response['billing_id'];
+      final billing_id = response['billing_id'];
 
-      emit(OrderPlaceLoaded(message: data, orderId: orderId));
+      emit(OrderPlaceLoaded(message: data, billing_id: billing_id));
     } catch (e) {
-      emit(OrderPlaceError('Failed to post appointment: $e'));
+      emit(OrderPlaceError('Failed to checkout: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -132,6 +132,17 @@ class ApiCubit extends Cubit<ApiState> {
       emit(InvoiceEditLoaded(message: message));
     } catch (e) {
       emit(InvoiceEditError('Failed to edit data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> InvoiceDelete({required String invoice_id}) async {
+    try {
+      emit(InvoiceDeleteLoading());
+      final response = await apiRepository.invoiceDelete(invoice_id);
+      final message = response['message'];
+      emit(InvoiceDeleteLoaded(message: message));
+    } catch (e) {
+      emit(InvoiceDeleteError('Failed to Delete data: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -189,6 +200,17 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleListLoaded(saleList: list));
     } catch (e) {
       emit(SaleListError('Failed to load sale: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SaleDelete({required String billing_id}) async {
+    try {
+      emit(SaleDeleteLoading());
+      final response = await apiRepository.saleDelete(billing_id);
+      final message = response['message'];
+      emit(SaleDeleteLoaded(message: message));
+    } catch (e) {
+      emit(SaleDeleteError('Failed to Delete data: $e'));
     }
   }
 }

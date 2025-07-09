@@ -80,7 +80,9 @@ class _ProductListPageState extends State<ProductListPage> {
           });
 
         },
-        child: isLoading==false && _filteredProducts.isEmpty
+        child:  isLoading
+            ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+            : _filteredProducts.isEmpty
             ? _buildEmptyPage(flag:widget.flag,onAddProduct: _onAddProduct)
             :  Container(
           padding: EdgeInsets.only(top: 20),

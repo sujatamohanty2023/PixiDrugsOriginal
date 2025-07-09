@@ -77,22 +77,17 @@ class AnalyzeExpenseParser {
     if (lineItemGroups != null) {
       for (final group in lineItemGroups) {
         final lineItems = group['LineItems'] as List?;
-        if (lineItems == null) continue;
 
-        for (final item in lineItems) {
+        for (final item in lineItems!) {
           final itemFields = item['LineItemExpenseFields'] as List?;
           final row = <String, String>{};
 
           if (itemFields != null) {
             for (final f in itemFields) {
-              final typeText = f['Type']?['Text'] ?? '';
-              final label = f['LabelDetection']?['Text'] ?? typeText;
+              final label = f['LabelDetection']?['Text'] ?? f['Type']?['Text'];
               final value = f['ValueDetection']?['Text'];
-              final valueConfidence = (f['ValueDetection']?['Confidence'] ?? 100).toDouble();
 
-              if (value == null || value.trim().isEmpty || valueConfidence < 30) {
-                continue; // Skip empty or low-confidence values
-              }
+              print('itemsValue ${f['LabelDetection']?['Text']}/${f['Type']?['Text']}  = $value');
 
               // Clean key
               final key = (label.toLowerCase() == 'other')

@@ -90,6 +90,7 @@ class InvoiceItem {
    String rate;
    String taxable;
    String discount;
+    String discountSale;
    String expiry;
    int qty;
    int qty_free;
@@ -108,6 +109,7 @@ class InvoiceItem {
     this.rate='',
     this.taxable='',
     this.discount='0',
+      this.discountSale='0',
     this.expiry='',
     this.qty=0,
     this.qty_free=0,
@@ -126,6 +128,7 @@ class InvoiceItem {
      String? rate,
      String? taxable,
      String? discount,
+     String? discountSale,
      String? expiry,
      int? qty,
      int? qty_free,
@@ -144,6 +147,7 @@ class InvoiceItem {
        rate: rate ?? this.rate,
        taxable: taxable ?? this.taxable,
        discount: discount ?? this.discount,
+       discountSale: discountSale ?? this.discountSale,
        expiry: expiry ?? this.expiry,
        qty: qty ?? this.qty,
        qty_free: qty_free ?? this.qty_free,
@@ -278,7 +282,7 @@ class InvoiceItem {
 
     return InvoiceItem(
       id: parseId(normalized['id']??'0'),
-      hsn: normalized['hsn_code'] ?? normalized['hsn']?? normalized['HSN'] ?? normalized['Product_Code']??normalized['Product Code']??'',
+      hsn: normalized['Product_Code']??normalized['hsn_code'] ?? normalized['hsn']?? normalized['HSN'] ?? normalized['Product Code']??'',
       product: normalized['product name'] ??
           normalized['product Name'] ??
           normalized['product_name']??
@@ -295,6 +299,7 @@ class InvoiceItem {
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
       discount: discountValue.toString(),
+      discountSale: normalized['discountSale']??'',
       expiry: normalized['expiry date'] ??
           normalized['expiry'] ??
           normalized['exp'] ??
@@ -320,6 +325,7 @@ class InvoiceItem {
     'rate': rate,
     'taxable': taxable,
     'discount': discount,
+    'discountSale': discountSale,
     'expiry': expiry,
     'quantity': qty,
     'qty_free': qty_free,
@@ -329,7 +335,7 @@ class InvoiceItem {
 
   @override
   String toString() {
-    return 'InvoiceItem(id:$id,hsn: $hsn, product: $product, composition:$composition,packing: $packing, batch_no: $batch, mrp: $mrp, rate: $rate, taxable: $taxable, discount: $discount, expiry: $expiry, quantity: $qty, qty_free: $qty_free, gst: $gst, total: $total)';
+    return 'InvoiceItem(id:$id,hsn: $hsn, product: $product, composition:$composition,packing: $packing, batch_no: $batch, mrp: $mrp, rate: $rate, taxable: $taxable, discount: $discount,discountSale: $discountSale, expiry: $expiry, quantity: $qty, qty_free: $qty_free, gst: $gst, total: $total)';
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class InvoiceSummaryPage extends StatefulWidget {
@@ -24,25 +25,28 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     });
   }
   void handleApiState(BuildContext context, ApiState state) {
-    if (state is InvoiceAddLoaded) {
+    if (state is InvoiceAddLoaded || state is InvoiceEditLoaded) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
+        SnackBar(content: Text(state is InvoiceAddLoaded ? state.message : (state as InvoiceEditLoaded).message)),
       );
-    } else if (state is InvoiceEditLoaded) {
+
+      // Navigate to the listing page after a short delay
+      Future.delayed(Duration(milliseconds: 500), () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => ListScreen(type:state is InvoiceAddLoaded || state is InvoiceEditLoaded ?'invoice':'sale')),
+              (route) => false,
+        );
+      });
+    } else if (state is InvoiceAddError || state is InvoiceEditError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
-      );
-    } else if (state is InvoiceAddError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error)),
-      );
-    } else if (state is InvoiceEditError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error)),
+        SnackBar(content: Text(
+          state is InvoiceAddError ? state.error : (state as InvoiceEditError).error,
+        )),
       );
     }
-
   }
+
 
   @override
   void dispose() {

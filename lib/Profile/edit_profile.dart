@@ -1,7 +1,6 @@
 import 'package:pixidrugs/AWS/S3Service.dart';
 import 'package:pixidrugs/Dialog/show_image_picker.dart';
 import 'package:pixidrugs/constant/all.dart';
-import 'package:intl/intl.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -13,6 +12,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController gstController = TextEditingController();
+  TextEditingController regController = TextEditingController();
   TextEditingController addressController = TextEditingController();
 
   bool image_changed = false;
@@ -41,6 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         emailController.text = state.userModel.email;
         phoneController.text = state.userModel.phoneNumber;
         gstController.text = state.userModel.phoneNumber;
+        regController.text = state.userModel.phoneNumber;
         addressController.text = state.userModel.phoneNumber;
         String imageUrl = state.userModel.profilePicture;
         setState(() {
@@ -205,13 +206,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hintText: AppString.enterGst,
                     keyboardType: TextInputType.text),
                 SizedBox(height: 8),
+                MyTextfield.textStyle_w600('Licence No', 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    controller: regController,
+                    hintText: AppString.enterRegNo,
+                    keyboardType: TextInputType.text),
+                SizedBox(height: 8),
                 // Phone number input field
-                MyTextfield.textStyle_w600(AppString.phone, 18, Colors.black),
+                MyTextfield.textStyle_w600(AppString.address, 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: addressController,
                     hintText: AppString.enterAddress,
-                    keyboardType: TextInputType.text),
+                    keyboardType: TextInputType.text,maxLines: 3 ,),
                 SizedBox(height: screenHeight * 0.015),
                 // Update button
                 /// **Bottom-Aligned Update Button**

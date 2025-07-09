@@ -225,7 +225,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
             ),
           );
         }
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator(color: AppColors.kPrimary));
       },
     );
   }

@@ -89,9 +89,9 @@ class OrderPlaceLoading extends ApiState {}
 
 class OrderPlaceLoaded extends ApiState {
   final String message;
-  final int orderId;
+  final int billing_id;
 
-  OrderPlaceLoaded({required this.message, required this.orderId});
+  OrderPlaceLoaded({required this.message, required this.billing_id});
 }
 
 class OrderPlaceError extends ApiState {
@@ -109,6 +109,18 @@ class InvoiceEditLoaded extends ApiState {
 class InvoiceEditError extends ApiState {
   final String error;
   InvoiceEditError(this.error);
+}
+//--------------------------------------------------------------------
+class InvoiceDeleteLoading extends ApiState {}
+
+class InvoiceDeleteLoaded extends ApiState {
+  final String message;
+  InvoiceDeleteLoaded({required this.message});
+}
+
+class InvoiceDeleteError extends ApiState {
+  final String error;
+  InvoiceDeleteError(this.error);
 }
 //--------------------------------------------------------------------
 class InvoiceAddLoading extends ApiState {}
@@ -181,4 +193,16 @@ class SaleListLoaded extends ApiState {
 class SaleListError extends ApiState {
   final String error;
   SaleListError(this.error);
+}
+//--------------------------------------------------------------------
+class SaleDeleteLoading extends ApiState {}
+
+class SaleDeleteLoaded extends ApiState {
+  final String message;
+  SaleDeleteLoaded({required this.message});
+}
+
+class SaleDeleteError extends ApiState {
+  final String error;
+  SaleDeleteError(this.error);
 }

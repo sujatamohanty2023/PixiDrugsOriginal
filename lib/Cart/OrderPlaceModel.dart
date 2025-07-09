@@ -42,4 +42,25 @@ class OrderPlaceModel {
         email: json['email'] ?? '',
         address: json['address'] ?? '',
       );
+
+  @override
+  String toString() {
+    return '''
+OrderPlaceModel:
+  Seller ID: $seller_id
+  Name: $name
+  Phone: $phone
+  Email: $email
+  Address: $address
+  Cart Items:
+${cartItems.map((item) => '''
+     'product_id': ${item.id},
+        'product_name': ${item.product},
+        'price': ${item.mrp},
+        'quantity': ${item.qty},
+        'discount': ${item.discount},
+        'gst': ${item.gst}
+''').join()}
+''';
+  }
 }

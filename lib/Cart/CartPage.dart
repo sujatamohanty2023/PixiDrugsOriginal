@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pixidrugs/Dialog/success_dialog.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
@@ -12,33 +15,29 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteAware {
-  String? name,phone,address = '';
+  String? name, phone, address = '';
 
   @override
   void initState() {
     super.initState();
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    print("initState dispose: Dashboard disposed");
     super.dispose();
   }
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      print("initState App is back in foreground");
-    }
-  }
+
   @override
   void didPopNext() {
-    print("initState Returned to DoctorDashboard from another screen");
+    print("Returned to CartPage");
   }
 
   Future<void> checkUserData() async {
@@ -47,25 +46,43 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CartCubit, CartState>(
-      builder: (context, state) {
-        if (state is CartInitial) {
-          return _buildLoadingOrError(state);
-        }
-        if (state is CartLoaded) {
-          name=widget.barcodeScan ? state.customerName:'';
-          phone=widget.barcodeScan ? state.customerPhone:'';
-          address=widget.barcodeScan ? state.customerAddress:'';
-          return _buildCartLoadedUI(
-            context,
-            widget.barcodeScan?state.barcodeCartItems:state.cartItems,
-            state.totalPrice,
-            state.subTotal,
-            state.discountAmount,
+    return BlocListener<ApiCubit, ApiState>(
+      listener: (context, state) {
+        if (state is OrderPlaceLoaded) {
+          Navigator.pop(context); // Dismiss loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          if (state.message == "Bill submitted successfully.") {
+            SuccessOrderPlaceCall(state.billing_id);
+          }
+        } else if (state is OrderPlaceError) {
+          Navigator.pop(context); // Dismiss loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to CheckOut: ${state.error}')),
           );
         }
-        return const SizedBox();
       },
+      child: BlocBuilder<CartCubit, CartState>(
+        builder: (context, state) {
+          if (state is CartInitial) {
+            return _buildLoadingOrError(state);
+          }
+          if (state is CartLoaded) {
+            name = widget.barcodeScan ? state.customerName : '';
+            phone = widget.barcodeScan ? state.customerPhone : '';
+            address = widget.barcodeScan ? state.customerAddress : '';
+            return _buildCartLoadedUI(
+              context,
+              widget.barcodeScan ? state.barcodeCartItems : state.cartItems,
+              state.totalPrice,
+              state.subTotal,
+              state.discountAmount,
+            );
+          }
+          return const SizedBox();
+        },
+      ),
     );
   }
 
@@ -73,7 +90,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
     if (state is CartError) {
       return Center(child: Text(state.errorMessage));
     }
-    return const Center(child: CircularProgressIndicator());
+    return const Center(child: CircularProgressIndicator(color: AppColors.kPrimary));
   }
 
   Widget _buildCartLoadedUI(
@@ -83,15 +100,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       double subTotal,
       double discountAmount,
       ) {
-
     return Scaffold(
       backgroundColor: AppColors.kPrimary,
-      body:  Container(
-        height:  double.infinity,
-        padding: EdgeInsets.only(top: 20),
+      body: Container(
+        height: double.infinity,
+        padding: const EdgeInsets.only(top: 20),
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topRight: Radius.circular(30),
             topLeft: Radius.circular(30),
           ),
@@ -101,31 +117,20 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              if (widget.barcodeScan)
-                name != null && name!.isNotEmpty
-                    ?_buildAddressSection()
-                    :SizedBox(),
-
+              if (widget.barcodeScan && name != null && name!.isNotEmpty)
+                _buildAddressSection(),
               const SizedBox(height: 5),
-
               CustomListView<InvoiceItem>(
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
                 onTap: _onCartItemTap,
                 itemBuilder: (item) => CartItemCard(item: item, barcodeScan: widget.barcodeScan),
               ),
-
               const SizedBox(height: 15),
-
-              const SizedBox(height: 10),
-
               PaymentRow(title: "Order Summary", value: "", isBold: true),
               Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
               PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$totalPrice"),
               PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
-              PaymentRow(title: "Shipping", value: "FREE", color: Colors.red),
-
               Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
               PaymentRow(
                 title: "Total",
@@ -138,28 +143,32 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: widget.barcodeScan?Container(
-          height: 50,
-          width: 150,
-          child: MyElevatedButton(
-            onPressed: (){
-                if(address != null && address!.isNotEmpty){
-                  _paymentPageCall(context);
-                }else {
-                  _onButtonSalePressed();
-                }
-              },
-            custom_design: true,
-            buttonText:  address != null && address!.isNotEmpty?"CheckOut":"Confirm",
-          )):SizedBox(),
+      floatingActionButton: widget.barcodeScan
+          ? Container(
+        height: 50,
+        width: 150,
+        child: MyElevatedButton(
+          onPressed: () {
+            if (address != null && address!.isNotEmpty) {
+              _paymentPageCall();
+            } else {
+              _onButtonSalePressed();
+            }
+          },
+          custom_design: true,
+          buttonText: address != null && address!.isNotEmpty ? "CheckOut" : "Confirm",
+        ),
+      )
+          : const SizedBox(),
     );
   }
-  Future<void> _paymentPageCall(BuildContext context) async {
+
+  Future<void> _paymentPageCall() async {
     String? userId = await SessionManager.getUserId();
     final cartState = context.read<CartCubit>().state;
 
     if (cartState is CartLoaded) {
-      if (cartState.cartItems.isEmpty) {
+      if (cartState.barcodeCartItems.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Your cart is empty')),
         );
@@ -167,70 +176,45 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       }
 
       final model = OrderPlaceModel(
-        cartItems: cartState.cartItems,
+        cartItems: cartState.barcodeCartItems,
         seller_id: userId!,
         name: name!,
         phone: phone!,
         email: '',
-        address: address!
+        address: address!,
       );
-      placeOrderApiCall(model);
+      print('API URL: ${model.toString()}');
+      _showLoadingDialog(); // Show loading
+      context.read<ApiCubit>().placeOrder(orderPlaceModel: model);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unexpected error occurred')),
       );
     }
   }
-  void placeOrderApiCall(OrderPlaceModel model){
+
+  void _showLoadingDialog() {
     showDialog(
+      barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) {
-        return Center(child: CircularProgressIndicator());
-      },
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: AppColors.kPrimary),
+      ),
     );
-    context.read<ApiCubit>().placeOrder(
-      orderPlaceModel: model,
-    );
-
-    // Listen for the API response
-    context
-        .read<ApiCubit>()
-        .stream
-        .listen((state) {
-      if (state is OrderPlaceLoaded) {
-        Navigator.pop(context); // Dismiss loading indicator
-
-        // Show success message using SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message)),
-        );
-        if (state.message == "Order placed successfully") {
-          SuccessOrderPlaceCall(state.orderId);
-        }
-      } else if (state is OrderPlaceError) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Failed to Book Appointment: ${state.error}')),
-        );
-      }
-    });
   }
+
   void SuccessOrderPlaceCall(int orderId) {
-    // ✅ Clear the cart
     context.read<CartCubit>().clearCart();
     showDialog(
       context: context,
       builder: (BuildContext context) => SuccessDialog(
-          SvgPicture.asset(
-            AppImages.check,
-            height: 60,
-            width: 60,
-          ),
-          "Your Placed Order Successful",
-          "Your order #${orderId} has been placed successfully."),
+        SvgPicture.asset(AppImages.check, height: 60, width: 60),
+        "Your Placed Order Successful",
+        "Your order #$orderId has been placed successfully.",
+      ),
     );
   }
+
   void _onButtonSalePressed() {
     showModalBottomSheet(
       context: context,
@@ -244,14 +228,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       )),
       isScrollControlled: false,
       builder: (_) => CustomerDetailBottomSheet(
-        name:name,
-        phone:phone,
-        address:address,
+        name: name,
+        phone: phone,
+        address: address,
         onSubmit: (name1, phone1, submittedAddress1) {
           setState(() {
-           name=name1;
-           phone=phone1;
-           address=submittedAddress1;
+            name = name1;
+            phone = phone1;
+            address = submittedAddress1;
           });
           context.read<CartCubit>().setBarcodeCustomerDetails(
             name: name1,
@@ -275,12 +259,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
-                MyTextfield.textStyle_w600('${name}\n${phone}\n${address}' ?? '', 14, Colors.grey[700]!),
+                MyTextfield.textStyle_w600('$name\n$phone\n$address', 14, Colors.grey[700]!),
               ],
             ),
           ),
           GestureDetector(
-            onTap: () => checkUserData(),
+            onTap: checkUserData,
             child: MyTextfield.textStyle_w600("Change", 14, Colors.deepOrange),
           ),
         ],
@@ -307,12 +291,12 @@ class PaymentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleStyle = isBold
-        ? MyTextfield.textStyle_w600(title, 16, Colors.grey[600]!)
-        : MyTextfield.textStyle_w200(title, 14, Colors.grey[600]!);
+        ? MyTextfield.textStyle_w600(title, 18, Colors.grey[600]!)
+        : MyTextfield.textStyle_w200(title, 15, Colors.grey[600]!);
 
     final valueStyle = isBold
-        ? MyTextfield.textStyle_w600(value, 16, color)
-        : MyTextfield.textStyle_w300(value, 14, color);
+        ? MyTextfield.textStyle_w600(value, 18, color)
+        : MyTextfield.textStyle_w300(value, 15, color);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),

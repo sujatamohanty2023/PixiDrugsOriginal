@@ -1,3 +1,4 @@
+import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/ListPageScreen/InvoiceListWidget.dart';
 import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
@@ -76,19 +77,37 @@ class _ListScreenState extends State<ListScreen>
     });
   }
 
-  void _deleteRecord(String id) {
-    _fetchRecord();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Record deleted successfully")),
-    );
+  void _deleteRecord(String id) async {
+    try {
+      if (widget.type == 'invoice') {
+        await context.read<ApiCubit>().InvoiceDelete(invoice_id: id);
+        setState(() {
+          invoiceList.removeWhere((invoice) => invoice.invoiceId == id);
+        });
+      } else if (widget.type == 'sale') {
+        await context.read<ApiCubit>().SaleDelete(billing_id: id);
+        setState(() {
+          saleList.removeWhere((sale) => sale.invoiceNo == int.parse(id));
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Record deleted successfully")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete record: $e")),
+      );
+    }
   }
 
-  void _showDeleteDialog(String id) {
-    CommonConfirmationDialog.show<int>(
+
+  void _showDeleteDialog(BuildContext context,String id) {
+    CommonConfirmationDialog.show<String>(
       context: context,
-      id: int.parse(id),
-      title: 'Delete Invoice Record?',
-      content: 'Are you sure you want to delete this invoice record?',
+      id: id,
+      title: 'Delete ${widget.type} Record?',
+      content: 'Are you sure you want to delete this ${widget.type} record?',
       onConfirmed: (_) => _deleteRecord(id),
     );
   }
@@ -123,7 +142,9 @@ class _ListScreenState extends State<ListScreen>
                     searchQuery: searchQuery,
                     onSearchChanged: (value) => setState(() => searchQuery = value),
                     onAddPressed: _onAddInvoicePressed,
-                    onDeletePressed: _showDeleteDialog,
+                    onDeletePressed: (id){
+                      _showDeleteDialog(context,id);
+                    },
                     onEditPressed: (invoice){
                       AppRoutes.navigateTo(context, AddPurchaseBill(invoice:invoice));
                     },
@@ -133,7 +154,13 @@ class _ListScreenState extends State<ListScreen>
                     isLoading: context.watch<ApiCubit>().state is InvoiceListLoading,
                     searchQuery: searchQuery,
                     onSearchChanged: (value) => setState(() => searchQuery = value),
-                    onAddPressed: _onAddInvoicePressed,),
+                    onAddPressed: _onAddInvoicePressed,
+                      onDeletePressed: (id){
+                        _showDeleteDialog(context,id);
+                      },
+                      onEditPressed: (invoice){
+                        //AppRoutes.navigateTo(context, AddPurchaseBill(invoice:invoice));
+                      }),
                 ),
               ),
             ],
@@ -157,7 +184,13 @@ class _ListScreenState extends State<ListScreen>
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage()),
+                    (route) => false,
+              );
+            },
           ),
           Text(
             widget.type == 'invoice' ? 'Invoice List' : 'Sale List',

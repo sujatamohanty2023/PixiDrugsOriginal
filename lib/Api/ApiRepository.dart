@@ -164,14 +164,15 @@ class ApiRepository {
           'items': model.toApiFormatProductOrder()
         },
       );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: ${response}');
       if (response.statusCode == 200) {
         return response.data;
       } else {
-        throw Exception('Failed to load leave');
+        throw Exception('Failed to checkout');
       }
     } catch (e) {
-      throw Exception('Failed to load leave: $e');
+      throw Exception('Failed to checkout: $e');
     }
   }
   Future<Map<String, dynamic>> post_Invoice(Invoice invoice) async {
@@ -238,6 +239,28 @@ class ApiRepository {
     } catch (e) {
       print('POST error: $e');
       throw Exception('Failed to post invoice: $e');
+    }
+  }
+  Future<Map<String, dynamic>> invoiceDelete(String invoice_id) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/deleteitem/',
+        queryParameters: {'invoice_id': invoice_id},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to cancel order');
+      }
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
     }
   }
 
@@ -309,6 +332,28 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to Sale list: $e');
+    }
+  }
+  Future<Map<String, dynamic>> saleDelete(String billingid) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/saleldelete/',
+        queryParameters: {'billingid': billingid},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to cancel order');
+      }
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
     }
   }
 }

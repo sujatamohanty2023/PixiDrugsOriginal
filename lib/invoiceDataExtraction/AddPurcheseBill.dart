@@ -131,8 +131,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     final endpoint = Uri.https('textract.$_region.amazonaws.com', '/');
 
     final payload = json.encode({
-      'Document': {'Bytes': base64Encode(imageBytes)},
-      'FeatureTypes': ['FORMS', 'TABLES'],
+      'Document': {
+        'Bytes': base64Encode(imageBytes),
+        'FeatureTypes': ['FORMS', 'TABLES'],
+      },
     });
 
     final request = AWSHttpRequest(
@@ -140,7 +142,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       uri: endpoint,
       headers: {
         AWSHeaders.contentType: 'application/x-amz-json-1.1',
-        AWSHeaders.target: 'Textract.AnalyzeExpense',
+        'X-Amz-Target': 'Textract.AnalyzeDocument'
+        //AWSHeaders.target: 'Textract.AnalyzeExpense',
       },
       body: payload.codeUnits,
     );

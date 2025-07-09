@@ -22,10 +22,14 @@ class _HomeTabState extends State<HomeTab> {
   int _currentPage = 0;
   Timer? _timer;
 
+  String? name = 'Guest';
+  String? email = '';
+  String? image = '';
+
   @override
   void initState() {
     super.initState();
-
+    _GetProfileCall();
     _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
       if (_currentPage < bannerList.length - 1) {
         _currentPage++;
@@ -40,7 +44,29 @@ class _HomeTabState extends State<HomeTab> {
       );
     });
   }
+  void _GetProfileCall() async {
+    String? userId = await SessionManager.getUserId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId);
+    } else {
+      setState(() {
 
+      });
+    }
+    context.read<ApiCubit>().stream.listen((state) {
+      if (state is UserProfileLoaded) {
+        setState(() {
+          name = state.userModel.name;
+          email = state.userModel.email;
+          image = state.userModel.profilePicture;
+        });
+      } else if (state is UserProfileError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${state.error}')),
+        );
+      }
+    });
+  }
   @override
   void dispose() {
     _timer?.cancel();
@@ -67,15 +93,22 @@ class _HomeTabState extends State<HomeTab> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage(AppImages.AppIcon),
+                      backgroundColor: AppColors.kWhiteColor,
+                      backgroundImage: image!.isNotEmpty
+                          ? image!.contains('https://')
+                          ? NetworkImage(image!)
+                          : image!.contains('NO')
+                          ? AssetImage(AppImages.AppIcon)
+                          : NetworkImage('${AppString.baseUrl}${image!}')
+                          : AssetImage(AppImages.AppIcon),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children:  [
-                        MyTextfield.textStyle_w600('PixiDrugs', 20, Colors.white),
-                        MyTextfield.textStyle_w300('Bada Bazar, Berhampur', 16, AppColors.kWhiteColor.withOpacity(0.5)),
+                        MyTextfield.textStyle_w600('$name', 20, Colors.white),
+                        MyTextfield.textStyle_w300('$email', 16, AppColors.kWhiteColor.withOpacity(0.5)),
                       ],
                     ),
                   ],
