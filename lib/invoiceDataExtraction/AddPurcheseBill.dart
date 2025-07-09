@@ -132,9 +132,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
     final payload = json.encode({
       'Document': {
-        'Bytes': base64Encode(imageBytes)
+        'Bytes': base64Encode(imageBytes),
       },
-    'FeatureTypes': ['FORMS', 'TABLES'],
     });
 
     final request = AWSHttpRequest(
@@ -142,7 +141,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       uri: endpoint,
       headers: {
         AWSHeaders.contentType: 'application/x-amz-json-1.1',
-        'X-Amz-Target': 'Textract.AnalyzeDocument'
+        'X-Amz-Target': 'Textract.AnalyzeExpense'
         //AWSHeaders.target: 'Textract.AnalyzeExpense',
       },
       body: payload.codeUnits,
