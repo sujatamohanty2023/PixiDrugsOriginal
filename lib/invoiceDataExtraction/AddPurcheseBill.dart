@@ -132,9 +132,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
     final payload = json.encode({
       'Document': {
-        'Bytes': base64Encode(imageBytes),
-        'FeatureTypes': ['FORMS', 'TABLES'],
+        'Bytes': base64Encode(imageBytes)
       },
+    'FeatureTypes': ['FORMS', 'TABLES'],
     });
 
     final request = AWSHttpRequest(
