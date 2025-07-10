@@ -77,7 +77,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       return;
     }
     print('API URL: ${widget.phoneNumber}\n$fcm_token');
-    context.read<ApiCubit>().login(mobile: widget.phoneNumber, fcm_token: fcm_token,role:'user');
+    context.read<ApiCubit>().login(mobile: widget.phoneNumber, fcm_token: fcm_token);
 
     context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {

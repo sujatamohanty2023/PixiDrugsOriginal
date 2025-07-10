@@ -3,9 +3,10 @@ import 'package:pixidrugs/constant/all.dart';
 
 class CartItemCard extends StatefulWidget {
   final InvoiceItem item;
-  final bool barcodeScan;
-
-  const CartItemCard({super.key, required this.item, this.barcodeScan = false});
+  final bool barcodeScan,edit;
+  final VoidCallback? onRemove,onUpdate;
+  const CartItemCard({super.key, required this.item, this.barcodeScan = false,this.edit = false,
+    this.onRemove,this.onUpdate});
 
   @override
   State<CartItemCard> createState() => _CartItemCardState();
@@ -27,8 +28,8 @@ class _CartItemCardState extends State<CartItemCard> {
   @override
   void didUpdateWidget(covariant CartItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.discount != widget.item.discount) {
-      discController.text = widget.item.discount;
+    if (oldWidget.item.discountSale != widget.item.discountSale) {
+      discController.text = widget.item.discountSale;
     }
   }
 
@@ -135,12 +136,18 @@ class _CartItemCardState extends State<CartItemCard> {
                 keyboardType: TextInputType.number,
                 onChanged: (val) {
                   final discount = double.tryParse(val) ?? 0.0;
-                  cartCubit.updateItemDiscount(
-                    item.id,
-                    discount,
-                    type: barcodeScan ? CartType.barcode : CartType.main,
-                    discountType: item.discountType, // default for now
-                  );
+                  if(!widget.edit) {
+                    item.discount=discount.toString();
+                    cartCubit.updateItemDiscount(
+                      item.id,
+                      discount,
+                      type: barcodeScan ? CartType.barcode : CartType.main,
+                      discountType: item.discountType, // default for now
+                    );
+                  }else{
+                    item.discount=discount.toString();
+                    widget.onUpdate?.call();
+                  }
                 },
               ),
             ),
@@ -150,13 +157,18 @@ class _CartItemCardState extends State<CartItemCard> {
               icon: const Icon(Icons.arrow_drop_down),
               onChanged: (DiscountType? newType) {
                 if (newType != null) {
+                if(!widget.edit) {
                   cartCubit.updateItemDiscount(
                     item.id,
                     double.tryParse(discController.text) ?? 0.0,
                     type: barcodeScan ? CartType.barcode : CartType.main,
                     discountType: newType,
                   );
+                }else{
+                  item.discountType=newType;
+                  widget.onUpdate?.call();
                 }
+              }
               },
               items: DiscountType.values.map((DiscountType type) {
                 return DropdownMenuItem<DiscountType>(
@@ -184,12 +196,26 @@ class _CartItemCardState extends State<CartItemCard> {
               type:0,
               icon: Icons.remove,
               onTap: () {
-                final qty = cartCubit.getQuantity(item.id,type: barcodeScan?CartType.barcode:CartType.main);
+                if(!widget.edit) {
+                  final qty = cartCubit.getQuantity(item.id,
+                      type: barcodeScan ? CartType.barcode : CartType.main);
 
-                if (qty <= 1) {
-                  cartCubit.removeFromCart(item.id,type: barcodeScan?CartType.barcode:CartType.main);
-                } else {
-                  cartCubit.decrementQuantity(item.id,type: barcodeScan?CartType.barcode:CartType.main);
+                  if (qty <= 1) {
+                    cartCubit.removeFromCart(item.id,
+                        type: barcodeScan ? CartType.barcode : CartType.main);
+                  } else {
+                    cartCubit.decrementQuantity(item.id,
+                        type: barcodeScan ? CartType.barcode : CartType.main);
+                  }
+                }else{
+                  if (item.qty <= 1) {
+                    widget.onRemove?.call();
+                  } else {
+                    setState(() {
+                      item.qty = item.qty - 1;
+                    });
+                  }
+                  widget.onUpdate?.call();
                 }
               },
             ),
@@ -200,7 +226,15 @@ class _CartItemCardState extends State<CartItemCard> {
               type:1,
               icon: Icons.add,
               onTap: () {
-                cartCubit.incrementQuantity(item.id,type: barcodeScan?CartType.barcode:CartType.main);
+                if(!widget.edit) {
+                  cartCubit.incrementQuantity(item.id,
+                      type: barcodeScan ? CartType.barcode : CartType.main);
+                }else{
+                  setState(() {
+                    item.qty = item.qty + 1;
+                    widget.onUpdate?.call();
+                  });
+                }
               },
             ),
           ],
@@ -234,7 +268,8 @@ class _CartItemCardState extends State<CartItemCard> {
   Widget _buildQuantityDisplay() {
     return Builder(
       builder: (context) {
-        return BlocBuilder<CartCubit, CartState>(
+        return widget.edit?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
+        :BlocBuilder<CartCubit, CartState>(
           builder: (context, state) {
             final quantity = barcodeScan
                 ? state.barcodeCartItems.firstWhere(
@@ -317,7 +352,12 @@ class _CartItemCardState extends State<CartItemCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      cartCubit.removeFromCart(item.id,type: barcodeScan?CartType.barcode:CartType.main);
+                      if (!widget.edit) {
+                        cartCubit.removeFromCart(item.id, type: barcodeScan ? CartType.barcode : CartType.main);
+                      } else {
+                        widget.onRemove?.call();
+                        widget.onUpdate?.call();// Let parent remove item from list
+                      }
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(

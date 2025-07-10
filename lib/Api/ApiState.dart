@@ -195,6 +195,20 @@ class SaleListError extends ApiState {
   SaleListError(this.error);
 }
 //--------------------------------------------------------------------
+class SaleEditLoading extends ApiState {}
+
+class SaleEditLoaded extends ApiState {
+  final String message;
+  final int billing_id;
+
+  SaleEditLoaded({required this.message, required this.billing_id});
+}
+
+class SaleEditError extends ApiState {
+  final String error;
+  SaleEditError(this.error);
+}
+//--------------------------------------------------------------------
 class SaleDeleteLoading extends ApiState {}
 
 class SaleDeleteLoaded extends ApiState {

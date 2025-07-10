@@ -63,7 +63,7 @@ class InvoiceListWidget extends StatelessWidget {
   Widget buildInvoiceCard(BuildContext context,Invoice invoice, double screenWidth) {
     return GestureDetector(
       onTap: (){
-        AppRoutes.navigateTo(context, InvoiceSummaryPage(edit: false,invoice: invoice));
+        AppRoutes.navigateTo(context, InvoiceSummaryPage(details: true,invoice: invoice));
       },
       child: Card(
         color: Colors.white,

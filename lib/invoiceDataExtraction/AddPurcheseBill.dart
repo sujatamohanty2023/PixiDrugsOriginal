@@ -140,9 +140,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       method: AWSHttpMethod.post,
       uri: endpoint,
       headers: {
-        AWSHeaders.contentType: 'application/x-amz-json-1.1',
-        'X-Amz-Target': 'Textract.AnalyzeExpense'
+        //AWSHeaders.contentType: 'application/x-amz-json-1.1',
         //AWSHeaders.target: 'Textract.AnalyzeExpense',
+        'Content-Type':'application/x-amz-json-1.1',
+        'X-Amz-Target': 'Textract.AnalyzeExpense'
       },
       body: payload.codeUnits,
     );

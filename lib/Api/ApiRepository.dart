@@ -7,7 +7,7 @@ class ApiRepository {
   ApiRepository({Dio? dio}) : dio = dio ?? Dio();
 
   Future<Map<String, dynamic>> loginUser(
-      String mobile, String fcm_token,String role) async {
+      String mobile, String fcm_token) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -16,7 +16,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/login',
-        queryParameters: {'mobile': mobile, 'fcm_token': fcm_token,'role':role},
+        queryParameters: {'mobile': mobile, 'fcm_token': fcm_token},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
@@ -248,8 +248,8 @@ class ApiRepository {
     }
 
     try {
-      final response = await dio.get(
-        '${AppString.baseUrl}api/deleteitem/',
+      final response = await dio.post(
+        '${AppString.baseUrl}api/deleteitem',
         queryParameters: {'invoice_id': invoice_id},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
@@ -332,6 +332,35 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to Sale list: $e');
+    }
+  }
+  Future<Map<String, dynamic>> saleEdit(String billingid,OrderPlaceModel model) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/saleupdate',
+        queryParameters: {
+          'billingid':billingid,
+          'seller_id': model.seller_id,
+          'name': model.name,
+          'phone': model.phone,
+          'email': model.email,
+          'address':model.address,
+          'items': model.toApiFormatProductOrder()
+        },
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: ${response}');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to checkout');
+      }
+    } catch (e) {
+      throw Exception('Failed to checkout: $e');
     }
   }
   Future<Map<String, dynamic>> saleDelete(String billingid) async {

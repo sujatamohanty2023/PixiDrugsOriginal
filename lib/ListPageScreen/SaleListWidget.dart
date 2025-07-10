@@ -1,6 +1,6 @@
+import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
-import '../SaleList/sale_details.dart';
 
 class SaleListWidget extends StatelessWidget {
   final bool isLoading;
@@ -8,7 +8,7 @@ class SaleListWidget extends StatelessWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
-  final Function(Invoice invoice) onEditPressed;
+  final Function(SaleModel sale) onEditPressed;
   final Function(String id) onDeletePressed;
 
   const SaleListWidget({
@@ -63,105 +63,113 @@ class SaleListWidget extends StatelessWidget {
   }
 
   Widget _buildSaleCard(sale, double screenWidth, BuildContext context) {
-    return Card(
-      color: Colors.white,
-      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
-      child: Padding(
-        padding: EdgeInsets.all(screenWidth * 0.02),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: screenWidth * 0.08,
-              backgroundColor: AppColors.kPrimaryDark,
-              child: Text(
-                getInitials(sale.customer.name),
-                style: TextStyle(
-                  color: AppColors.kPrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: screenWidth * 0.045,
+    return GestureDetector(
+      onTap: (){
+        AppRoutes.navigateTo(
+          context,
+          SaleDetailsPage(sale: sale, edit: false),
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
+        child: Padding(
+          padding: EdgeInsets.all(screenWidth * 0.02),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: screenWidth * 0.08,
+                backgroundColor: AppColors.kPrimaryDark,
+                child: Text(
+                  getInitials(sale.customer.name),
+                  style: TextStyle(
+                    color: AppColors.kPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: screenWidth * 0.045,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: screenWidth * 0.03),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              SizedBox(width: screenWidth * 0.03),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(sale.customer.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04)),
+                    SizedBox(height: screenWidth * 0.01),
+                    Text("Invoice No: #${sale.invoiceNo}", style: TextStyle(color: Colors.grey.shade700, fontSize: screenWidth * 0.035)),
+                    SizedBox(height: screenWidth * 0.01),
+                    Text(sale.date, style: TextStyle(color: Colors.grey.shade600, fontSize: screenWidth * 0.03)),
+                    SizedBox(height: screenWidth * 0.01),
+                    Text(
+                      "₹${sale.totalAmount.toStringAsFixed(2)}",
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(sale.customer.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04)),
-                  SizedBox(height: screenWidth * 0.01),
-                  Text("Invoice No: #${sale.invoiceNo}", style: TextStyle(color: Colors.grey.shade700, fontSize: screenWidth * 0.035)),
-                  SizedBox(height: screenWidth * 0.01),
-                  Text(sale.date, style: TextStyle(color: Colors.grey.shade600, fontSize: screenWidth * 0.03)),
-                  SizedBox(height: screenWidth * 0.01),
-                  Text(
-                    "₹${sale.totalAmount.toStringAsFixed(2)}",
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEditPressed(sale);
+                      } else if (value == 'delete') {
+                        onDeletePressed(sale.invoiceNo!.toString());
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(value: 'edit',
+                          child:Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.black),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Edit', 13, Colors.black),
+                            ],
+                          )),
+                      PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                AppImages.delete,
+                                height: 18,
+                                width: 18,
+                                color: AppColors.kRedColor,
+                              ),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Delete', 13, Colors.black),
+                            ],
+                          )
+                      ),
+                    ],
+                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
+                  ),
+                  SizedBox(height: screenWidth * 0.015),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
+                    decoration: BoxDecoration(
+                      //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(screenWidth * 0.01),
+                    ),
+                    child: Text(
+                      //invoice.status,
+                      'Paid',
+                      style: TextStyle(
+                        //color: invoice.status == "Paid" ? Colors.green : Colors.red,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.03,
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEditPressed(sale);
-                    } else if (value == 'delete') {
-                      onDeletePressed(sale.invoiceNo!);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit',
-                        child:Row(
-                          children: [
-                            Icon(Icons.edit, color: Colors.black),
-                            SizedBox(width: 8),
-                            MyTextfield.textStyle_w600('Edit', 13, Colors.black),
-                          ],
-                        )),
-                    PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            SvgPicture.asset(
-                              AppImages.delete,
-                              height: 18,
-                              width: 18,
-                              color: AppColors.kRedColor,
-                            ),
-                            SizedBox(width: 8),
-                            MyTextfield.textStyle_w600('Delete', 13, Colors.black),
-                          ],
-                        )
-                    ),
-                  ],
-                  icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
-                ),
-                SizedBox(height: screenWidth * 0.015),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
-                  decoration: BoxDecoration(
-                    //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(screenWidth * 0.01),
-                  ),
-                  child: Text(
-                    //invoice.status,
-                    'Paid',
-                    style: TextStyle(
-                      //color: invoice.status == "Paid" ? Colors.green : Colors.red,
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                      fontSize: screenWidth * 0.03,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

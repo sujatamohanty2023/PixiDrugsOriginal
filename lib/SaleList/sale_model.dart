@@ -31,19 +31,24 @@ class Customer {
   final int id;
   final String name;
   final String email;
+  final String phone;
+  final String address;
 
-  Customer({required this.id, required this.name, required this.email});
+  Customer({required this.id, required this.name, required this.email,required this.phone,required this.address});
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
       id: json['id'],
       name: json['name'],
       email: json['email'],
+      phone: json['phone'],
+      address: json['address'],
     );
   }
 }
 
 class SaleItem {
+  final int productId;
   final String productName;
   final double price;
   final int quantity;
@@ -52,6 +57,7 @@ class SaleItem {
   final double itemProfit;
 
   SaleItem({
+    required this.productId,
     required this.productName,
     required this.price,
     required this.quantity,
@@ -62,6 +68,7 @@ class SaleItem {
 
   factory SaleItem.fromJson(Map<String, dynamic> json) {
     return SaleItem(
+      productId: json['product_id'],
       productName: json['product_name'],
       price: (json['price'] as num).toDouble(),
       quantity: json['quantity'],

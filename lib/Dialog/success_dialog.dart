@@ -62,6 +62,10 @@ class _SuccessDialogState extends State<SuccessDialog> {
   }
 
   void _onButtonPressed() {
-    AppRoutes.navigateTo(context,ReceiptPrinterPage());
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => ReceiptPrinterPage()),
+          (route) => false,
+    );
   }
 }

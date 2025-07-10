@@ -137,7 +137,7 @@ Widget _buildEmptyPage({required int flag,required VoidCallback onAddProduct}) {
 PreferredSizeWidget customAppBar(BuildContext context,
     TextEditingController searchController, VoidCallback onBarcodeTap, {required int flag}) {
   return PreferredSize(
-    preferredSize: const Size.fromHeight(115),
+    preferredSize: const Size.fromHeight(120),
     child: Container(
       color: AppColors.kPrimary,
       child: SafeArea(

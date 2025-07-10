@@ -50,6 +50,9 @@ android {
             )
         }
     }
+    //flutter build apk --split-per-abi --release
+    //flutter build appbundle --release
+    //flutter build apk --target-platform android-arm64 --analyze-size  --release
 }
 
 dependencies {

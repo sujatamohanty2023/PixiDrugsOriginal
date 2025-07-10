@@ -1,6 +1,7 @@
 import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/ListPageScreen/InvoiceListWidget.dart';
 import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
+import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 import '../Dialog/show_image_picker.dart';
@@ -155,11 +156,14 @@ class _ListScreenState extends State<ListScreen>
                     searchQuery: searchQuery,
                     onSearchChanged: (value) => setState(() => searchQuery = value),
                     onAddPressed: _onAddInvoicePressed,
-                      onDeletePressed: (id){
+                    onDeletePressed: (id){
                         _showDeleteDialog(context,id);
-                      },
-                      onEditPressed: (invoice){
-                        //AppRoutes.navigateTo(context, AddPurchaseBill(invoice:invoice));
+                    },
+                      onEditPressed: (saleItem){
+                        AppRoutes.navigateTo(
+                          context,
+                          SaleDetailsPage(sale: saleItem, edit: true),
+                        );
                       }),
                 ),
               ),

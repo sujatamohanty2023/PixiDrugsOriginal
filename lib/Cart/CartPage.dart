@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pixidrugs/Cart/address_widget.dart';
 import 'package:pixidrugs/Dialog/success_dialog.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
@@ -117,8 +115,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.barcodeScan && name != null && name!.isNotEmpty)
-                _buildAddressSection(),
+              widget.barcodeScan && name != null && name!.isNotEmpty?
+              addressWidget(name:name!,phone: phone!,address: address!,tap:()=>checkUserData()):SizedBox(),
               const SizedBox(height: 5),
               CustomListView<InvoiceItem>(
                 data: cartItems,
@@ -204,7 +202,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
   }
 
   void SuccessOrderPlaceCall(int orderId) {
-    context.read<CartCubit>().clearCart();
     showDialog(
       context: context,
       builder: (BuildContext context) => SuccessDialog(
@@ -246,32 +243,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       ),
     );
   }
-
-  Widget _buildAddressSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
-      child: Row(
-        children: [
-          SvgPicture.asset(AppImages.home_address, height: 35, width: 35),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                MyTextfield.textStyle_w600('$name\n$phone\n$address', 14, Colors.grey[700]!),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: checkUserData,
-            child: MyTextfield.textStyle_w600("Change", 14, Colors.deepOrange),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _onCartItemTap(InvoiceItem item) {}
 }
 

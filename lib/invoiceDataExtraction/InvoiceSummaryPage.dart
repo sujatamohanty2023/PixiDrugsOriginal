@@ -5,8 +5,9 @@ import 'package:pixidrugs/constant/all.dart';
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;
   final bool? edit;
+  final bool? details;
 
-  InvoiceSummaryPage({super.key, required this.invoice, this.edit = false});
+  InvoiceSummaryPage({super.key, required this.invoice, this.edit = false,this.details = false});
 
   @override
   State<InvoiceSummaryPage> createState() => _InvoiceSummaryPageState();
@@ -99,7 +100,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           MyTextfield.textStyle_w600(key, AppUtils.size_14, AppColors.kBlackColor800),
-          widget.edit==true?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
+          widget.details==true?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
           const SizedBox(width: 20),
           Expanded(
             child: Row(
@@ -112,7 +113,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                     AppColors.kGreyColor700,
                   ),
                 ),
-                if (widget.edit==true)
+                widget.details==true?SizedBox():
                   GestureDetector(
                     onTap: onEdit,
                     child: Icon(Icons.edit, size: 18, color: AppColors.kPrimary),
@@ -271,7 +272,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: widget.edit==true?Container(
+      floatingActionButton: widget.details!?SizedBox():Container(
         height: 50,
         width: double.infinity,
         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -287,7 +288,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
           },
           buttonText: widget.edit! ? "Update Invoice" : "Add Invoice",
         ),
-      ):SizedBox(),
+      ),
     );
   }
 

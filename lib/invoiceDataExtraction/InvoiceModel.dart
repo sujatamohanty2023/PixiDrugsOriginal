@@ -109,7 +109,7 @@ class InvoiceItem {
     this.rate='',
     this.taxable='',
     this.discount='0',
-      this.discountSale='0',
+    this.discountSale='0',
     this.expiry='',
     this.qty=0,
     this.qty_free=0,

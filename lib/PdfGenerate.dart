@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:image/image.dart';
+import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'package:image/image.dart' as img;
 
@@ -40,7 +41,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
     return subtotal;
   }
   Future<img.Image> loadLogoImage() async {
-    final ByteData data = await rootBundle.load('assets/images/splash.jpg');
+    final ByteData data = await rootBundle.load(AppImages.AppIcon);
     final Uint8List bytes = data.buffer.asUint8List();
 
     final img.Image original = img.decodeImage(bytes)!;
@@ -66,7 +67,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
 
       final logoImage = await loadLogoImage();
       // Print logo
-      printer.image(logoImage); // Use align: PosAlign.center if needed
+     // printer.image(logoImage); // Use align: PosAlign.center if needed
       printer.feed(1);
 
       printer.setStyles(boldStyle);
@@ -120,6 +121,8 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.disconnect();
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Success: $res')));
+      AppRoutes.navigateTo(context, HomePage());
+      context.read<CartCubit>().clearCart(type: CartType.barcode);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Failed: $res')));
     }

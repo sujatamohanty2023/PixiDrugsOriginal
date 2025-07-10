@@ -123,7 +123,7 @@ class CartCubit extends Cubit<CartState> {
     final updatedCart = List<InvoiceItem>.from(cartList);
 
     if (index == -1) {
-      updatedCart.add(product.copyWith(qty: quantity));
+      updatedCart.add(product.copyWith(qty: quantity,discount: '0.0'));
     } else {
       var updateQuantity = detailPage ? 0 : updatedCart[index].qty;
       updatedCart[index] = updatedCart[index].copyWith(qty: updateQuantity + quantity);

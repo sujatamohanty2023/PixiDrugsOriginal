@@ -10,10 +10,10 @@ class ApiCubit extends Cubit<ApiState> {
 
 //------------------------------------------------------------------------------------
   Future<void> login(
-      {required String mobile, required String fcm_token,required String role}) async {
+      {required String mobile, required String fcm_token}) async {
     try {
       emit(LoginLoading());
-      final response = await apiRepository.loginUser(mobile, fcm_token,role);
+      final response = await apiRepository.loginUser(mobile, fcm_token);
 
       final loginModel = LoginModel.fromJson(response);
       emit(LoginLoaded(loginResponse: loginModel));
@@ -200,6 +200,19 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleListLoaded(saleList: list));
     } catch (e) {
       emit(SaleListError('Failed to load sale: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SaleEdit({required String billingid,required OrderPlaceModel orderPlaceModel}) async {
+    try {
+      emit(SaleEditLoading());
+      final response = await apiRepository.saleEdit(billingid,orderPlaceModel);
+      final data = response['message'];
+      final billing_id = response['billing_id'];
+
+      emit(SaleEditLoaded(message: data, billing_id: billing_id));
+    } catch (e) {
+      emit(SaleEditError('Failed to checkout: $e'));
     }
   }
   //------------------------------------------------------------------------------------
