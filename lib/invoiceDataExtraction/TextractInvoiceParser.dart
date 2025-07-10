@@ -9,7 +9,7 @@ class AnalyzeExpenseParser {
 
     if (lower.contains('gm') || lower.contains('ml') || lower.contains('kg')) return 'packing';
     if (lower.contains('batch') || RegExp(r'^[a-zA-Z]?\d{3,}$').hasMatch(lower)) return 'batch';
-    if (lower.contains('exp')) return 'expiry';
+    if (lower.contains("/") && value.length == 5) return 'expiry';// Expiry date like "09/26"
     if (lower.contains('hsn') || RegExp(r'^\d{4,8}$').hasMatch(lower)) return 'hsn';
     if (lower.contains('%') || lower.contains('gst')) return 'gst';
     if (lower.contains('disc') || lower.contains('discount')) return 'discount';
