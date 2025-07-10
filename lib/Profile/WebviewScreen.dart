@@ -17,9 +17,9 @@ class _WebviewscreenState extends State<Webviewscreen> {
     super.initState();
     var url = '';
     if (widget.tittle == 'About Us') {
-      url = 'http://pixidrugs.com/about';
+      url = 'http://pixidrugs.com/#About_us';
     } else if (widget.tittle == 'Contact Us') {
-      url = 'http://pixidrugs.com/contact';
+      url = 'http://pixidrugs.com/#Contact_us';
     } else if (widget.tittle == 'Privacy Policy') {
       url = 'http://pixidrugs.com/privacy';
     } else if (widget.tittle == 'Terms & Conditions') {
