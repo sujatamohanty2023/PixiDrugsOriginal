@@ -19,6 +19,13 @@ class MyTextfield {
       style: textStyle(size, color, FontWeight.w600),
     );
   }
+  static Text textStyle_w400(String text, double size, Color color,{var maxLines = false}) {
+    return Text(
+      text,
+      maxLines: maxLines?1:null,
+      style: textStyle(size, color, FontWeight.w400),
+    );
+  }
 
   static Text textStyle_w300(String text, double size, Color color) {
     return Text(

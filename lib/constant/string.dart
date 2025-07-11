@@ -1,6 +1,16 @@
 class AppString {
   static String baseUrl = 'http://pixidrugs.com/';
 
+  static String loginText = 'Login with Mobile Number';
+  static String logindesc = 'Enter your mobile number to receive an OTP';
+  static String enterMobileNo="Enter mobile number";
+  static String continueText="Continue";
+  static String get_started="Get Started";
+  static String verifyOtp="OTP Verification";
+  static String otpdesc='Enter the 6-digit code we sent to verify your number and continue with secure access to your PixiDrugs account.';
+  static String verify_continue="Verify & Continue";
+
+
   static String Rupees = "₹";
   static String Thank_you = "Thank You!";
   static String Done = "Done";
@@ -16,4 +26,5 @@ class AppString {
   static String enterRegNo = 'Enter your Licence NO.';
   static String enterEmail = 'Enter your email';
   static String upDate = 'Update';
+
 }

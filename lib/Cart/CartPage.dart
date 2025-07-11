@@ -1,5 +1,6 @@
 import 'package:pixidrugs/Cart/address_widget.dart';
 import 'package:pixidrugs/Dialog/success_dialog.dart';
+import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
 
@@ -102,7 +103,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       backgroundColor: AppColors.kPrimary,
       body: Container(
         height: double.infinity,
-        padding: const EdgeInsets.only(top: 20),
+        padding: const EdgeInsets.only(top: 10),
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
           borderRadius: const BorderRadius.only(
@@ -262,11 +263,11 @@ class PaymentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleStyle = isBold
-        ? MyTextfield.textStyle_w600(title, 18, Colors.grey[600]!)
+        ? MyTextfield.textStyle_w600(title, 18, AppColors.kPrimary)
         : MyTextfield.textStyle_w200(title, 15, Colors.grey[600]!);
 
     final valueStyle = isBold
-        ? MyTextfield.textStyle_w600(value, 18, color)
+        ? MyTextfield.textStyle_w600(value, 18, AppColors.kPrimary)
         : MyTextfield.textStyle_w300(value, 15, color);
 
     return Padding(

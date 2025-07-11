@@ -14,7 +14,7 @@ class NoItemPage extends StatelessWidget {
     required this.image,
     required this.tittle,
     required this.description,
-    required this.button_tittle,
+    required this.button_tittle
   }) : super(key: key);
 
   @override
@@ -33,18 +33,19 @@ class NoItemPage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(30.0),
                   child: SvgPicture.asset(
+                    color: AppColors.loginbg,
                     image,
-                    height: 150,
-                    width: 150,
+                    height: 130,
+                    width: 130,
                   ),
                 ),
               ),
               SizedBox(height: 20),
               // Text for "Cart is Empty"
               MyTextfield.textStyle_w600(
-                  tittle, AppUtils.size_25, Colors.black87),
+                  tittle, AppUtils.size_25, AppColors.loginbg),
 
               SizedBox(height: 15),
               // Subtitle Text

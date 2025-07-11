@@ -152,31 +152,7 @@ class _CartItemCardState extends State<CartItemCard> {
               ),
             ),
             const SizedBox(width: 8),
-            DropdownButton<DiscountType>(
-              value: item.discountType,
-              icon: const Icon(Icons.arrow_drop_down),
-              onChanged: (DiscountType? newType) {
-                if (newType != null) {
-                if(!widget.edit) {
-                  cartCubit.updateItemDiscount(
-                    item.id,
-                    double.tryParse(discController.text) ?? 0.0,
-                    type: barcodeScan ? CartType.barcode : CartType.main,
-                    discountType: newType,
-                  );
-                }else{
-                  item.discountType=newType;
-                  widget.onUpdate?.call();
-                }
-              }
-              },
-              items: DiscountType.values.map((DiscountType type) {
-                return DropdownMenuItem<DiscountType>(
-                  value: type,
-                  child: Text(type == DiscountType.flat ? '₹ Flat' : '% Off'),
-                );
-              }).toList(),
-            ),
+            MyTextfield.textStyle_w600("% Off", 14, AppColors.kPrimary),
           ],
         ),
 

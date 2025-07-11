@@ -107,7 +107,7 @@ class _HomeTabState extends State<HomeTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children:  [
-                        MyTextfield.textStyle_w600('$name', 20, Colors.white),
+                        MyTextfield.textStyle_w600('$name', SizeConfig.screenWidth! * 0.055, Colors.white),
                         MyTextfield.textStyle_w300('$email', 16, AppColors.kWhiteColor.withOpacity(0.5)),
                       ],
                     ),

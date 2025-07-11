@@ -10,6 +10,7 @@ class SaleListWidget extends StatelessWidget {
   final VoidCallback onAddPressed;
   final Function(SaleModel sale) onEditPressed;
   final Function(String id) onDeletePressed;
+  final Function(SaleModel sale) onPrintPressed;
 
   const SaleListWidget({
     required this.isLoading,
@@ -19,6 +20,7 @@ class SaleListWidget extends StatelessWidget {
     required this.onAddPressed,
     required this.onDeletePressed,
     required this.onEditPressed,
+    required this.onPrintPressed,
   });
 
   @override
@@ -30,34 +32,32 @@ class SaleListWidget extends StatelessWidget {
         i.customer.name.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
 
-    return  Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.myGradient,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(screenWidth * 0.07),
-            topRight: Radius.circular(screenWidth * 0.07),
-          ),
+    return  Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.myGradient,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(screenWidth * 0.07),
+          topRight: Radius.circular(screenWidth * 0.07),
         ),
-        child: isLoading
-            ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-            : sales.isEmpty
-            ? NoItemPage(
-          onTap: onAddPressed,
-          image: AppImages.add_invoice,
-          tittle: 'No Sale Record Found',
-          description:
-          "Please add important details about the sale such as cusomer name, products, quantity, total amount, and payment status.",
-          button_tittle: 'Add Sale Record',
-        )
-            : ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: filteredSales.length,
-          itemBuilder: (_, index) {
-            final sale = filteredSales[index];
-            return _buildSaleCard(sale, screenWidth,context);
-          },
-        ),
+      ),
+      child: isLoading
+          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+          : sales.isEmpty
+          ? NoItemPage(
+        onTap: onAddPressed,
+        image: AppImages.no_sale,
+        tittle: 'No Sale Record Found',
+        description:
+        "Please add important details about the sale such as cusomer name, products, quantity, total amount, and payment status.",
+        button_tittle: 'Add Sale Record',
+      )
+          : ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: filteredSales.length,
+        itemBuilder: (_, index) {
+          final sale = filteredSales[index];
+          return _buildSaleCard(sale, screenWidth,context);
+        },
       ),
     );
   }
@@ -82,30 +82,18 @@ class SaleListWidget extends StatelessWidget {
               CircleAvatar(
                 radius: screenWidth * 0.08,
                 backgroundColor: AppColors.kPrimaryDark,
-                child: Text(
-                  getInitials(sale.customer.name),
-                  style: TextStyle(
-                    color: AppColors.kPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: screenWidth * 0.045,
-                  ),
-                ),
-              ),
+                child: MyTextfield.textStyle_w600( getInitials(sale.customer.name),screenWidth * 0.045,AppColors.kPrimary) ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(sale.customer.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04)),
+                    MyTextfield.textStyle_w800(sale.customer.name,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
-                    Text("Invoice No: #${sale.invoiceNo}", style: TextStyle(color: Colors.grey.shade700, fontSize: screenWidth * 0.035)),
+                    MyTextfield.textStyle_w400('Bill No. #${sale.invoiceNo!}',screenWidth * 0.035,Colors.grey.shade700),
+                    MyTextfield.textStyle_w400('Dt.${sale.date!}',screenWidth * 0.035,Colors.grey.shade700),
                     SizedBox(height: screenWidth * 0.01),
-                    Text(sale.date, style: TextStyle(color: Colors.grey.shade600, fontSize: screenWidth * 0.03)),
-                    SizedBox(height: screenWidth * 0.01),
-                    Text(
-                      "₹${sale.totalAmount.toStringAsFixed(2)}",
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
-                    ),
+                    MyTextfield.textStyle_w600("₹${sale.totalAmount.toStringAsFixed(2)}",screenWidth * 0.049,Colors.green),
                   ],
                 ),
               ),
@@ -114,13 +102,23 @@ class SaleListWidget extends StatelessWidget {
                 children: [
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      if (value == 'edit') {
+                      if (value == 'print') {
+                        onPrintPressed(sale);
+                      }else if (value == 'edit') {
                         onEditPressed(sale);
                       } else if (value == 'delete') {
                         onDeletePressed(sale.invoiceNo!.toString());
                       }
                     },
                     itemBuilder: (context) => [
+                      PopupMenuItem(value: 'print',
+                          child:Row(
+                            children: [
+                              Icon(Icons.print, color: Colors.black),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Print Bill', 13, Colors.black),
+                            ],
+                          )),
                       PopupMenuItem(value: 'edit',
                           child:Row(
                             children: [

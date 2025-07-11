@@ -28,34 +28,32 @@ class InvoiceListWidget extends StatelessWidget {
         i.sellerName!.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
 
-    return  Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.myGradient,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(screenWidth * 0.07),
-            topRight: Radius.circular(screenWidth * 0.07),
-          ),
+    return  Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.myGradient,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(screenWidth * 0.07),
+          topRight: Radius.circular(screenWidth * 0.07),
         ),
-        child: isLoading
-            ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-            : invoices.isEmpty
-            ? NoItemPage(
-          onTap: onAddPressed,
-          image: AppImages.add_invoice,
-          tittle: 'Add an Invoice record.',
-          description:
-          "Please add your invoice details for better tracking.",
-          button_tittle: 'Add Invoice',
-        )
-            : ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: filteredInvoices.length,
-          itemBuilder: (_, index) {
-            final invoice = filteredInvoices[index];
-            return buildInvoiceCard(context,invoice, screenWidth);
-          },
-        ),
+      ),
+      child: isLoading
+          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+          : invoices.isEmpty
+          ? NoItemPage(
+        onTap: onAddPressed,
+        image: AppImages.no_invoice,
+        tittle: 'Add an Invoice record.',
+        description:
+        "Please add your invoice details for better tracking.",
+        button_tittle: 'Add Invoice',
+      )
+          : ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: filteredInvoices.length,
+        itemBuilder: (_, index) {
+          final invoice = filteredInvoices[index];
+          return buildInvoiceCard(context,invoice, screenWidth);
+        },
       ),
     );
   }
@@ -91,29 +89,18 @@ class InvoiceListWidget extends StatelessWidget {
                       CircleAvatar(
                         radius: screenWidth * 0.08,
                         backgroundColor: AppColors.kPrimaryDark,
-                        child: Text(
-                          getInitials(invoice.sellerName!),
-                          style: TextStyle(
-                            color: AppColors.kPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: screenWidth * 0.045,
-                          ),
-                        ),
-                      ),
+                        child:MyTextfield.textStyle_w600( getInitials(invoice.sellerName!),screenWidth * 0.045,AppColors.kPrimary) ),
                       SizedBox(width: screenWidth * 0.03),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(invoice.sellerName!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04)),
+                            MyTextfield.textStyle_w800(invoice.sellerName!,screenWidth * 0.04,AppColors.kPrimary),
                             SizedBox(height: screenWidth * 0.01),
-                            Text(invoice.invoiceId!, style: TextStyle(color: Colors.grey.shade700, fontSize: screenWidth * 0.035)),
+                            MyTextfield.textStyle_w400('Invoice No. #${invoice.invoiceId!}',screenWidth * 0.035,Colors.grey.shade700),
+                            MyTextfield.textStyle_w400('Dt.${invoice.invoiceDate!}',screenWidth * 0.035,Colors.grey.shade700),
                             SizedBox(height: screenWidth * 0.01),
-                            Text(invoice.invoiceDate!, style: TextStyle(color: Colors.grey.shade600, fontSize: screenWidth * 0.03)),
-                            Text(
-                              "₹${invoice.netAmount!}",
-                              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
-                            ),
+                            MyTextfield.textStyle_w600("₹${invoice.netAmount!}",screenWidth * 0.049,Colors.green),
                           ],
                         ),
                       ),

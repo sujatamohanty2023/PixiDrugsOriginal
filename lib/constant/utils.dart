@@ -19,7 +19,7 @@ class AppUtils {
       backgroundColor: AppColors
           .kPrimary, // Set to transparent so we can add custom decoration
       elevation: 0,
-      title: MyTextfield.textStyle_w800(title, 20, AppColors.kWhiteColor),
+      title: MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.055, AppColors.kWhiteColor),
       leading: leading
           ? IconButton(
               icon: Icon(

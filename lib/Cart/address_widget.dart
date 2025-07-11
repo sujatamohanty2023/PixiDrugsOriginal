@@ -30,10 +30,15 @@ class _addressWidgetState extends State<addressWidget> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(10.0),
         child: Row(
           children: [
-            SvgPicture.asset(AppImages.home_address, height: 35, width: 35),
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.kPrimaryDark,
+              child:
+              SvgPicture.asset(AppImages.home_address, height: 35, width: 35),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

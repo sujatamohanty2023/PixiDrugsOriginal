@@ -3,6 +3,7 @@ import 'package:pixidrugs/constant/all.dart';
 class AppColors {
   static const kPrimaryLight = Color(0xFFDCEBFF);
   static const kPrimaryDark = Color(0xFFC4DAF6);
+  static const loginbg = Color(0xFF173C6E);
   static const kPrimary = Color(0xFF062A49);
 
   static const kWhiteColor = Color(0xFFFFFFFF);

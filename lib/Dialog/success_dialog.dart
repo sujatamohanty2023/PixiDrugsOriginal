@@ -62,10 +62,10 @@ class _SuccessDialogState extends State<SuccessDialog> {
   }
 
   void _onButtonPressed() {
-    Navigator.pushAndRemoveUntil(
+   /* Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => ReceiptPrinterPage()),
+      MaterialPageRoute(builder: (context) => ReceiptPrinterPage(sale:[] ,)),
           (route) => false,
-    );
+    );*/
   }
 }

@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/constant/color.dart';
-import 'package:pixidrugs/invoiceDataExtraction/InvoiceModel.dart';
 
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;
@@ -20,7 +17,7 @@ class ProductTile extends StatelessWidget {
         !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -32,23 +29,16 @@ class ProductTile extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        product!.product,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      child:MyTextfield.textStyle_w600(product!.product, SizeConfig.screenWidth! * 0.045, AppColors.kPrimary)
                     ),
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontSize: 14, color: Colors.black),
+                        style: MyTextfield.textStyle(13, Colors.black, FontWeight.w300),
                         children: [
                           const TextSpan(text: 'Sale: '),
                           TextSpan(
                             text: '₹${product!.rate}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.teal,
-                            ),
+                            style: MyTextfield.textStyle(14, Colors.teal, FontWeight.w400),
                           ),
                         ],
                       ),
@@ -59,52 +49,48 @@ class ProductTile extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        "Code: ${product!.hsn
-                        }",
-                        style: const TextStyle(
-                            fontSize: 13, color: Colors.black87),
+                      child: RichText(
+                        text: TextSpan(
+                          style: MyTextfield.textStyle(13, Colors.black, FontWeight.w300),
+                          children: [
+                            const TextSpan(text: 'HSN: '),
+                            TextSpan(
+                              text: '${product!.hsn}',
+                              style: MyTextfield.textStyle(13, Colors.black54, FontWeight.w300),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontSize: 13, color: Colors.black),
+                        style: MyTextfield.textStyle(13, Colors.black, FontWeight.w300),
                         children: [
                           const TextSpan(text: 'Purchase: '),
                           TextSpan(
                             text:
                             '₹${product!.mrp}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange,
-                            ),
+                            style: MyTextfield.textStyle(14, Colors.deepOrange, FontWeight.w400),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 6,),
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            isOutOfStock
-                                ? "Out of Stock"
-                                : "Stock: ${product!.qty}",
-                            style: TextStyle(
-                              color: isOutOfStock ? Colors.red : Colors.teal,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          MyTextfield.textStyle_w400(isOutOfStock
+                      ? "Out of Stock"
+                              : "Stock: ${product!.qty}",16, isOutOfStock ? Colors.red : Colors.teal),
                           SizedBox(height: 2,),
                           if (!isOutOfStock)
-                            Text(
-                              "Ex. Date: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry))}",
-                              style: TextStyle(fontSize: 13),
+                            MyTextfield.textStyle_w400(
+                              "Ex. Date: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry))}",14,Colors.grey.shade700
                             ),
                         ],
                       ),
@@ -118,12 +104,8 @@ class ProductTile extends StatelessWidget {
                           // border: Border.all(color: Colors.red),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          "Out of Stock",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: MyTextfield.textStyle_w600(
+                          "Out of Stock",16,Colors.white
                         ),
                       )
                     else if (isExpired)

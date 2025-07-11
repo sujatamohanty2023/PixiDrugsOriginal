@@ -4,6 +4,12 @@ class AppImages {
   static String PNGFolder = "assets/images/";
 
   static String AppIcon = "${PNGFolder}splash.jpg";
+  static String Intro1 = "${PNGFolder}image1.jpg";
+  static String Intro2 = "${PNGFolder}image2.jpg";
+  static String Intro3 = "${PNGFolder}image3.jpg";
+  static String LoginIcon = "${PNGFolder}login.png";
+  static String indiaIcon = "${PNGFolder}india.jpg";
+  static String otpIcon = "${PNGFolder}otp.png";
 
   static String home_address = "${svgFolder}home_address.svg";
   static String delete = '${svgFolder}delete.svg';
@@ -21,4 +27,7 @@ class AppImages {
   static String profile = "${svgFolder}profile.svg";
   static String back = "${svgFolder}back.svg";
   static String check = "${svgFolder}check.svg";
+  static String no_invoice = "${svgFolder}no_invoice.svg";
+  static String no_sale = "${svgFolder}no_sale.svg";
+  static String no_expiry = "${svgFolder}no_expiry.svg";
 }

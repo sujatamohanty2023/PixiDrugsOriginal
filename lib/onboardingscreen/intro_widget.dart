@@ -1,6 +1,4 @@
 import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/login/mobileLoginScreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IntroWidget extends StatelessWidget {
   const IntroWidget({
@@ -22,7 +20,7 @@ class IntroWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.kPrimaryLight,
+      color: AppColors.kPrimaryDark,
       child: Stack(
         children: [
           Container(
@@ -41,7 +39,7 @@ class IntroWidget extends StatelessWidget {
             child: Container(
               height: MediaQuery.of(context).size.height / 2.16,
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: AppColors.myGradient,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(100)
                 )
@@ -51,9 +49,9 @@ class IntroWidget extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 62,),
-                    Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    MyTextfield.textStyle_w800(title, 28, AppColors.kPrimary),
                     const SizedBox(height: 16,),
-                    Text(description, style: const TextStyle(fontSize: 18, height: 1.5, color: Colors.grey), textAlign: TextAlign.center,)
+                    MyTextfield.textStyle_w300(description, 20, Colors.black54),
                   ],
                 ),
               ),
@@ -62,16 +60,17 @@ class IntroWidget extends StatelessWidget {
           Positioned(
             bottom: 20,
             right: 0,
-            left: 0,
+            left: 10,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: skip
               ? Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Skip Now', style: TextStyle(color: AppColors.kPrimary,fontSize:16,fontWeight:FontWeight.normal),),
+                  GestureDetector(
+                    onTap: (){},
+                    child:
+                  MyTextfield.textStyle_w300('Skip Now', 16,  AppColors.kPrimary),
                   ),
                   GestureDetector(
                     onTap: onTab,
@@ -93,29 +92,17 @@ class IntroWidget extends StatelessWidget {
                 ],
               )
               : SizedBox(
-                height: 50,
-                child: MaterialButton(
-                  color: AppColors.kPrimary,
-                  elevation: 10,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  onPressed: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('onboarding_completed', true);
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  child: const Center(
-                    child: Text(
-                      'Get Started',
-                      style: TextStyle(
-                        color: AppColors.kWhiteColor, // Use a color that contrasts the primary color
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+                  height: 48,
+                  width: double.infinity,
+                  child:MyElevatedButton(
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('onboarding_completed', true);
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    custom_design: false,
+                    buttonText: AppString.get_started,
+                  )
               )
             ),
           )

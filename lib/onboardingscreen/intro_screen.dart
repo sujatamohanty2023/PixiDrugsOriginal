@@ -1,8 +1,6 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:pixidrugs/constant/all.dart';
 import 'package:pixidrugs/onboardingscreen/intro_widget.dart';
-
-import '../constant/color.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -37,19 +35,19 @@ class _IntroScreenState extends State<IntroScreen> {
   final List<Map<String, dynamic>> _pages = [
   {
     'title': 'Welcome to PixiDrugs',
-    'image': 'assets/images/image1.jpg',
+    'image': AppImages.Intro1,
     'description': "Easily manage your entire medical stock with PixiDrugs. From purchase to sales, our powerful tools simplify every step of inventory tracking, ensuring accuracy and convenience for pharmacies and clinics.",
     'skip': true
   },
   {
     'title': "Scan Invoices Effortlessly",
-    'image': 'assets/images/image2.jpg',
+    'image': AppImages.Intro2,
   'description': "Use your phone's camera to scan medicine invoices and automatically extract data like names, quantities, and prices. Our AI-powered OCR ensures fast, reliable, and accurate recordkeeping without manual entry.",
   'skip': true
   },
   {
     'title': 'Expiry & Stock Alerts',
-    'image': 'assets/images/image3.jpg',
+    'image': AppImages.Intro3,
     'description': "Stay ahead of medicine expiries and low stock with instant alerts. PixiDrugs helps you maintain compliance, reduce wastage, and ensure critical medicines are always available when needed.",
     'skip': false
   },

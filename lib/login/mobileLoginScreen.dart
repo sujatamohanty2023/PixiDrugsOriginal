@@ -32,7 +32,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content:
-              Text('reCAPTCHA verification failed. Please try again.')),
+              MyTextfield.textStyle_w300('reCAPTCHA verification failed. Please try again.', 16, Colors.white)),
         );
       },
       codeSent: (String verId, int? resendToken) {
@@ -55,7 +55,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: AppColors.kPrimary,
+      backgroundColor: AppColors.loginbg,
       body: SingleChildScrollView( // ✅ Handles keyboard scroll
         child: Column(
           children: [
@@ -66,7 +66,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 100.0),
                 child: Image.asset(
-                  'assets/images/login.png',
+                  AppImages.LoginIcon,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -77,7 +77,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               width: double.infinity,
               constraints: BoxConstraints(minHeight: screenHeight * 0.45),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                gradient: AppColors.myGradient,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(100),
                 ),
@@ -85,26 +85,12 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 60),
-                    const Text(
-                      'Login with Mobile Number',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    MyTextfield.textStyle_w800(AppString.loginText, 28, AppColors.kPrimary),
                     const SizedBox(height: 28),
-                    const Text(
-                      'Enter your mobile number to receive an OTP',
-                      style: TextStyle(
-                        fontSize: 16,
-                        height: 1.5,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    MyTextfield.textStyle_w300(AppString.logindesc, 18, Colors.black54),
                     const SizedBox(height: 16),
 
                     /// 📞 Phone Input Row
@@ -122,33 +108,22 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Image.asset(
-                            'assets/images/india.jpg',
+                            AppImages.indiaIcon,
                             height: 25,
                             width: 25,
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            '+91',
-                            style: TextStyle(
-                              color: AppColors.kPrimary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        MyTextfield.textStyle_w600('+91',20,AppColors.kPrimary),
                           const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
                               controller: phoneController,
                               keyboardType: TextInputType.phone,
-                              style: TextStyle(
-                                color: AppColors.kPrimary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: MyTextfield.textStyle(20 ,AppColors.kPrimary,FontWeight.w600),
                               textAlignVertical: TextAlignVertical.center,
-                              decoration: const InputDecoration(
-                                hintText: "Enter mobile number",
-                                hintStyle: TextStyle(color: Colors.grey),
+                              decoration: InputDecoration(
+                                hintText:AppString.enterMobileNo,
+                                hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
                                 border: InputBorder.none,
                                 isDense: true,
                                 contentPadding: EdgeInsets.symmetric(vertical: 12),
@@ -165,23 +140,13 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                     SizedBox(
                       height: 48,
                       width: double.infinity,
-                      child: MaterialButton(
-                        color: AppColors.kPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      child:MyElevatedButton(
                         onPressed: () {
-                           sendOTP();
+                          sendOTP();
                         },
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                        custom_design: false,
+                        buttonText: AppString.continueText,
+                      )
                     ),
                     const SizedBox(height: 24),
                   ],

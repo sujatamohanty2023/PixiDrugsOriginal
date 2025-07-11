@@ -1,6 +1,7 @@
 import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/ListPageScreen/InvoiceListWidget.dart';
 import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
+import 'package:pixidrugs/PdfGenerate.dart';
 import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
@@ -118,59 +119,71 @@ class _ListScreenState extends State<ListScreen>
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: BlocListener<ApiCubit, ApiState>(
-        listener: (context, state) {
+      body: BlocBuilder<ApiCubit, ApiState>(
+        builder: (context, state) {
+          // Update your lists based on state
           if (state is InvoiceListLoaded) {
             invoiceList = state.invoiceList;
           } else if (state is SaleListLoaded) {
             saleList = state.saleList;
           }
-        },
-        child: Container(
-          color: AppColors.kPrimary,
-          padding: EdgeInsets.only(top: screenWidth * 0.12),
-          child: Column(
-            children: [
-              _buildTopBar(screenWidth),
-              _buildSearchBar(screenWidth),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _fetchRecord,
-                  child: widget.type == 'invoice'
-                      ? InvoiceListWidget(
-                    invoices: invoiceList,
-                    isLoading: context.watch<ApiCubit>().state is InvoiceListLoading,
-                    searchQuery: searchQuery,
-                    onSearchChanged: (value) => setState(() => searchQuery = value),
-                    onAddPressed: _onAddInvoicePressed,
-                    onDeletePressed: (id){
-                      _showDeleteDialog(context,id);
-                    },
-                    onEditPressed: (invoice){
-                      AppRoutes.navigateTo(context, AddPurchaseBill(invoice:invoice));
-                    },
-                  )
-                      : SaleListWidget(
-                    sales: saleList,
-                    isLoading: context.watch<ApiCubit>().state is InvoiceListLoading,
-                    searchQuery: searchQuery,
-                    onSearchChanged: (value) => setState(() => searchQuery = value),
-                    onAddPressed: _onAddInvoicePressed,
-                    onDeletePressed: (id){
-                        _showDeleteDialog(context,id);
-                    },
-                      onEditPressed: (saleItem){
-                        AppRoutes.navigateTo(
-                          context,
-                          SaleDetailsPage(sale: saleItem, edit: true),
-                        );
-                      }),
+
+          final isInvoiceLoading = state is InvoiceListLoading;
+          final isSaleLoading = state is SaleListLoading;
+
+          return Container(
+            color: AppColors.kPrimary,
+            padding: EdgeInsets.only(top: screenWidth * 0.12),
+            child: Column(
+              children: [
+                _buildTopBar(screenWidth),
+                _buildSearchBar(screenWidth),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _fetchRecord,
+                    child: widget.type == 'invoice'
+                        ? InvoiceListWidget(
+                      invoices: invoiceList,
+                      isLoading: isInvoiceLoading,
+                      searchQuery: searchQuery,
+                      onSearchChanged: (value) => setState(() => searchQuery = value),
+                      onAddPressed: _onAddInvoicePressed,
+                      onDeletePressed: (id) {
+                        _showDeleteDialog(context, id);
+                      },
+                      onEditPressed: (invoice) {
+                        AppRoutes.navigateTo(context, AddPurchaseBill(invoice: invoice));
+                      },
+                    )
+                        : SaleListWidget(
+                        sales: saleList,
+                        isLoading: isSaleLoading,
+                        searchQuery: searchQuery,
+                        onSearchChanged: (value) => setState(() => searchQuery = value),
+                        onAddPressed: _onAddInvoicePressed,
+                        onDeletePressed: (id) {
+                          _showDeleteDialog(context, id);
+                        },
+                        onEditPressed: (saleItem) {
+                          AppRoutes.navigateTo(
+                            context,
+                            SaleDetailsPage(sale: saleItem, edit: true),
+                          );
+                        },
+                      onPrintPressed: (saleItem) {
+                      AppRoutes.navigateTo(
+                        context,
+                        ReceiptPrinterPage(sale: saleItem),
+                    );
+                  }),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
       ),
+
       floatingActionButton: widget.type == 'invoice' && invoiceList.isNotEmpty
           ? FloatingActionButton(
         onPressed: _onAddInvoicePressed,
@@ -196,14 +209,7 @@ class _ListScreenState extends State<ListScreen>
               );
             },
           ),
-          Text(
-            widget.type == 'invoice' ? 'Invoice List' : 'Sale List',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: screenWidth * 0.055,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          MyTextfield.textStyle_w600( widget.type == 'invoice' ? 'Invoice List' : 'Sale List', screenWidth * 0.055, Colors.white)
         ],
       ),
     );
@@ -218,8 +224,9 @@ class _ListScreenState extends State<ListScreen>
           borderRadius: BorderRadius.circular(screenWidth * 0.07),
         ),
         child: TextField(
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: "Search by name",
+            hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
             prefixIcon: Icon(Icons.search),
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 14),

@@ -147,14 +147,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kPrimary,
+      backgroundColor: AppColors.loginbg,
       body: SingleChildScrollView(
         child: Column(
           children: [
             /// 🔷 Image on Top
             const SizedBox(height: 50),
             Image.asset(
-              'assets/images/otp.png',
+              AppImages.otpIcon,
               height: MediaQuery.of(context).size.height * 0.5,
               fit: BoxFit.contain,
             ),
@@ -163,7 +163,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             Container(
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Colors.white,
+                gradient: AppColors.myGradient,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(100),
                 ),
@@ -172,19 +172,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 32),
-                  const Text(
-                    "Verify OTP",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  MyTextfield.textStyle_w800(AppString.verifyOtp, 28, AppColors.kPrimary),
                   const SizedBox(height: 16),
-                  Text(
-                      'Enter the 6-digit code we sent to verify your number and continue with secure access to your PixiDrugs account.',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 32),
+                  MyTextfield.textStyle_w300(AppString.otpdesc, 16, Colors.black54),
+                  const SizedBox(height: 20),
 
                   /// 🔢 OTP Boxes
                   Row(
@@ -198,11 +189,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           keyboardType: TextInputType.number,
                           maxLength: 1,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.kPrimary,
-                          ),
+                          style:MyTextfield.textStyle(25 ,AppColors.kPrimary,FontWeight.w600),
                           decoration: InputDecoration(
                             counterText: '',
                             filled: true,
@@ -231,46 +218,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     }),
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
 
                   /// ⏱ Resend text
-                  TextButton(
-                    onPressed:_resendSeconds == 0 ? _resendOtp : null,
-                    child: Text(
-                      _resendSeconds == 0
+
+                  GestureDetector(
+                      onTap: _resendSeconds == 0 ? _resendOtp : null,
+                      child: MyTextfield.textStyle_w600( _resendSeconds == 0
                           ? "Resend OTP"
-                          : "Resend in $_resendSeconds s",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _resendSeconds == 0
-                            ? Colors.red
-                            : Colors.grey,
-                      ),
-                    ),
+                          : "Resend in $_resendSeconds s", 16, _resendSeconds == 0 ? Colors.red : Colors.grey)
                   ),
 
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 20),
 
                   /// ✅ Submit Button
                   SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: MaterialButton(
-                      color: AppColors.kPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onPressed: _verifyOTP,
-                      child: const Text(
-                        "Verify & Continue",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                      height: 48,
+                      width: double.infinity,
+                      child:MyElevatedButton(
+                        onPressed:_verifyOTP,
+                        custom_design: false,
+                        buttonText: AppString.verify_continue,
+                      )
                   ),
                   const SizedBox(height: 24),
                 ],
