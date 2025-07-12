@@ -1,7 +1,7 @@
+import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
 import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/ListPageScreen/InvoiceListWidget.dart';
 import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
-import 'package:pixidrugs/PdfGenerate.dart';
 import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
@@ -171,10 +171,7 @@ class _ListScreenState extends State<ListScreen>
                           );
                         },
                       onPrintPressed: (saleItem) {
-                      AppRoutes.navigateTo(
-                        context,
-                        ReceiptPrinterPage(sale: saleItem),
-                    );
+                        _onButtonPrintPressed(saleItem);
                   }),
                   ),
                 ),
@@ -193,6 +190,29 @@ class _ListScreenState extends State<ListScreen>
           : null,
     );
   }
+  void _onButtonPrintPressed(SaleModel saleItem) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.kWhiteColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.70,
+        minChildSize: 0.60,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return ReceiptPrinterPage(
+            sale: saleItem,
+            scrollController: scrollController,
+          );
+        },
+      ),
+    );
+  }
+
 
   Widget _buildTopBar(double screenWidth) {
     return Padding(

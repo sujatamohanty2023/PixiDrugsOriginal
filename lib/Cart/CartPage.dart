@@ -52,8 +52,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
+          print("${state.saleModel}");
           if (state.message == "Bill submitted successfully.") {
-            SuccessOrderPlaceCall(state.billing_id);
+            SuccessOrderPlaceCall(state.saleModel);
           }
         } else if (state is OrderPlaceError) {
           Navigator.pop(context); // Dismiss loading
@@ -202,13 +203,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
     );
   }
 
-  void SuccessOrderPlaceCall(int orderId) {
+  void SuccessOrderPlaceCall(SaleModel sale) {
     showDialog(
       context: context,
       builder: (BuildContext context) => SuccessDialog(
+        sale,
         SvgPicture.asset(AppImages.check, height: 60, width: 60),
         "Your Placed Order Successful",
-        "Your order #$orderId has been placed successfully.",
+        "Your order #${sale.invoiceNo} has been placed successfully.",
       ),
     );
   }

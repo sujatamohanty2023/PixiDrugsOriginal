@@ -1,11 +1,13 @@
-import 'package:pixidrugs/PdfGenerate.dart';
+import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
+import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class SuccessDialog extends StatefulWidget {
   SvgPicture image;
   String tittle, msg;
+  SaleModel sale;
 
-  SuccessDialog(this.image, this.tittle, this.msg, {super.key});
+  SuccessDialog(this.sale,this.image, this.tittle, this.msg, {super.key});
 
   @override
   _SuccessDialogState createState() => _SuccessDialogState();
@@ -51,7 +53,7 @@ class _SuccessDialogState extends State<SuccessDialog> {
                 widget.msg, AppUtils.size_14, Colors.black54),
             SizedBox(height: 50),
             MyElevatedButton(
-              onPressed: _onButtonPressed,
+              onPressed: _onButtonPrintPressed,
               buttonText: AppString.Done,
             ),
             SizedBox(height: 5),
@@ -61,11 +63,26 @@ class _SuccessDialogState extends State<SuccessDialog> {
     );
   }
 
-  void _onButtonPressed() {
-   /* Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => ReceiptPrinterPage(sale:[] ,)),
-          (route) => false,
-    );*/
+  void _onButtonPrintPressed() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.kWhiteColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.70,
+        minChildSize: 0.60,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return ReceiptPrinterPage(
+            sale: widget.sale,
+            scrollController: scrollController,
+          );
+        },
+      ),
+    );
   }
 }

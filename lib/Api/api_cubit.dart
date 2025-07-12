@@ -104,10 +104,10 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(OrderPlaceLoading());
       final response = await apiRepository.PlaceOrderApi(orderPlaceModel);
-      final data = response['message'];
-      final billing_id = response['billing_id'];
+      final message = response['message'];
+      final saleModel = SaleModel.fromBillingResponse(response);
 
-      emit(OrderPlaceLoaded(message: data, billing_id: billing_id));
+      emit(OrderPlaceLoaded(message: message,saleModel: saleModel));
     } catch (e) {
       emit(OrderPlaceError('Failed to checkout: $e'));
     }

@@ -89,9 +89,9 @@ class OrderPlaceLoading extends ApiState {}
 
 class OrderPlaceLoaded extends ApiState {
   final String message;
-  final int billing_id;
+  final SaleModel saleModel;
 
-  OrderPlaceLoaded({required this.message, required this.billing_id});
+  OrderPlaceLoaded({required this.message,required this.saleModel});
 }
 
 class OrderPlaceError extends ApiState {

@@ -25,6 +25,28 @@ class SaleModel {
       items: (json['items'] as List).map((e) => SaleItem.fromJson(e)).toList(),
     );
   }
+
+  // ✅ Use this when your API returns "billing_id", etc.
+  static SaleModel fromBillingResponse(Map<String, dynamic> json) {
+    return SaleModel(
+      invoiceNo: json['billing_id'] ?? 0,
+      date: '${DateTime.now()}', // Default, as date is not present
+      totalAmount: (json['total_amount'] as num).toDouble(),
+      profit: 0.0, // Not in the response, default to 0.0
+      customer: Customer.fromJson(json['customer']),
+      items: (json['items'] as List).map((item) {
+        return SaleItem(
+          productId: int.tryParse(item['product_id'].toString()) ?? 0,
+          productName: item['product_name'] ?? '',
+          price: double.tryParse(item['price'].toString()) ?? 0.0,
+          quantity: int.tryParse(item['quantity'].toString()) ?? 0,
+          mrp: double.tryParse(item['mrp'].toString()) ?? 0.0,
+          discount: double.tryParse(item['discount'].toString()) ?? 0.0,
+          itemProfit: 0.0, // Optional: calculate as mrp - price
+        );
+      }).toList(),
+    );
+  }
 }
 
 class Customer {
@@ -40,7 +62,7 @@ class Customer {
     return Customer(
       id: json['id'],
       name: json['name'],
-      email: json['email'],
+      email: json['email']??'',
       phone: json['phone'],
       address: json['address'],
     );
@@ -63,7 +85,7 @@ class SaleItem {
     required this.quantity,
     required this.mrp,
     required this.discount,
-    required this.itemProfit,
+    this.itemProfit=0.0,
   });
 
   factory SaleItem.fromJson(Map<String, dynamic> json) {
