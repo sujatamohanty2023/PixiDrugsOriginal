@@ -385,4 +385,26 @@ class ApiRepository {
       throw Exception('Failed to cancel order: $e');
     }
   }
+  Future<Map<String, dynamic>> leadgerList(String userId) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/lesarlisthistory/',
+        queryParameters: {'user_id': userId},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to fetch Ledger List');
+      }
+    } catch (e) {
+      throw Exception('Failed to Ledger list: $e');
+    }
+  }
 }

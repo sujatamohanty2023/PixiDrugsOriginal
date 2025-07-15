@@ -23,6 +23,7 @@ class AppImages {
   static String notification = "${svgFolder}notification.svg";
   static String home = "${svgFolder}home.svg";
   static String scan_cart = "${svgFolder}scan_cart.svg";
+  static String ledger = "${svgFolder}ledger.svg";
   static String stock = "${svgFolder}stock.svg";
   static String profile = "${svgFolder}profile.svg";
   static String back = "${svgFolder}back.svg";
@@ -30,4 +31,5 @@ class AppImages {
   static String no_invoice = "${svgFolder}no_invoice.svg";
   static String no_sale = "${svgFolder}no_sale.svg";
   static String no_expiry = "${svgFolder}no_expiry.svg";
+
 }

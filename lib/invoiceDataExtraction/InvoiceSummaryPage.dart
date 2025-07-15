@@ -100,7 +100,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           MyTextfield.textStyle_w600(key, AppUtils.size_14, AppColors.kBlackColor800),
-          widget.details==true?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
+          widget.details==false?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
           const SizedBox(width: 20),
           Expanded(
             child: Row(
@@ -249,6 +249,11 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                   invoice = invoice.copyWith(sellerAddress: val);
                 });
               })),
+              _buildKeyValueTile("Seller Phone", invoice.sellerPhone ?? '', onEdit: () => showEditDialog("Seller Phone", invoice.sellerPhone!, (val) {
+                setState(() {
+                  invoice = invoice.copyWith(sellerPhone: val);
+                });
+              })),
               if (items.isNotEmpty) _buildSectionTitle("📦 Product Details (${items.length})"),
               ...items.asMap().entries.map((entry) => _buildProductCard(entry.value, entry.key)),
               const SizedBox(height: 20),
@@ -300,6 +305,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       invoice.invoiceDate,
       invoice.sellerName,
       invoice.sellerAddress,
+      invoice.sellerPhone,
       invoice.sellerGstin,
     ].every((field) => field != null && field.toString().trim().isNotEmpty);
   }

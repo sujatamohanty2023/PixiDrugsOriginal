@@ -62,6 +62,9 @@ class AnalyzeExpenseParser {
           case 'VENDOR_ADDRESS':
             invoice['address'] = value;
             break;
+          case 'VENDOR_PHONE':
+            invoice['phone'] = value;
+            break;
           case 'VENDOR_GST_NUMBER':
             invoice['gst_no'] = value;
             break;

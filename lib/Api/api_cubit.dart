@@ -1,5 +1,6 @@
 // api_cubit.dart
 
+import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
@@ -224,6 +225,18 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleDeleteLoaded(message: message));
     } catch (e) {
       emit(SaleDeleteError('Failed to Delete data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchLedgerList({required String user_id}) async {
+    try {
+      emit(LedgerListLoading());
+      final response = await apiRepository.leadgerList(user_id);
+      final data = response['data'] as List;
+      final list = data.map((json) => LedgerModel.fromJson(json)).toList();
+      emit(LedgerListLoaded(leadgerList: list));
+    } catch (e) {
+      emit(LedgerListError('Failed to load ledger: $e'));
     }
   }
 }

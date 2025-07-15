@@ -1,5 +1,7 @@
 import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
 import 'package:pixidrugs/Home/HomePageScreen.dart';
+import 'package:pixidrugs/Ledger/LedgerListWidget.dart';
+import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/ListPageScreen/InvoiceListWidget.dart';
 import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
 import 'package:pixidrugs/SaleList/sale_details.dart';
@@ -21,6 +23,7 @@ class _ListScreenState extends State<ListScreen>
   String searchQuery = "";
   List<Invoice> invoiceList = [];
   List<SaleModel> saleList = [];
+  List<LedgerModel> ledgerList = [];
 
   @override
   void initState() {
@@ -59,8 +62,10 @@ class _ListScreenState extends State<ListScreen>
     if (userId == null) return;
     if (widget.type == 'invoice') {
       context.read<ApiCubit>().fetchInvoiceList(user_id: userId);
-    } else {
+    } else if (widget.type == 'sale') {
       context.read<ApiCubit>().fetchSaleList(user_id: userId);
+    }else if (widget.type == 'ledger') {
+      context.read<ApiCubit>().fetchLedgerList(user_id: userId);
     }
   }
 
@@ -126,10 +131,13 @@ class _ListScreenState extends State<ListScreen>
             invoiceList = state.invoiceList;
           } else if (state is SaleListLoaded) {
             saleList = state.saleList;
+          }else if (state is LedgerListLoaded) {
+            ledgerList = state.leadgerList;
           }
 
           final isInvoiceLoading = state is InvoiceListLoading;
           final isSaleLoading = state is SaleListLoading;
+          final isLedgerLoading = state is LedgerListLoading;
 
           return Container(
             color: AppColors.kPrimary,
@@ -154,8 +162,8 @@ class _ListScreenState extends State<ListScreen>
                       onEditPressed: (invoice) {
                         AppRoutes.navigateTo(context, AddPurchaseBill(invoice: invoice));
                       },
-                    )
-                        : SaleListWidget(
+                    ):widget.type == 'sale'?
+                        SaleListWidget(
                         sales: saleList,
                         isLoading: isSaleLoading,
                         searchQuery: searchQuery,
@@ -172,7 +180,12 @@ class _ListScreenState extends State<ListScreen>
                         },
                       onPrintPressed: (saleItem) {
                         _onButtonPrintPressed(saleItem);
-                  }),
+                  })
+                        : LedgerListWidget(
+                        items: ledgerList,
+                        isLoading: isLedgerLoading,
+                        searchQuery: searchQuery,
+                        onSearchChanged: (value) => setState(() => searchQuery = value),)
                   ),
                 ),
               ],
@@ -229,7 +242,7 @@ class _ListScreenState extends State<ListScreen>
               );
             },
           ),
-          MyTextfield.textStyle_w600( widget.type == 'invoice' ? 'Invoice List' : 'Sale List', screenWidth * 0.055, Colors.white)
+          MyTextfield.textStyle_w600( widget.type == 'invoice' ? 'Invoice List' : widget.type == 'sale' ?'Sale List':'Ledger', screenWidth * 0.055, Colors.white)
         ],
       ),
     );

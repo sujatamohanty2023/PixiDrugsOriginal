@@ -1,3 +1,4 @@
+import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
@@ -219,4 +220,16 @@ class SaleDeleteLoaded extends ApiState {
 class SaleDeleteError extends ApiState {
   final String error;
   SaleDeleteError(this.error);
+}
+//--------------------------------------------------------------------
+class LedgerListLoading extends ApiState {}
+
+class LedgerListLoaded extends ApiState {
+  final List<LedgerModel> leadgerList;
+  LedgerListLoaded({required this.leadgerList});
+}
+
+class LedgerListError extends ApiState {
+  final String error;
+  LedgerListError(this.error);
 }

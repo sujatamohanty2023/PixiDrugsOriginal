@@ -6,6 +6,7 @@ class Invoice {
    String? sellerName;
    String? sellerGstin;
    String? sellerAddress;
+   String? sellerPhone;
    String? userId;
    String? netAmount;
    List<InvoiceItem> items;
@@ -16,6 +17,7 @@ class Invoice {
     this.sellerName='',
     this.sellerGstin='',
     this.sellerAddress='',
+    this.sellerPhone='',
     this.userId='',
     this.netAmount='',
     this.items = const [],
@@ -26,6 +28,7 @@ class Invoice {
     String? sellerName,
     String? sellerGstin,
     String? sellerAddress,
+    String? sellerPhone,
     String? userId,
     String? netAmount,
     List<InvoiceItem>? items,
@@ -36,6 +39,7 @@ class Invoice {
       sellerName: sellerName ?? this.sellerName,
       sellerGstin: sellerGstin ?? this.sellerGstin,
       sellerAddress: sellerAddress ?? this.sellerAddress,
+      sellerPhone: sellerPhone ?? this.sellerPhone,
       userId: userId ?? this.userId,
       netAmount: netAmount ?? this.netAmount,
       items: items ?? this.items,
@@ -50,6 +54,7 @@ class Invoice {
       sellerName: json['seller_name']??'',
       sellerGstin: gstRaw.length > 15 ? gstRaw.substring(0, 15) : gstRaw,
       sellerAddress: json['address']??'',
+      sellerPhone: json['phone']??'',
       netAmount: json['net_amount']??'',
       userId: json['user_id']??'',
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
@@ -60,6 +65,7 @@ class Invoice {
     'invoice_date': invoiceDate,
     'seller_name': sellerName,
     'address': sellerAddress,
+    'phone': sellerPhone,
     'gst_no': sellerGstin,
     'user_id': userId,
     'net_amount': netAmount,

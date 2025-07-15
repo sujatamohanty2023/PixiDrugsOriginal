@@ -1,6 +1,7 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:pixidrugs/Cart/CartTab.dart';
 import 'package:pixidrugs/Home/HomeTab.dart';
+import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
 import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'package:pixidrugs/Profile/profileTab.dart';
@@ -26,8 +27,10 @@ class _HomePageState extends State<HomePage> {
       case 1:
         return CartTab(barcodeScan: true, onPressedProduct: () {});
       case 2:
-        return ProductListPage(flag: 1);
+        return ListScreen(type:'ledger');
       case 3:
+        return ProductListPage(flag: 1);
+      case 4:
         return ProfileScreen();
       default:
         return Center(child: Text("Unknown"));
@@ -66,6 +69,14 @@ class _HomePageState extends State<HomePage> {
               color: selectedPos == 1 ?AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Cart',
+          ),
+          TabItem(
+            icon: SvgPicture.asset(
+              AppImages.ledger,
+              height: 24,
+              color: selectedPos == 2 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
+            ),
+            title: 'Ledger',
           ),
           TabItem(
             icon: SvgPicture.asset(
