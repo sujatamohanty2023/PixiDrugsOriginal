@@ -233,3 +233,39 @@ class LedgerListError extends ApiState {
   final String error;
   LedgerListError(this.error);
 }
+//--------------------------------------------------------------------
+class StorePaymentLoading extends ApiState {}
+
+class StorePaymentLoaded extends ApiState {
+  final String message;
+  StorePaymentLoaded({required this.message});
+}
+
+class StorePaymentError extends ApiState {
+  final String error;
+  StorePaymentError(this.error);
+}
+//--------------------------------------------------------------------
+class UpdatePaymentLoading extends ApiState {}
+
+class UpdatePaymentLoaded extends ApiState {
+  final String message;
+  UpdatePaymentLoaded({required this.message});
+}
+
+class UpdatePaymentError extends ApiState {
+  final String error;
+  UpdatePaymentError(this.error);
+}
+//--------------------------------------------------------------------
+class DeletePaymentLoading extends ApiState {}
+
+class DeletePaymentLoaded extends ApiState {
+  final String message;
+  DeletePaymentLoaded({required this.message});
+}
+
+class DeletePaymentError extends ApiState {
+  final String error;
+  DeletePaymentError(this.error);
+}

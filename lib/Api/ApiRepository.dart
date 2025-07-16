@@ -1,4 +1,5 @@
 // api_repository.dart
+import 'package:pixidrugs/Ledger/Payment.dart';
 import 'package:pixidrugs/constant/all.dart';
 
 class ApiRepository {
@@ -405,6 +406,62 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to Ledger list: $e');
+    }
+  }
+  Future<Map<String, dynamic>> payment(Payment payment,String apiName) async {
+    // Check internet connection
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      // Perform POST request
+      final response = await dio.post(
+        '${AppString.baseUrl}api/$apiName',
+        data: payment.toJson(), // Sending JSON
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json', // Ensures raw JSON POST
+          },
+        ),
+      );
+
+      // Debug print
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API Response: ${response.data}');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('POST error: $e');
+      throw Exception('Failed to post invoice: $e');
+    }
+  }
+  Future<Map<String, dynamic>> paymentDelete(String id) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/deletepayment/',
+        queryParameters: {'id': id},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to cancel order');
+      }
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
     }
   }
 }

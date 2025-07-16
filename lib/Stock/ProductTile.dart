@@ -116,13 +116,7 @@ class ProductTile extends StatelessWidget {
                           // border: Border.all(color: Colors.red),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          "Expired",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: MyTextfield.textStyle_w400("Expired",16,Colors.white),
                       )
                     else if (isExpiringSoon)
                         Container(
@@ -132,13 +126,7 @@ class ProductTile extends StatelessWidget {
                             // border: Border.all(color: Colors.orange),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            "Expiring Soon",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child:MyTextfield.textStyle_w400("Expiring Soon",16,Colors.white)
                         ),
                   ],
                 ),

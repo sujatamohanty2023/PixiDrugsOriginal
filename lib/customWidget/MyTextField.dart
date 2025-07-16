@@ -44,13 +44,19 @@ class MyTextfield {
   }
 
   // Central method to define text style
-  static TextStyle textStyle(double size, Color color, FontWeight fontWeight,
-      {TextDecoration decoration = TextDecoration.none}) {
+   static TextStyle textStyle(
+      double size,
+      Color color,
+      FontWeight fontWeight, {
+        TextDecoration decoration = TextDecoration.none,
+        TextDecorationStyle? decorationStyle,
+      }) {
     return GoogleFonts.signika(
       color: color,
       fontSize: size,
       fontWeight: fontWeight,
       decoration: decoration,
+      decorationStyle: decoration != TextDecoration.none ? (decorationStyle ?? TextDecorationStyle.solid) : null,
     );
   }
 }

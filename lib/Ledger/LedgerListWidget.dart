@@ -2,7 +2,7 @@ import 'package:pixidrugs/Ledger/LedgerDetailsPage.dart';
 import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/constant/all.dart';
 
-class LedgerListWidget extends StatelessWidget {
+class LedgerListWidget extends StatefulWidget {
   final bool isLoading;
   final List<LedgerModel> items;
   final String searchQuery;
@@ -15,13 +15,19 @@ class LedgerListWidget extends StatelessWidget {
     required this.onSearchChanged,
   });
 
+@override
+State<LedgerListWidget> createState() => _LedgerListWidgetState();
+}
+
+class _LedgerListWidgetState extends State<LedgerListWidget> {
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final filteredSales = items
+    final filteredSales = widget.items
         .where((i) =>
-        i.sellerName.toLowerCase().contains(searchQuery.toLowerCase()))
+        i.sellerName.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
 
     return  Container(
@@ -32,9 +38,9 @@ class LedgerListWidget extends StatelessWidget {
           topRight: Radius.circular(screenWidth * 0.07),
         ),
       ),
-      child: isLoading
+      child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : items.isEmpty
+          : widget.items.isEmpty
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
@@ -106,14 +112,25 @@ class LedgerListWidget extends StatelessWidget {
                     ),
                   ),*/
                   SizedBox(height: screenWidth * 0.015),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
-                    decoration: BoxDecoration(
-                      //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
-                      color: Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(screenWidth * 0.01),
-                    ),
-                    child:MyTextfield.textStyle_w600("₹${item.dueAmount}", screenWidth * 0.04, Colors.red),
+                  Builder(
+                    builder: (context) {
+                      Color amountColor = item.dueAmount.contains('-')
+                          ? Colors.red
+                          : Colors.green;
+
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
+                        decoration: BoxDecoration(
+                          color: amountColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                        ),
+                        child: MyTextfield.textStyle_w600(
+                          "₹${item.dueAmount}",
+                          screenWidth * 0.04,
+                          amountColor,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

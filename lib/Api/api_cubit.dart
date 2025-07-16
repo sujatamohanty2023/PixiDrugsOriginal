@@ -1,6 +1,7 @@
 // api_cubit.dart
 
 import 'package:pixidrugs/Ledger/LedgerModel.dart';
+import 'package:pixidrugs/Ledger/Payment.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
 
@@ -237,6 +238,38 @@ class ApiCubit extends Cubit<ApiState> {
       emit(LedgerListLoaded(leadgerList: list));
     } catch (e) {
       emit(LedgerListError('Failed to load ledger: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StorePayment({required Payment payment}) async {
+    try {
+      emit(StorePaymentLoading());
+      final response = await apiRepository.payment(payment,'storepayment');
+      final message = response['message'];
+      emit(StorePaymentLoaded(message: message));
+    } catch (e) {
+      emit(StorePaymentError('Failed to Store data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> UpdatePayment({required Payment payment}) async {
+    try {
+      emit(UpdatePaymentLoading());
+      final response = await apiRepository.payment(payment,'updatepayment');
+      final message = response['message'];
+      emit(UpdatePaymentLoaded(message: message));
+    } catch (e) {
+      emit(UpdatePaymentError('Failed to Update data: $e'));
+    }
+  } //------------------------------------------------------------------------------------
+  Future<void> DeletePayment({required String id}) async {
+    try {
+      emit(DeletePaymentLoading());
+      final response = await apiRepository.paymentDelete(id);
+      final message = response['message'];
+      emit(DeletePaymentLoaded(message: message));
+    } catch (e) {
+      emit(DeletePaymentError('Failed to Delete data: $e'));
     }
   }
 }

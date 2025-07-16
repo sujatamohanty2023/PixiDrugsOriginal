@@ -1,81 +1,106 @@
-import 'package:pixidrugs/Ledger/LedgerModel.dart';
-import 'package:pixidrugs/constant/all.dart';
 import 'package:intl/intl.dart';
+import 'package:pixidrugs/Ledger/LedgerModel.dart';
+import 'package:pixidrugs/Ledger/Payment.dart';
+import 'package:pixidrugs/constant/all.dart';
 
 class PaymentOutEntryPage extends StatefulWidget {
-  LedgerModel? ledger;
-  final Function()? onSubmit;
-  PaymentOutEntryPage({super.key,required this.ledger,required this.onSubmit});
+  final LedgerModel? ledger;
+  final bool? edit;
+  final int? index;
+  final ScrollController scrollController; // <-- Added scroll controller
+
+  const PaymentOutEntryPage({
+    super.key,
+    this.edit=false,
+    this.index=0,
+    required this.ledger,
+    required this.scrollController,
+  });
 
   @override
   State<PaymentOutEntryPage> createState() => _PaymentOutEntryPageState();
 }
 
-class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
-  final TextEditingController partyNameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController paidController = TextEditingController(
-    text: '0.00',
-  );
-  final TextEditingController referenceNumberController =
-      TextEditingController();
+class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerProviderStateMixin {
+  final TextEditingController _invoice_noController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController paidController = TextEditingController(text: '0.00');
+  final TextEditingController referenceNumberController = TextEditingController();
 
   String selectedReceiptNo = "1";
   DateTime selectedDate = DateTime.now();
   String selectedPaymentType = "Cash";
 
   bool isPaid = false;
-  double totalAmount = 20000.00;
+  double totalAmount = 0.00;
   double paidAmount = 0.0;
 
   @override
+  void initState() {
+    super.initState();
+    if(widget.edit!) {
+      setState(() {
+        _invoice_noController.text =widget.ledger!.history[widget.index!].invoiceNo;
+        _dateController.text =AppUtils().formatDate(widget.ledger!.history[widget.index!].paymentDate);
+        paidController.text =widget.ledger!.history[widget.index!].amount;
+        selectedPaymentType=widget.ledger!.history[widget.index!].paymentType;
+        referenceNumberController.text =widget.ledger!.history[widget.index!].paymentReference;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppStyles.bg_radius_50_decoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-            ),
+   return BlocListener<ApiCubit, ApiState>(
+      listener: (context, state) {
+        if (state is StorePaymentLoaded) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          Navigator.pop(context); // Close bottom sheet or current page
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context); // Close underlying page only if possible
+          }
+        } else if (state is StorePaymentError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: ${state.error}')),
+          );
+        }
+      },
+      child:Container(
+        decoration: AppStyles.bg_radius_50_decoration(),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildReceiptAndDate(),
-                  const SizedBox(height: 20),
-                  _buildAmountCard(),
-                  const SizedBox(height: 20),
-                  _buildPaymentTypeDropdown(),
-                  if (selectedPaymentType != "Cash") ...[
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      referenceNumberController,
-                      "Reference Number",
-                      "Enter reference or cheque number",
-                    ),
+              controller: widget.scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    _buildReceiptAndDate(),
+                    const SizedBox(height: 10),
+                    _buildAmountCard(),
+                    const SizedBox(height: 20),
+                    _buildPaymentTypeDropdown(),
+                    if (selectedPaymentType != "Cash") ...[
+                      const SizedBox(height: 16),
+                      _buildEditTextField(
+                        referenceNumberController,
+                        "Reference Number",
+                        TextInputType.text,
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    _buildBottomButtons(),
                   ],
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom ,
-              left: 16,
-              right: 16,
-              top: 10,
-            ),
-            child:  _buildBottomButtons(),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -84,102 +109,94 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: () async {
-              final selected = await showDialog<String>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text("Select Receipt No."),
-                      content: SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          itemCount: 10,
-                          itemBuilder:
-                              (_, index) => ListTile(
-                                title: Text('Receipt ${index + 1}'),
-                                onTap:
-                                    () =>
-                                        Navigator.pop(context, '${index + 1}'),
-                              ),
-                        ),
-                      ),
-                    ),
-              );
-              if (selected != null)
-                setState(() => selectedReceiptNo = selected);
-            },
-            child: AbsorbPointer(
-              child: TextFormField(
-                controller: TextEditingController(text: selectedReceiptNo),
-                readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: 'Invoice No.',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
+          child: _buildEditTextField(
+            _invoice_noController,
+            'Invoice No.',
+            TextInputType.text,
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: GestureDetector(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: selectedDate,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (picked != null) setState(() => selectedDate = picked);
-            },
-            child: AbsorbPointer(
-              child: TextFormField(
-                controller: TextEditingController(
-                  text: DateFormat('dd/MM/yyyy').format(selectedDate),
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  border: OutlineInputBorder(),
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  MyTextfield.textStyle_w600('Date', AppUtils.size_16, Colors.black),
+                  MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red),
+                ],
               ),
-            ),
+              const SizedBox(height: 8),
+              MyEdittextfield(
+                controller: _dateController,
+                hintText: "DD/MM/YYYY",
+                readOnly: true,
+                onTap: () => _selectDate(context),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    String hint, {
-    TextInputType inputType = TextInputType.text,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: inputType,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return AppUtils.CalenderTheme(child: child);
+      },
+    );
+
+    if (pickedDate != null && pickedDate != selectedDate) {
+      setState(() {
+        selectedDate = pickedDate;
+        _dateController.text = DateFormat('dd MMM, yyyy').format(selectedDate);
+      });
+    }
+  }
+
+  Widget _buildEditTextField(
+      TextEditingController controller,
+      String hint,
+      TextInputType type, {
+        int maxLines = 1,
+        String? Function(String?)? validator,
+      }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            MyTextfield.textStyle_w600(hint, AppUtils.size_16, Colors.black),
+            MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red),
+          ],
         ),
-      ),
+        const SizedBox(height: 8),
+        MyEdittextfield(
+          controller: controller,
+          hintText: hint,
+          validator: validator,
+          maxLines: maxLines,
+        ),
+      ],
     );
   }
 
   Widget _buildAmountCard() {
+    totalAmount=double.parse(widget.ledger!.totalCredit.toString().replaceAll(',', ''));
     double balanceDue = totalAmount - paidAmount;
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.kPrimaryDark, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -191,12 +208,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildAmountRow(
-            "Total Amount",
-            totalAmount,
-            bold: true,
-            color: Colors.black,
-          ),
+          _buildAmountRow("Total Amount", totalAmount, bold: true, color: Colors.black),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -205,26 +217,13 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
                 onChanged: (value) {
                   setState(() {
                     isPaid = value ?? false;
-                    if (isPaid) {
-                      paidAmount = totalAmount;
-                      paidController.text = paidAmount.toStringAsFixed(2);
-                    } else {
-                      paidAmount = 0.0;
-                      paidController.text = '0.00';
-                    }
+                    paidAmount = isPaid ? totalAmount : 0.0;
+                    paidController.text = paidAmount.toStringAsFixed(2);
                   });
                 },
               ),
-              const Text(
-                "Paid",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              MyTextfield.textStyle_w600("Paid", AppUtils.size_16, Colors.green),
               const Spacer(),
-              Divider(),
               SizedBox(
                 width: 100,
                 child: TextFormField(
@@ -232,17 +231,13 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
                   enabled: isPaid,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  style: MyTextfield.textStyle(
+                    AppUtils.size_16, Colors.green,
+                    FontWeight.w600,
                     decoration: TextDecoration.underline,
                     decorationStyle: TextDecorationStyle.dashed,
                   ),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    border: InputBorder.none,
-                  ),
+                  decoration: const InputDecoration(isDense: true, border: InputBorder.none),
                   onChanged: (value) {
                     setState(() {
                       paidAmount = double.tryParse(value) ?? 0.0;
@@ -258,40 +253,22 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
           ),
           Divider(),
           const SizedBox(height: 12),
-          _buildAmountRow(
-            "Balance Due",
-            balanceDue,
-            bold: true,
-            color: Colors.red,
-          ),
+          _buildAmountRow("Balance Due", balanceDue, bold: true, color: Colors.red),
         ],
       ),
     );
   }
 
-  Widget _buildAmountRow(
-    String label,
-    double amount, {
-    bool bold = false,
-    Color? color,
-  }) {
+  Widget _buildAmountRow(String label, double amount, {bool bold = false, Color? color}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
-            color: color ?? Colors.black87,
-          ),
-        ),
+        Text(label, style: MyTextfield.textStyle(AppUtils.size_16, color ?? Colors.black87, bold ? FontWeight.w600 : FontWeight.w400)),
         Text(
           "₹ ${amount.toStringAsFixed(2)}",
-          style: TextStyle(
-            fontSize: 16,
-            color: color ?? Colors.black87,
-            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+          style: MyTextfield.textStyle(
+            AppUtils.size_16, color ?? Colors.black87,
+            bold ? FontWeight.w600 : FontWeight.w400,
             decoration: TextDecoration.underline,
             decorationStyle: TextDecorationStyle.dashed,
           ),
@@ -301,97 +278,122 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> {
   }
 
   Widget _buildPaymentTypeDropdown() {
-    return DropdownButtonFormField<String>(
-      value: selectedPaymentType,
-      decoration: const InputDecoration(
-        labelText: 'Payment Type',
-        border: OutlineInputBorder(),
-      ),
-      items: const [
-        DropdownMenuItem(
-          value: "Cash",
-          child: Row(
-            children: [Icon(Icons.money), SizedBox(width: 8), Text("Cash")],
-          ),
+    final paymentTypes = [
+      {'label': 'Cash', 'icon': Icons.money},
+      {'label': 'Bank', 'icon': Icons.account_balance},
+      {'label': 'UPI', 'icon': Icons.qr_code},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            MyTextfield.textStyle_w600("Payment Method ", AppUtils.size_16, Colors.black),
+            MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red),
+          ],
         ),
-        DropdownMenuItem(
-          value: "Bank",
-          child: Row(
-            children: [
-              Icon(Icons.account_balance),
-              SizedBox(width: 8),
-              Text("Bank"),
-            ],
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.kPrimaryDark, width: 1),
+            boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
           ),
-        ),
-        DropdownMenuItem(
-          value: "UPI",
-          child: Row(
-            children: [Icon(Icons.qr_code), SizedBox(width: 8), Text("UPI")],
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: selectedPaymentType,
+              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.kPrimaryDark),
+              items: paymentTypes.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item['label'].toString(),
+                  child: Row(
+                    children: [
+                      Icon(item['icon'] as IconData, size: 20),
+                      const SizedBox(width: 10),
+                      Text(
+                        item['label'].toString(),
+                        style: MyTextfield.textStyle(14, Colors.black, FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedPaymentType = value;
+                    if (value == "Cash") {
+                      referenceNumberController.clear();
+                    }
+
+                    // Auto-scroll to bottom when reference appears
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      widget.scrollController.animateTo(
+                        widget.scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    });
+                  });
+                }
+              },
+            ),
           ),
         ),
       ],
-      onChanged: (value) {
-        if (value != null) {
-          setState(() {
-            selectedPaymentType = value;
-            if (selectedPaymentType == "Cash") {
-              referenceNumberController.clear();
-            }
-          });
-        }
-      },
     );
   }
 
   Widget _buildBottomButtons() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                // TODO: Save & New logic
-              },
-              style: OutlinedButton.styleFrom(
-                backgroundColor: AppColors.kWhiteColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: AppColors.kPrimaryLight),
-              ),
-              child: const Text(
-                "Cancel",
-                style: TextStyle(
-                  color: AppColors.kPrimaryLight,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            style: AppStyles.elevatedButton_style(color: AppColors.kPrimaryDark),
+            child: MyTextfield.textStyle_w800('Cancel', 18, AppColors.kPrimary),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                // TODO: Save logic
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.kPrimaryLight,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text(
-                "Save",
-                style: TextStyle(
-                  color: AppColors.kWhiteColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: SubmitCall,
+            style: AppStyles.elevatedButton_style(color: AppColors.kPrimary),
+            child: MyTextfield.textStyle_w800('Save', 18, AppColors.kWhiteColor),
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+  void SubmitCall() async {
+    if (_invoice_noController.text.isEmpty || _dateController.text.isEmpty || double.tryParse(paidController.text) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all required fields.")));
+      return;
+    }
+
+    final userId = await SessionManager.getUserId() ?? '';
+    var payment1 = Payment(
+      id: widget.edit!?widget.ledger!.history[widget.index!].id:null,
+      userId: int.parse(userId),
+      sellerId: widget.ledger!.partyId,
+      invoiceNo: _invoice_noController.text.toString(),
+      amount: double.parse(paidController.text.toString().replaceAll(',', '')),
+      paymentDate: AppUtils().formatDateForServerInput(_dateController.text.toString()),
+      paymentType: selectedPaymentType,
+      paymentReference: referenceNumberController.text.toString(),
+      paymentReason: "debit",
+    );
+    print(payment1.toString());
+    if(widget.edit!) {
+      context.read<ApiCubit>().StorePayment(payment: payment1);
+    }else{
+      context.read<ApiCubit>().UpdatePayment(payment: payment1);
+    }
   }
 }
