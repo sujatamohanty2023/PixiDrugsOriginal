@@ -4,13 +4,15 @@ import 'package:pixidrugs/constant/all.dart';
 class EditValueDialog extends StatelessWidget {
   final String title;
   final String initialValue;
-  final void Function(String) onSave;
+  final void Function(String)? onSave;
+  final void Function(String)? addMore;
 
   const EditValueDialog({
     super.key,
     required this.title,
     required this.initialValue,
-    required this.onSave,
+    this.onSave,
+    this.addMore,
   });
 
   @override
@@ -36,6 +38,7 @@ class EditValueDialog extends StatelessWidget {
             MyEdittextfield(
               controller: controller,
               hintText: "Enter $title",
+              keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 20),
             Row(
@@ -49,9 +52,18 @@ class EditValueDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: () {
-                    onSave(controller.text.trim());
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    if (onSave != null) {
+                      onSave?.call(controller.text.trim());
+                      Navigator.pop(context);
+                    }else if(addMore !=null){
+                      addMore?.call(controller.text.trim());
+                      Navigator.pop(context);
+                    }else {
+                      Navigator.pop(context);
+                      await Future.delayed(Duration(milliseconds: 100));
+                      Navigator.pushNamed(context, '/purchaseReturn',arguments: controller.text.trim());
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.kPrimary,
@@ -61,7 +73,7 @@ class EditValueDialog extends StatelessWidget {
                     ),
                   ),
                   child: MyTextfield.textStyle_w600(
-                    "Save", AppUtils.size_14, Colors.white,
+                    onSave!=null?'Save':'Search', AppUtils.size_14, Colors.white,
                   ),
                 ),
               ],

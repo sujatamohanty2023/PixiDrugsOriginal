@@ -5,6 +5,7 @@ import 'package:pixidrugs/Stock/ProductList.dart';
 import 'package:pixidrugs/constant/all.dart';
 import 'package:pixidrugs/login/FCMService.dart';
 import 'package:pixidrugs/login/mobileLoginScreen.dart';
+import 'package:pixidrugs/return/PurchaseReturnScreen.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 @pragma('vm:entry-point')
@@ -68,6 +69,11 @@ class _MyAppState extends State<MyApp> {
             final flag = settings.arguments;
             return MaterialPageRoute(
               builder: (_) => ProductListPage(flag: int.parse(flag.toString())),
+            );
+          }else if (settings.name == '/purchaseReturn') {
+            final value = settings.arguments;
+            return MaterialPageRoute(
+              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString()),
             );
           }
           return null;

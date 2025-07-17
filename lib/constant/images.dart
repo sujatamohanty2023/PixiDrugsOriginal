@@ -24,6 +24,8 @@ class AppImages {
   static String home = "${svgFolder}home.svg";
   static String scan_cart = "${svgFolder}scan_cart.svg";
   static String ledger = "${svgFolder}ledger.svg";
+  static String purchase_return = "${svgFolder}purchase_return.svg";
+  static String sale_return = "${svgFolder}sale_return.svg";
   static String stock = "${svgFolder}stock.svg";
   static String profile = "${svgFolder}profile.svg";
   static String back = "${svgFolder}back.svg";

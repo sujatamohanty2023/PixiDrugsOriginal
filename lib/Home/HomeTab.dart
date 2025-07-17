@@ -251,7 +251,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/stockList',arguments: 3);
+                        Navigator.pushNamed(context, '/stockList');
                       },
                       child: _buildTaskCard(
                         color: const Color(0xFFFFF1D7),
@@ -261,6 +261,40 @@ class _HomeTabState extends State<HomeTab> {
                         percent: 0.55,
                         icon: AppImages.notification,
                         arrowColor: Colors.orange,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => EditValueDialog(
+                            title: 'Invoice No.',
+                            initialValue: ''
+                          ),
+                        );
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFE8EAF6),
+                        progressColor: Colors.indigo,
+                        title: "Purchase Return",
+                        tasks: "Track and return products nearing expiry to suppliers",
+                        percent: 0.55,
+                        icon: AppImages.purchase_return,
+                        arrowColor: Colors.indigo,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/saleReturn');
+                      },
+                      child: _buildTaskCard(
+                        color: const Color(0xFFFCE4EC),
+                        progressColor: Colors.pink,
+                        title: "Sale Return",
+                        tasks: "Track and manage return of near-expiry products from customers",
+                        percent: 0.55,
+                        icon: AppImages.sale_return,
+                        arrowColor: Colors.pink,
                       ),
                     ),
                   ],
