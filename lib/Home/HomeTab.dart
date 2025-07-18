@@ -140,13 +140,13 @@ class _HomeTabState extends State<HomeTab> {
       backgroundColor:  AppColors.kPrimary,
       appBar: customAppBarHome(context, _onNotificationTap),
       body:Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.myGradient,
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(30),
-              topLeft: Radius.circular(30),
-            ),
+        decoration: BoxDecoration(
+          gradient: AppColors.myGradient,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(30),
+            topLeft: Radius.circular(30),
           ),
+        ),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -174,7 +174,7 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 const SizedBox(height: 5),
                 MyTextfield.textStyle_w800(
-                  "My DashBoard",20, Colors.black87),
+                    "My DashBoard",20, Colors.black87),
                 const SizedBox(height: 10),
                 GridView.count(
                   shrinkWrap: true,
@@ -186,13 +186,9 @@ class _HomeTabState extends State<HomeTab> {
                     GestureDetector(
                       onTap: _UploadInvoice,
                       child: _buildTaskCard(
-                        color: const Color(0xFFD2F9F2),
-                        progressColor: Colors.teal,
                         title: "Upload Invoice",
                         tasks: "Create a new invoice",
-                        percent: 0.81,
                         icon: AppImages.add_invoice,
-                        arrowColor: Colors.teal,
                       ),
                     ),
                     GestureDetector(
@@ -200,25 +196,17 @@ class _HomeTabState extends State<HomeTab> {
                         AppRoutes.navigateTo(context, ListScreen(type:'invoice'));
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFDCEBFF),
-                        progressColor: Colors.blue,
                         title: "Invoice History",
                         tasks: "View all previous invoices",
-                        percent: 0.60,
                         icon: AppImages.invoice_list,
-                        arrowColor: Colors.blue,
                       ),
                     ),
                     GestureDetector(
                       onTap: _newSaleEntry,
                       child: _buildTaskCard(
-                        color: const Color(0xFFE8F5E9),
-                        progressColor: Colors.green,
                         title: "New Sale Entry",
                         tasks: "Record a new sale",
-                        percent: 0.42,
                         icon: AppImages.sale,
-                        arrowColor: Colors.green,
                       ),
                     ),
                     GestureDetector(
@@ -226,13 +214,9 @@ class _HomeTabState extends State<HomeTab> {
                         AppRoutes.navigateTo(context, ListScreen(type:'sale'));
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFEDE7F6),
-                        progressColor: Colors.deepPurple,
                         title: "Sales Report",
                         tasks: "Track sales summary",
-                        percent: 0.90,
                         icon: AppImages.sale_list,
-                        arrowColor: Colors.deepPurple,
                       ),
                     ),
                     GestureDetector(
@@ -240,27 +224,19 @@ class _HomeTabState extends State<HomeTab> {
                         Navigator.pushNamed(context, '/stockList',arguments: 2);
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFFFE2E5),
-                        progressColor: Colors.red,
                         title: "Expired Product",
                         tasks: "View expired items",
-                        percent: 0.30,
                         icon: AppImages.expired,
-                        arrowColor: Colors.red,
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/stockList');
+                        Navigator.pushNamed(context, '/stockList',arguments: 3);
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFFFF1D7),
-                        progressColor: Colors.orange,
                         title: "Expire Soon",
                         tasks: "Track nearing expiry your product",
-                        percent: 0.55,
                         icon: AppImages.notification,
-                        arrowColor: Colors.orange,
                       ),
                     ),
                     GestureDetector(
@@ -268,19 +244,15 @@ class _HomeTabState extends State<HomeTab> {
                         showDialog(
                           context: context,
                           builder: (_) => EditValueDialog(
-                            title: 'Invoice No.',
-                            initialValue: ''
+                              title: 'Invoice No.',
+                              initialValue: ''
                           ),
                         );
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFE8EAF6),
-                        progressColor: Colors.indigo,
                         title: "Purchase Return",
-                        tasks: "Track and return products nearing expiry to suppliers",
-                        percent: 0.55,
+                        tasks: "Track return products to suppliers",
                         icon: AppImages.purchase_return,
-                        arrowColor: Colors.indigo,
                       ),
                     ),
                     GestureDetector(
@@ -288,13 +260,9 @@ class _HomeTabState extends State<HomeTab> {
                         Navigator.pushNamed(context, '/saleReturn');
                       },
                       child: _buildTaskCard(
-                        color: const Color(0xFFFCE4EC),
-                        progressColor: Colors.pink,
                         title: "Sale Return",
-                        tasks: "Track and manage return of near-expiry products from customers",
-                        percent: 0.55,
+                        tasks: "Track return of products from customers",
                         icon: AppImages.sale_return,
-                        arrowColor: Colors.pink,
                       ),
                     ),
                   ],
@@ -349,18 +317,18 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
   Widget _buildTaskCard({
-    required Color color,
-    required Color progressColor,
     required String title,
     required String tasks,
-    required double percent,
     required String icon,
-    required Color arrowColor,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: color,
+        gradient: AppColors.myGradient,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(width: 1,color: AppColors.kPrimaryLight),
+        boxShadow: const [
+      BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))
+      ],
       ),
       child: Stack(
         children: [
@@ -369,33 +337,19 @@ class _HomeTabState extends State<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Progress Circle
-                Row(
-                  children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          height: 45,
-                          width: 45,
-                          child: CircularProgressIndicator(
-                            value: percent,
-                            strokeWidth: 4,
-                            backgroundColor: Colors.white.withOpacity(0.5),
-                            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                          ),
-                        ),
-                        MyTextfield.textStyle_w600("${(percent * 100).toInt()}%",16 ,progressColor),
-                      ],
-                    ),
-                    SizedBox(width: 40,),
-                    SvgPicture.asset(icon, width: 55, height: 55,color: progressColor.withOpacity(0.4),),
-                  ],
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: AppColors.kPrimaryDark,
+                  child:
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SvgPicture.asset(icon, height: 55, width: 55,color: AppColors.kPrimary,),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                MyTextfield.textStyle_w600(title,20,progressColor),
+                const SizedBox(height: 15),
+                MyTextfield.textStyle_w600(title,20,AppColors.kPrimary),
                 const SizedBox(height: 4),
-                MyTextfield.textStyle_w300(tasks,14,progressColor.withOpacity(0.6)),
+                MyTextfield.textStyle_w300(tasks,14,AppColors.kPrimary.withOpacity(0.6)),
               ],
             ),
           ),
@@ -409,7 +363,8 @@ class _HomeTabState extends State<HomeTab> {
               child: Container(
                 width: 55,
                 height: 35,
-                color: arrowColor.withOpacity(0.7),
+                //color: arrowColor.withOpacity(0.7),
+                color: AppColors.kPrimary,
                 child: const Icon(Icons.arrow_forward, size: 22, color: Colors.white),
               ),
             ),
@@ -440,4 +395,3 @@ class ArrowCornerClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
-

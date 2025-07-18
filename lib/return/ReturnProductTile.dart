@@ -3,16 +3,44 @@ import 'package:pixidrugs/constant/all.dart';
 
 class ReturnProductTile extends StatefulWidget {
   final InvoiceItem product;
+  final ValueChanged<bool> onChecked;
+  final ValueChanged<String> onQtyChanged;
 
-  const ReturnProductTile({super.key, required this.product});
+  const ReturnProductTile({super.key, required this.product,
+  required this.onChecked, required this.onQtyChanged,});
 
   @override
   State<ReturnProductTile> createState() => _ReturnProductTileState();
 }
 
 class _ReturnProductTileState extends State<ReturnProductTile> {
-  bool isChecked = false;
-  final TextEditingController _returnQtyController = TextEditingController();
+  late final TextEditingController _returnQtyController;
+
+  @override
+  void initState() {
+    super.initState();
+    _returnQtyController = TextEditingController(
+      text: widget.product.returnQty > 0 ? widget.product.returnQty.toString() : '',
+    );
+
+    _returnQtyController.addListener(() {
+      widget.onQtyChanged(_returnQtyController.text);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ReturnProductTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Sync controller if model is updated externally
+    final currentText = _returnQtyController.text;
+    final modelQtyText = widget.product.returnQty.toString();
+
+    if (currentText != modelQtyText && widget.product.isSelected) {
+      _returnQtyController.text = modelQtyText;
+      _returnQtyController.selection = TextSelection.collapsed(offset: modelQtyText.length);
+    }
+  }
 
   @override
   void dispose() {
@@ -36,6 +64,8 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
         ? Colors.orange
         : AppColors.kBlackColor800;
 
+    _returnQtyController.text=product.returnQty.toString();
+
     return Column(
       children: [
         Padding(
@@ -46,15 +76,11 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isChecked = !isChecked;
-                      });
-                    },
+                    onTap: () => widget.onChecked(!product.isSelected),
                     child: Icon(
                       size: 30,
-                      isChecked ? Icons.check_box : Icons.check_box_outline_blank,
-                      color: isChecked ? Colors.green : Colors.grey,
+                      product.isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                      color: product.isSelected ? Colors.green : Colors.grey,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -81,11 +107,11 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
                       MyTextfield.textStyle_w400("Sale: ₹${product.rate}",14,Colors.teal),
                       MyTextfield.textStyle_w400("MRP: ₹${product.mrp}",14,Colors.amber),
                       const SizedBox(height: 20),
-                      SizedBox(
+                      product.isSelected ?SizedBox(
                         height: 35,
                         width: 80,
                         child: MyEdittextfield(controller: _returnQtyController, hintText: 'return Qty',keyboardType: TextInputType.number),
-                      ),
+                      ):SizedBox(),
                     ],
                   ),
                 ],

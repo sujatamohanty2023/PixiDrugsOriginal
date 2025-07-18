@@ -104,6 +104,9 @@ class InvoiceItem {
    String total;
    DiscountType discountType;
 
+   bool isSelected;
+    int returnQty;
+
     InvoiceItem({
     this.id=0,
     this.hsn='',
@@ -121,7 +124,9 @@ class InvoiceItem {
     this.qty_free=0,
     this.gst='',
     this.total='',
-    this.discountType=DiscountType.percent
+    this.discountType=DiscountType.percent,
+    this.isSelected = false,
+    this.returnQty = 0,
   });
    InvoiceItem copyWith({
      int? id,
@@ -141,6 +146,8 @@ class InvoiceItem {
      String? gst,
      String? total,
      DiscountType? discountType,
+     bool? isSelected,
+    int? returnQty,
    }) {
      return InvoiceItem(
        id: id ?? this.id,
@@ -159,7 +166,8 @@ class InvoiceItem {
        qty_free: qty_free ?? this.qty_free,
        gst: gst ?? this.gst,
        total: total ?? this.total,
-       discountType: discountType??this.discountType
+       discountType: discountType??this.discountType,
+       returnQty: returnQty??this.returnQty,
      );
    }
 

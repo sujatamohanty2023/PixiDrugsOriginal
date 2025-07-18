@@ -13,9 +13,9 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
   String? invoice_No;
   int currentIndex = 0;
   List<Invoice> returnList = [];
+  Invoice? return_invoice;
+
   bool isLoading = true;
-  final TextEditingController _invoice_noController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
   DateTime selectedDate = DateTime.now();
 
   @override
@@ -42,9 +42,9 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
           if (state is InvoiceListLoaded) {
             setState(() {
               isLoading = false;
-              returnList.add(state.invoiceList.first);
-              _invoice_noController.text=invoice_No!;
-              _dateController.text='18/06/2025';
+              return_invoice = state.invoiceList[1].copyWith(invoiceId: invoice_No);
+              returnList.add(return_invoice!);
+              currentIndex = returnList.length - 1;
             });
           } else if (state is InvoiceListError) {
             setState(() {
@@ -171,7 +171,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                           AppColors.kPrimary,
                                         ),
                                         MyTextfield.textStyle_w400(
-                                          "Invoice No. #$invoice_No",
+                                          "Invoice No. #${returnList.isEmpty?invoice_No:returnList[currentIndex].invoiceId}",
                                           screenWidth * 0.04,
                                           Colors.green,
                                         ),
@@ -212,9 +212,22 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                             padding: EdgeInsets.zero,
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            itemBuilder: (context, index) => ReturnProductTile(
-                              product: returnList[currentIndex].items[index],
-                            ),
+                            itemBuilder: (context, index) {
+                              final item = returnList[currentIndex].items[index];
+                              return ReturnProductTile(
+                                product: item,
+                                onChecked: (checked) {
+                                  setState(() {
+                                    item.isSelected = checked;
+                                  });
+                                },
+                                onQtyChanged: (qtyStr) {
+                                setState(() {
+                                  item.returnQty = int.tryParse(qtyStr) ?? 0;
+                                });
+                              },
+                              );
+                            },
                           )
                               : Center(
                             child: MyTextfield.textStyle_w600(
@@ -247,6 +260,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                   onPressed: () {
                     setState(() {
                       currentIndex--;
+                      return_invoice = returnList[currentIndex];
                     });
                   },
                   label:  MyTextfield.textStyle_w600("Previous", AppUtils.size_18, AppColors.kPrimary),
@@ -264,6 +278,15 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
               child: ElevatedButton.icon(
                 onPressed: () {
 
+
+                  setState(() {
+                    if (currentIndex == returnList.length - 1) {
+
+                    } else {
+                      currentIndex++;
+                      return_invoice = returnList[currentIndex];
+                    }
+                  });
 
                 },
                 label: MyTextfield.textStyle_w600(currentIndex == returnList.length - 1 ? "Confirm" : "Next", AppUtils.size_18, AppColors.kWhiteColor),

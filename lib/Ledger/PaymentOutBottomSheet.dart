@@ -390,7 +390,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       paymentReason: "debit",
     );
     print(payment1.toString());
-    if(widget.edit!) {
+    if(!widget.edit!) {
       context.read<ApiCubit>().StorePayment(payment: payment1);
     }else{
       context.read<ApiCubit>().UpdatePayment(payment: payment1);
