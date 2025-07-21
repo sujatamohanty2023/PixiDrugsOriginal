@@ -1,6 +1,11 @@
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/Ledger/PaymentOutBottomSheet.dart';
 import 'package:pixidrugs/constant/all.dart';
+import 'package:whatsapp_share/whatsapp_share.dart';
 
 class LedgerDetailsPage extends StatefulWidget {
   LedgerModel? ledger;
@@ -249,12 +254,31 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(bottom: 10.0),
-                              child: MyTextfield.textStyle_w600(
-                                'Payment History',
-                                screenWidth * 0.05,
-                                Colors.black,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  MyTextfield.textStyle_w600('Payment History', screenWidth * 0.05, Colors.black),
+                                  GestureDetector(
+                                    onTap: () => _shareLast7Transactions(widget.ledger!),
+                                    child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        gradient: AppColors.myGradient,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.share, color: AppColors.kPrimary,size: 16),
+                                          SizedBox(width: 5),
+                                          MyTextfield.textStyle_w600('Share',16, AppColors.kPrimary),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+
                             Expanded(
                               child: ListView.builder(
                                 padding: EdgeInsets.zero,
@@ -477,9 +501,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () {
-                                                      Share.share(
-                                                        'Transaction: ${widget.ledger!.history[index]}',
-                                                      );
+                                                      _shareLast7Transactions(widget.ledger!);
                                                     },
                                                     child: SvgPicture.asset(
                                                       'assets/share.svg',
@@ -512,6 +534,252 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _shareLast7Transactions(LedgerModel ledger) async {
+    final pdf = pw.Document();
+    final fontData = await rootBundle.load('assets/fonts/Signika-Regular.ttf');
+    final ttf = pw.Font.ttf(fontData);
+
+    pw.MemoryImage? logoImage;
+    try {
+      final bytes = (await rootBundle.load(AppImages.AppIcon)).buffer.asUint8List();
+      logoImage = pw.MemoryImage(bytes);
+    } catch (_) {}
+
+    // Sort and get last 7 transactions
+    List<History> recentTransactions = ledger.history
+        .where((t) => t.paymentDate != null && t.paymentDate.isNotEmpty)
+        .toList();
+
+    recentTransactions.sort((a, b) =>
+        DateTime.parse(b.paymentDate).compareTo(DateTime.parse(a.paymentDate)));
+
+    List<History> last7 = recentTransactions.take(7).toList();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(16),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              if (logoImage != null)
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Image(logoImage, height: 80),
+                ),
+              pw.Align(
+                alignment: pw.Alignment.topRight,
+                child: pw.Text('PixiDrugs',
+                    style: pw.TextStyle(
+                        font: ttf,
+                        fontSize: 20,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColor.fromInt(0xFF062A49))),
+              ),
+              pw.Align(
+                alignment: pw.Alignment.topRight,
+                child: pw.Text('GSTIN: 1234567890',
+                    style: pw.TextStyle(font: ttf, fontSize: 9)),
+              ),
+              pw.Align(
+                alignment: pw.Alignment.topRight,
+                child: pw.Text('Phone: 123456789',
+                    style: pw.TextStyle(font: ttf, fontSize: 9)),
+              ),
+              pw.Align(
+                alignment: pw.Alignment.topRight,
+                child: pw.Text('Address: Berhampur',
+                    style: pw.TextStyle(font: ttf, fontSize: 9)),
+              ),
+              pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
+
+              // Payment History Title
+              pw.Text('Payment History',
+                  style: pw.TextStyle(
+                      font: ttf,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 16)),
+              pw.SizedBox(height: 10),
+
+              // Supplier Info
+              pw.Text('Supplier Details',
+                  style: pw.TextStyle(
+                      font: ttf,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 12,
+                      color: PdfColor.fromInt(0xFF062A49))),
+              pw.Text('Name: ${ledger.sellerName}',
+                  style: pw.TextStyle(font: ttf, fontSize: 11)),
+              pw.Text('Phone: ${ledger.phone}',
+                  style: pw.TextStyle(font: ttf, fontSize: 11)),
+              pw.Text('GSTIN: ${ledger.gstNo}',
+                  style: pw.TextStyle(font: ttf, fontSize: 11)),
+              pw.SizedBox(height: 20),
+
+              // Table Header
+              pw.Container(
+                color: PdfColor.fromInt(0xFF062A49),
+                padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(flex: 2, child: pw.Text('Date', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
+                    pw.Expanded(flex: 2, child: pw.Text('Type', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
+                    pw.Expanded(flex: 2, child: pw.Text('Invoice No.', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
+                    pw.Expanded(flex: 1, child: pw.Text('Mode', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
+                    pw.Expanded(flex: 1, child: pw.Text('Ref No', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
+                    pw.Expanded(flex: 2, child: pw.Text('Amount', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.right)),
+                  ],
+                ),
+              ),
+
+              // Table Rows
+              ...last7.map((item) {
+                return pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
+                  ),
+                  child: pw.Row(
+                    children: [
+                      pw.Expanded(flex: 2, child: pw.Text(item.paymentDate, style: pw.TextStyle(font: ttf, fontSize: 11))),
+                      pw.Expanded(flex: 2, child: pw.Text(
+                        item.paymentReason == 'debit' ? 'Payment Out' : 'Purchase In',
+                        style: pw.TextStyle(font: ttf, fontSize: 11),
+                      )),
+                      pw.Expanded(flex: 2, child: pw.Text('#${item.invoiceNo}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
+                      pw.Expanded(flex: 1, child: pw.Text('${item.paymentType}', style: pw.TextStyle(font: ttf, fontSize: 11))),
+                      pw.Expanded(flex: 1, child: pw.Text('${item.paymentReference }', style: pw.TextStyle(font: ttf, fontSize: 11))),
+                      pw.Expanded(flex: 2, child: pw.Text('${item.amount}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
+                    ],
+                  ),
+                );
+              }).toList(),
+
+              pw.SizedBox(height: 20),
+
+              // Summary Box
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromInt(0xFFC4DAF6),
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Total Debit:',
+                            style: pw.TextStyle(
+                                font: ttf,
+                                fontSize: 14,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.Text(
+                            '${ledger.totalDebit}',
+                            style: pw.TextStyle(font: ttf, fontSize: 14)),
+                      ],
+                    ),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Total Credit:',
+                            style: pw.TextStyle(
+                                font: ttf,
+                                fontSize: 14,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.Text(
+                            '${ledger.totalCredit}',
+                            style: pw.TextStyle(font: ttf, fontSize: 14)),
+                      ],
+                    ),
+                    pw.Divider(),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Net Due:',
+                            style: pw.TextStyle(
+                                font: ttf,
+                                fontSize: 16,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.Text(
+                            '${ledger.dueAmount}',
+                            style: pw.TextStyle(
+                                font: ttf,
+                                fontSize: 16,
+                                fontWeight: pw.FontWeight.bold)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Footer Message
+              pw.Container(
+                margin: const pw.EdgeInsets.only(top: 30),
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  border:
+                  pw.Border.all(color: PdfColor.fromInt(0xFFC4DAF6)),
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Terms and Conditions',
+                      style: pw.TextStyle(
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColor.fromInt(0xFF062A49),
+                      ),
+                    ),
+                    pw.SizedBox(height: 8),
+                    pw.Text(
+                      '1. Payments are subject to verification.\n'
+                          '2. Contact us for any disputes or queries.\n'
+                          '3. Thank you for your business.',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        color: PdfColors.grey800,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 20),
+              pw.Center(
+                child: pw.Text('Thank you for choosing PixiDrugs!',
+                    style: pw.TextStyle(
+                        font: ttf,
+                        fontSize: 12,
+                        color: PdfColors.grey600)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Save & share the PDF
+    final output = await getTemporaryDirectory();
+    final file = File('${output.path}/payment_history_${ledger.sellerName}.pdf');
+    await file.writeAsBytes(await pdf.save());
+
+    _sharePdfViaWhatsApp(ledger,file.path);
+  }
+
+  Future<void> _sharePdfViaWhatsApp(LedgerModel ledger, String filePath) async {
+    await WhatsappShare.shareFile(
+      phone: ledger.phone,
+      filePath: [filePath],
+      text: 'Dear Sir/Madam,\nPlease find attached the payment history for ${ledger.sellerName}.\n\nNet Due: ₹${ledger.dueAmount}\n\nThank you for your continued support.\n\nPixiDrugs',
     );
   }
 

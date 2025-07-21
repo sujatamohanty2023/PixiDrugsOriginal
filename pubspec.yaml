@@ -43,7 +43,6 @@ dependencies:
   mime: ^1.0.0
   aws_common: ^0.7.7
   aws_signature_v4: ^0.6.5
-  image: ^3.0.1
   image_picker: ^0.8.7+4
   file_picker: ^9.0.2
 
@@ -53,12 +52,17 @@ dependencies:
   firebase_messaging: ^15.2.4
   google_sign_in: ^6.3.0
   url_launcher: ^6.1.14
-  rating_dialog: ^2.0.4
+  flutter_rating_bar: ^4.0.1
   share_plus: ^10.1.4
+  whatsapp_share: ^2.0.2
   webview_flutter: ^4.11.0
+  pdf: ^3.8.1
+  path_provider: ^2.1.5
 
   esc_pos_printer: ^4.0.3
   esc_pos_utils: ^1.1.0
+  flutter_upi_india: ^0.0.6
+  image_cropper: ^9.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -89,6 +93,7 @@ flutter:
   assets:
     - assets/images/
     - assets/svg/
+    - assets/fonts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

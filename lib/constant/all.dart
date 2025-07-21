@@ -13,7 +13,6 @@ export 'package:shared_preferences/shared_preferences.dart';
 export 'package:file_picker/file_picker.dart';
 export 'package:image_picker/image_picker.dart';
 export 'package:url_launcher/url_launcher.dart';
-export 'package:rating_dialog/rating_dialog.dart';
 export 'package:share_plus/share_plus.dart';
 
 export 'package:firebase_messaging/firebase_messaging.dart';

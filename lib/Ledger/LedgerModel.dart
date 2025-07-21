@@ -65,7 +65,7 @@ class History {
       partyId: json['party_id'],
       invoiceNo: json['invoice_no'] ?? '',
       paymentType: json['payment_type'] ?? '',
-      paymentReference: json['payment_reference'] ?? '',
+      paymentReference: json['payment_reference'] ?? '-',
       paymentReason: json['payment_reason'] ?? '',
       amount: json['amount'] ?? '0.00',
       paymentDate: json['payment_date'] ?? '',

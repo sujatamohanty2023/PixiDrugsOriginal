@@ -11,6 +11,7 @@ class SaleListWidget extends StatelessWidget {
   final Function(SaleModel sale) onEditPressed;
   final Function(String id) onDeletePressed;
   final Function(SaleModel sale) onPrintPressed;
+  final Function(SaleModel sale) onSharePressed;
 
   const SaleListWidget({
     required this.isLoading,
@@ -21,6 +22,7 @@ class SaleListWidget extends StatelessWidget {
     required this.onDeletePressed,
     required this.onEditPressed,
     required this.onPrintPressed,
+    required this.onSharePressed,
   });
 
   @override
@@ -104,6 +106,8 @@ class SaleListWidget extends StatelessWidget {
                     onSelected: (value) {
                       if (value == 'print') {
                         onPrintPressed(sale);
+                      }else if (value == 'share') {
+                        onSharePressed(sale);
                       }else if (value == 'edit') {
                         onEditPressed(sale);
                       } else if (value == 'delete') {
@@ -117,6 +121,14 @@ class SaleListWidget extends StatelessWidget {
                               Icon(Icons.print, color: Colors.black),
                               SizedBox(width: 8),
                               MyTextfield.textStyle_w600('Print Bill', 13, Colors.black),
+                            ],
+                          )),
+                      PopupMenuItem(value: 'share',
+                          child:Row(
+                            children: [
+                              Icon(Icons.share, color: Colors.black),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Share', 13, Colors.black),
                             ],
                           )),
                       PopupMenuItem(value: 'edit',

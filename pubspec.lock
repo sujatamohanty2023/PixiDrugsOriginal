@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.6"
+  barcode:
+    dependency: transitive
+    description:
+      name: barcode
+      sha256: "7b6729c37e3b7f34233e2318d866e8c48ddb46c1f7ad01ff7bb2a8de1da2b9f4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.9"
   barcode_scan2:
     dependency: "direct main"
     description:
@@ -217,6 +225,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
+  decimal:
+    dependency: transitive
+    description:
+      name: decimal
+      sha256: fc706a5618b81e5b367b01dd62621def37abc096f2b46a9bd9068b64c1fa36d0
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.4"
   dio:
     dependency: "direct main"
     description:
@@ -455,7 +471,7 @@ packages:
     source: hosted
     version: "2.0.28"
   flutter_rating_bar:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_rating_bar
       sha256: d2af03469eac832c591a1eba47c91ecc871fe5708e69967073c043b2d775ed93
@@ -475,6 +491,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_upi_india:
+    dependency: "direct main"
+    description:
+      name: flutter_upi_india
+      sha256: d0686c9f510df959924140817f31727d58440d7b052d212b3f757b771b3b3fe8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -585,13 +609,37 @@ packages:
     source: hosted
     version: "4.1.2"
   image:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: image
       sha256: "8e9d133755c3e84c73288363e6343157c383a0c6c56fc51afcc5d4d7180306d6"
       url: "https://pub.dev"
     source: hosted
     version: "3.3.0"
+  image_cropper:
+    dependency: "direct main"
+    description:
+      name: image_cropper
+      sha256: "4e9c96c029eb5a23798da1b6af39787f964da6ffc78fd8447c140542a9f7c6fc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.0"
+  image_cropper_for_web:
+    dependency: transitive
+    description:
+      name: image_cropper_for_web
+      sha256: fd81ebe36f636576094377aab32673c4e5d1609b32dec16fad98d2b71f1250a9
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
+  image_cropper_platform_interface:
+    dependency: transitive
+    description:
+      name: image_cropper_platform_interface
+      sha256: "6ca6b81769abff9a4dcc3bbd3d75f5dfa9de6b870ae9613c8cd237333a4283af"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.1.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -801,7 +849,7 @@ packages:
     source: hosted
     version: "1.1.0"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
@@ -848,6 +896,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pdf:
+    dependency: "direct main"
+    description:
+      name: pdf
+      sha256: "10659b915e65832b106f6d1d213e09b789cc1f24bf282ee911e49db35b96be4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.8.4"
   petitparser:
     dependency: transitive
     description:
@@ -888,14 +944,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.5"
-  rating_dialog:
-    dependency: "direct main"
+  qr:
+    dependency: transitive
     description:
-      name: rating_dialog
-      sha256: "4856ba266c255081f05c57148345ea13f0d86c4049859d66e14c47e2ab1f90d3"
+      name: qr
+      sha256: "5a1d2586170e172b8a8c8470bbbffd5eb0cd38a66c0d77155ea138d3af3a4445"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.4"
+    version: "3.0.2"
+  rational:
+    dependency: transitive
+    description:
+      name: rational
+      sha256: cb808fb6f1a839e6fc5f7d8cb3b0a10e1db48b3be102de73938c627f0b636336
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
   rxdart:
     dependency: transitive
     description:
@@ -1101,6 +1165,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  universal_io:
+    dependency: transitive
+    description:
+      name: universal_io
+      sha256: "1722b2dcc462b4b2f3ee7d188dad008b6eb4c40bbd03a3de451d82c78bba9aad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.2"
   url_launcher:
     dependency: "direct main"
     description:
@@ -1253,6 +1325,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.22.0"
+  whatsapp_share:
+    dependency: "direct main"
+    description:
+      name: whatsapp_share
+      sha256: d1884f302a52d9f400bc3d7d4274b77aad83424e08f425351cea8d13b4cb8649
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   win32:
     dependency: transitive
     description:

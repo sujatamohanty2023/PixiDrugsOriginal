@@ -1,3 +1,7 @@
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
 import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/Ledger/LedgerListWidget.dart';
@@ -7,6 +11,7 @@ import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
 import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
+import 'package:whatsapp_share/whatsapp_share.dart';
 import '../Dialog/show_image_picker.dart';
 
 class ListScreen extends StatefulWidget {
@@ -180,7 +185,11 @@ class _ListScreenState extends State<ListScreen>
                         },
                       onPrintPressed: (saleItem) {
                         _onButtonPrintPressed(saleItem);
-                  })
+                      },
+                      onSharePressed: (saleItem) {
+                        _shareReceiptAsPdf(saleItem);
+                        }
+                  )
                         : LedgerListWidget(
                         items: ledgerList,
                         isLoading: isLedgerLoading,
@@ -225,7 +234,246 @@ class _ListScreenState extends State<ListScreen>
       ),
     );
   }
+  Future<void> _shareReceiptAsPdf(SaleModel saleItem) async {
+      final pdf = pw.Document();
 
+      // Load a font that supports ₹ symbol (like NotoSans)
+      final fontData = await rootBundle.load('assets/fonts/Signika-Regular.ttf');
+      final ttf = pw.Font.ttf(fontData);
+
+      // Load logo image (optional)
+      pw.MemoryImage? logoImage;
+      try {
+        final bytes = (await rootBundle.load(AppImages.AppIcon)).buffer.asUint8List();
+        logoImage = pw.MemoryImage(bytes);
+      } catch (_) {}
+
+      // Calculate totals & subtotals
+      double calculateSubtotal(SaleItem item) {
+        final price = item.price ?? 0;
+        final quantity = item.quantity ?? 0;
+        final discount = item.discount ?? 0;
+        final total = price * quantity;
+        return total - (total * discount / 100);
+      }
+
+      final items = saleItem.items ?? [];
+      final totalItemAmount = items.fold<double>(0, (sum, item) => sum + ((item.price ?? 0) * (item.quantity ?? 0)));
+      final totalDiscount = items.fold<double>(0, (sum, item) => sum + ((item.price ?? 0) * (item.quantity ?? 0) * ((item.discount ?? 0) / 100)));
+      final totalAmount = totalItemAmount - totalDiscount;
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(16),
+          build: (context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (logoImage != null)
+                  pw.Align(
+                    alignment: pw.Alignment.topRight,
+                    child: pw.Image(logoImage, height: 80),
+                  ),
+
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Text('PixiDrugs',
+                      style: pw.TextStyle(font: ttf, fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF062A49))),
+                ),
+
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Text('GSTIN: 1234567890', style: pw.TextStyle(font: ttf, fontSize: 9)),
+                ),
+
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Text('Phone: 123456789', style: pw.TextStyle(font: ttf, fontSize: 9)),
+                ),
+
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Text('Address: Berhampur', style: pw.TextStyle(font: ttf, fontSize: 9)),
+                ),
+
+                pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
+
+                // Invoice info
+                pw.Row(
+                  children: [
+                    pw.Text('Invoice No:', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('#${saleItem.invoiceNo}', style: pw.TextStyle(font: ttf)),
+                  ],
+                ),
+                pw.Row(
+                  children: [
+                    pw.Text('Date:', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('${saleItem.date ?? ''}', style: pw.TextStyle(font: ttf)),
+                  ],
+                ),
+
+                pw.SizedBox(height: 12),
+
+                // Customer details
+                pw.Text('Customer Details', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, fontSize: 12, color: PdfColor.fromInt(0xFF062A49))),
+                pw.Text('Name: ${saleItem.customer.name ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
+                pw.Text('Phone: ${saleItem.customer.phone ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
+                pw.Text('Address: ${saleItem.customer.address ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
+
+                pw.SizedBox(height: 20),
+
+                // Items table header with blue background
+                pw.Container(
+                  color: PdfColor.fromInt(0xFF062A49),
+                  padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  child: pw.Row(
+                    children: [
+                      pw.Expanded(flex: 4, child: pw.Text('Item', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
+                      pw.Expanded(flex: 2, child: pw.Text('Qty', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
+                      pw.Expanded(flex: 2, child: pw.Text('MRP', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.right)),
+                      pw.Expanded(flex: 2, child: pw.Text('Disc', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
+                      pw.Expanded(flex: 2, child: pw.Text('Total', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.right)),
+                    ],
+                  ),
+                ),
+
+                // Items list
+                ...items.map((item) {
+                  final subtotal = calculateSubtotal(item);
+                  return pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
+                    ),
+                    child: pw.Row(
+                      children: [
+                        pw.Expanded(flex: 4, child: pw.Text(item.productName ?? '', style: pw.TextStyle(font: ttf, fontSize: 11))),
+                        pw.Expanded(flex: 2, child: pw.Text('${item.quantity ?? 0}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
+                        pw.Expanded(flex: 2, child: pw.Text('${(item.price ?? 0).toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
+                        pw.Expanded(flex: 2, child: pw.Text('${item.discount ?? 0}%', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
+                        pw.Expanded(flex: 2, child: pw.Text('${subtotal.toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+
+                pw.SizedBox(height: 10),
+
+                // Totals summary box
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColor.fromInt(0xFFC4DAF6),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Subtotal:', style: pw.TextStyle(font: ttf, fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('${totalItemAmount.toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 14)),
+                        ],
+                      ),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Discount:', style: pw.TextStyle(font: ttf, fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('-${totalDiscount.toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 14, color: PdfColors.red)),
+                        ],
+                      ),
+                      pw.Divider(),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Total:', style: pw.TextStyle(font: ttf, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('${totalAmount.toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+
+                // Footer message
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(top: 30),
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColor.fromInt(0xFFC4DAF6)),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Terms and Conditions',
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(0xFF062A49),
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Text(
+                        '1. Medicines must be stored as per the instructions on the packaging.\n'
+                            '2. Please consult your healthcare professional before using any medicine.\n'
+                            '3. Returns or exchanges are accepted only for damaged or defective products within 7 days.\n'
+                            '4. Keep the receipt as proof of purchase for warranty and returns.\n'
+                            '5. We are not responsible for any misuse or side effects of the medicines.\n'
+                            '6. Prices are subject to change without prior notice.\n'
+                            '7. Thank you for choosing PixiDrugs.',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          color: PdfColors.grey800,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                pw.SizedBox(height: 20),
+                pw.Center(
+                  child: pw.Text('Thank you for shopping at PixiDrugs!',
+                    style: pw.TextStyle(font: ttf, fontSize: 12, color: PdfColors.grey600),
+                  ),
+                ),
+
+              ],
+            );
+          },
+        ),
+      );
+
+      // Save & share the PDF
+      final output = await getTemporaryDirectory();
+      final file = File('${output.path}/receipt_${saleItem.invoiceNo}.pdf');
+      await file.writeAsBytes(await pdf.save());
+
+      _sharePdfViaWhatsApp(saleItem,file.path);
+    }
+  Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath) async {
+    await WhatsappShare.shareFile(
+      phone: saleItem.customer.phone,
+      filePath: [filePath],
+      text: '''
+Dear ${saleItem.customer.name},
+
+Thank you for your purchase.
+
+Invoice No: ${saleItem.invoiceNo}  
+Amount: ₹${saleItem.totalAmount}
+
+Please find your receipt attached.
+
+Best regards,  
+PixiDrugs
+''',
+    );
+  }
 
   Widget _buildTopBar(double screenWidth) {
     return Padding(

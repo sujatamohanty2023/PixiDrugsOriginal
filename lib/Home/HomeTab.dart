@@ -1,4 +1,5 @@
 
+import 'package:image_cropper/image_cropper.dart';
 import 'package:pixidrugs/Dialog/show_image_picker.dart';
 import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
 import 'package:pixidrugs/constant/all.dart';
@@ -279,16 +280,39 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _UploadInvoice() async {
     showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 1);
   }
-  void _setSelectedImage(List<File> file) {
-    Future.delayed(Duration(milliseconds: 100), () {
+  Future<void> _setSelectedImage(List<File> file) async {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: file[0].path,
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 90,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: AppColors.kPrimary,
+          toolbarWidgetColor: Colors.white,
+          activeControlsWidgetColor: AppColors.kPrimary,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPreset.ratio4x3,
+            CropAspectRatioPreset.ratio16x9,
+          ],
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPurchaseBill(path: file[0].path),
+          builder: (context) => AddPurchaseBill(path: croppedFile.path),
         ),
       );
-    });
+    }
   }
+
   Future<void> _newSaleEntry() async {
     CommonConfirmationDialog.show<int>(
         context: context,
