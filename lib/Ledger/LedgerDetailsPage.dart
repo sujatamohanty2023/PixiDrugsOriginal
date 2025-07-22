@@ -5,7 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pixidrugs/Ledger/LedgerModel.dart';
 import 'package:pixidrugs/Ledger/PaymentOutBottomSheet.dart';
 import 'package:pixidrugs/constant/all.dart';
-import 'package:whatsapp_share/whatsapp_share.dart';
+import 'package:pixidrugs/shareFileToWhatsApp.dart';
 
 class LedgerDetailsPage extends StatefulWidget {
   LedgerModel? ledger;
@@ -775,11 +775,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     _sharePdfViaWhatsApp(ledger,file.path);
   }
 
-  Future<void> _sharePdfViaWhatsApp(LedgerModel ledger, String filePath) async {
-    await WhatsappShare.shareFile(
-      phone: ledger.phone,
-      filePath: [filePath],
-      text: 'Dear Sir/Madam,\nPlease find attached the payment history for ${ledger.sellerName}.\n\nNet Due: ₹${ledger.dueAmount}\n\nThank you for your continued support.\n\nPixiDrugs',
+  Future<void> _sharePdfViaWhatsApp(LedgerModel ledger, String filePath1) async {
+    await shareFileToWhatsApp(
+      phoneNumber: "91${ledger.phone.replaceAll("+91", '')}",
+      filePath: filePath1,
+      message: 'Dear Sir/Madam,\nPlease find attached the payment history for ${ledger.sellerName}.\n\nNet Due: ₹${ledger.dueAmount}\n\nThank you for your continued support.\n\nPixiDrugs',
     );
   }
 

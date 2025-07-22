@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
 import 'package:pixidrugs/Home/HomePageScreen.dart';
 import 'package:pixidrugs/Ledger/LedgerListWidget.dart';
@@ -11,7 +12,7 @@ import 'package:pixidrugs/ListPageScreen/SaleListWidget.dart';
 import 'package:pixidrugs/SaleList/sale_details.dart';
 import 'package:pixidrugs/SaleList/sale_model.dart';
 import 'package:pixidrugs/constant/all.dart';
-import 'package:whatsapp_share/whatsapp_share.dart';
+import 'package:pixidrugs/shareFileToWhatsApp.dart';
 import '../Dialog/show_image_picker.dart';
 
 class ListScreen extends StatefulWidget {
@@ -237,7 +238,6 @@ class _ListScreenState extends State<ListScreen>
   Future<void> _shareReceiptAsPdf(SaleModel saleItem) async {
       final pdf = pw.Document();
 
-      // Load a font that supports ₹ symbol (like NotoSans)
       final fontData = await rootBundle.load('assets/fonts/Signika-Regular.ttf');
       final ttf = pw.Font.ttf(fontData);
 
@@ -449,17 +449,17 @@ class _ListScreenState extends State<ListScreen>
       );
 
       // Save & share the PDF
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/receipt_${saleItem.invoiceNo}.pdf');
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/receipt_${saleItem.invoiceNo}.pdf');
       await file.writeAsBytes(await pdf.save());
 
       _sharePdfViaWhatsApp(saleItem,file.path);
     }
-  Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath) async {
-    await WhatsappShare.shareFile(
-      phone: saleItem.customer.phone,
-      filePath: [filePath],
-      text: '''
+  Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath1) async {
+    await shareFileToWhatsApp(
+      phoneNumber: "91${saleItem.customer.phone.replaceAll("+91", '')}",
+      filePath: filePath1,
+      message: '''
 Dear ${saleItem.customer.name},
 
 Thank you for your purchase.
