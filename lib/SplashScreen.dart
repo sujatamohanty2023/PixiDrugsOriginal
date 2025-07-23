@@ -1,6 +1,6 @@
 
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/onboardingscreen/intro_screen.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/onboardingscreen/intro_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

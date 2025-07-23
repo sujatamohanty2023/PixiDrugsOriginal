@@ -1,6 +1,6 @@
 
 
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class CustomListView<T> extends StatefulWidget {
   final List<T> data;

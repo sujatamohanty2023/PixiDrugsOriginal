@@ -1,10 +1,10 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
-import 'package:pixidrugs/Cart/CartTab.dart';
-import 'package:pixidrugs/Home/HomeTab.dart';
-import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
-import 'package:pixidrugs/Stock/ProductList.dart';
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/Profile/profileTab.dart';
+import 'package:PixiDrugs/Cart/CartTab.dart';
+import 'package:PixiDrugs/Home/HomeTab.dart';
+import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:PixiDrugs/Stock/ProductList.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/Profile/profileTab.dart';
 
 class HomePage extends StatefulWidget {
   @override

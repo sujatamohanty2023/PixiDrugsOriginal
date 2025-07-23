@@ -1,4 +1,4 @@
-# pixidrugs
+# PixiDrugs
 
 A new Flutter project.
 

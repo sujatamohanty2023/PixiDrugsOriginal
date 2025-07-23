@@ -1,6 +1,6 @@
-import 'package:pixidrugs/SaleList/sale_details.dart';
-import 'package:pixidrugs/SaleList/sale_model.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/SaleList/sale_details.dart';
+import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class SaleListWidget extends StatelessWidget {
   final bool isLoading;
@@ -118,39 +118,34 @@ class SaleListWidget extends StatelessWidget {
                       PopupMenuItem(value: 'print',
                           child:Row(
                             children: [
-                              Icon(Icons.print, color: Colors.black),
+                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kGreyColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Print Bill', 13, Colors.black),
+                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kGreyColor800),
                             ],
                           )),
                       PopupMenuItem(value: 'share',
                           child:Row(
                             children: [
-                              Icon(Icons.share, color: Colors.black),
+                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kGreyColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Share', 13, Colors.black),
+                              MyTextfield.textStyle_w600('Share', 13, AppColors.kGreyColor800),
                             ],
                           )),
                       PopupMenuItem(value: 'edit',
                           child:Row(
                             children: [
-                              Icon(Icons.edit, color: Colors.black),
+                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kGreyColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Edit', 13, Colors.black),
+                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kGreyColor800),
                             ],
                           )),
                       PopupMenuItem(
                           value: 'delete',
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                AppImages.delete,
-                                height: 18,
-                                width: 18,
-                                color: AppColors.kRedColor,
-                              ),
+                              SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Delete', 13, Colors.black),
+                              MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
                             ],
                           )
                       ),

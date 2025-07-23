@@ -1,9 +1,9 @@
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:pixidrugs/Profile/StaffAddBottomSheet.dart';
-import 'package:pixidrugs/Profile/WebviewScreen.dart';
-import 'package:pixidrugs/Profile/edit_profile.dart';
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/login/mobileLoginScreen.dart';
+import 'package:PixiDrugs/Profile/StaffAddBottomSheet.dart';
+import 'package:PixiDrugs/Profile/WebviewScreen.dart';
+import 'package:PixiDrugs/Profile/edit_profile.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/login/mobileLoginScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -331,7 +331,7 @@ class ProfileScreen extends StatefulWidget {
   }
 
   Future _launchUrl() async {
-    final String url = "https://play.google.com/store/apps/details?id=com.pixiglam.pixidrugs";
+    final String url = "https://play.google.com/store/apps/details?id=com.medico.pixidrugs";
     final Uri _url = Uri.parse(url);
     if (!await launchUrl(_url)) {
       throw Exception('Could not launch $_url');

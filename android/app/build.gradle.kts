@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pixiglam.pixidrugs"
+    namespace = "com.medico.pixidrugs"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.pixiglam.pixidrugs"
+        applicationId = "com.medico.pixidrugs"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,9 +32,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("pixiDrugs.jks")
+            storeFile = file("PixiDrugs.jks")
             storePassword = "Skinskin@123"
-            keyAlias = "pixiDrugs"
+            keyAlias = "PixiDrugs"
             keyPassword = "Skinskin@123"
         }
     }

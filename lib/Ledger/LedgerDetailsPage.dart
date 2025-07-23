@@ -2,10 +2,10 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:pixidrugs/Ledger/LedgerModel.dart';
-import 'package:pixidrugs/Ledger/PaymentOutBottomSheet.dart';
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/shareFileToWhatsApp.dart';
+import 'package:PixiDrugs/Ledger/LedgerModel.dart';
+import 'package:PixiDrugs/Ledger/PaymentOutBottomSheet.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 
 class LedgerDetailsPage extends StatefulWidget {
   LedgerModel? ledger;

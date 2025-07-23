@@ -1,7 +1,7 @@
-import 'package:pixidrugs/Cart/address_widget.dart';
-import 'package:pixidrugs/Dialog/success_dialog.dart';
-import 'package:pixidrugs/SaleList/sale_model.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Cart/address_widget.dart';
+import 'package:PixiDrugs/Dialog/success_dialog.dart';
+import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
 
 class CartPage extends StatefulWidget {

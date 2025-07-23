@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
-import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;

@@ -1,6 +1,6 @@
-import 'package:pixidrugs/login/OtpVerificationScreen.dart';
+import 'package:PixiDrugs/login/OtpVerificationScreen.dart';
 
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class MobileLoginScreen extends StatefulWidget {
 

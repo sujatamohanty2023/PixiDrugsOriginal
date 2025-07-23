@@ -1,6 +1,6 @@
-import 'package:pixidrugs/AWS/S3Service.dart';
-import 'package:pixidrugs/Dialog/show_image_picker.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/AWS/S3Service.dart';
+import 'package:PixiDrugs/Dialog/show_image_picker.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override

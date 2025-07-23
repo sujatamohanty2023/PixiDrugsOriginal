@@ -1,5 +1,5 @@
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/login/FCMService.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/login/FCMService.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;

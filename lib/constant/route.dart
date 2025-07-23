@@ -1,5 +1,5 @@
-import 'package:pixidrugs/Home/HomePageScreen.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Home/HomePageScreen.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class AppRoutes {
   static void navigateToHome(BuildContext context) {

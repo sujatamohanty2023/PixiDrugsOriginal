@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:pixidrugs/Home/HomePageScreen.dart';
-import 'package:pixidrugs/SaleList/sale_model.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Home/HomePageScreen.dart';
+import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/constant/all.dart';
 import 'package:image/image.dart' as img;
 
 class ReceiptPrinterPage extends StatefulWidget {

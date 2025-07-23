@@ -1,5 +1,5 @@
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/return/ReturnProductTile.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/return/ReturnProductTile.dart';
 
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;

@@ -34,4 +34,8 @@ class AppImages {
   static String no_sale = "${svgFolder}no_sale.svg";
   static String no_expiry = "${svgFolder}no_expiry.svg";
 
+  static String printer = "${svgFolder}printer.svg";
+  static String share = "${svgFolder}share.svg";
+  static String edit = "${svgFolder}edit.svg";
+
 }

@@ -1,8 +1,8 @@
 
 import 'package:image_cropper/image_cropper.dart';
-import 'package:pixidrugs/Dialog/show_image_picker.dart';
-import 'package:pixidrugs/ListPageScreen/ListScreen.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Dialog/show_image_picker.dart';
+import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;

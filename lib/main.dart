@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:pixidrugs/Home/HomePageScreen.dart';
-import 'package:pixidrugs/SplashScreen.dart';
-import 'package:pixidrugs/Stock/ProductList.dart';
-import 'package:pixidrugs/constant/all.dart';
-import 'package:pixidrugs/login/FCMService.dart';
-import 'package:pixidrugs/login/mobileLoginScreen.dart';
-import 'package:pixidrugs/return/PurchaseReturnScreen.dart';
+import 'package:PixiDrugs/Home/HomePageScreen.dart';
+import 'package:PixiDrugs/SplashScreen.dart';
+import 'package:PixiDrugs/Stock/ProductList.dart';
+import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/login/FCMService.dart';
+import 'package:PixiDrugs/login/mobileLoginScreen.dart';
+import 'package:PixiDrugs/return/PurchaseReturnScreen.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 @pragma('vm:entry-point')

@@ -1,6 +1,6 @@
 // s3_upload_service.dart
 
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class S3UploadService {
   Dio dio = Dio();

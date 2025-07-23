@@ -1,6 +1,6 @@
-import 'package:pixidrugs/Ledger/LedgerDetailsPage.dart';
-import 'package:pixidrugs/Ledger/LedgerModel.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Ledger/LedgerDetailsPage.dart';
+import 'package:PixiDrugs/Ledger/LedgerModel.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class LedgerListWidget extends StatefulWidget {
   final bool isLoading;

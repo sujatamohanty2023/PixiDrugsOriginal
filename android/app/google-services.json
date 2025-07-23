@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1030308765129",
-    "project_id": "pixidrugs",
-    "storage_bucket": "pixidrugs.firebasestorage.app"
+    "project_number": "966864565336",
+    "project_id": "pixidrugs-pharamacy-inventory",
+    "storage_bucket": "pixidrugs-pharamacy-inventory.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1030308765129:android:afe422c877c8b1d7609c18",
+        "mobilesdk_app_id": "1:966864565336:android:2edfcd266a2871675f062d",
         "android_client_info": {
-          "package_name": "com.pixiglam.pixidrugs"
+          "package_name": "com.medico.pixidrugs"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCKMdQGIHySdDJf6gHP7uVXXavCzEDYS4M"
+          "current_key": "AIzaSyDzi7ujburwJvHtmGzugRj40uvn02xTqY4"
         }
       ],
       "services": {

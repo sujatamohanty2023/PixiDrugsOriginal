@@ -1,5 +1,5 @@
-import 'package:pixidrugs/Stock/ProductTile.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Stock/ProductTile.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class ProductListPage extends StatefulWidget {
   final int flag;

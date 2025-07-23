@@ -1,9 +1,9 @@
 // api_cubit.dart
 
-import 'package:pixidrugs/Ledger/LedgerModel.dart';
-import 'package:pixidrugs/Ledger/Payment.dart';
-import 'package:pixidrugs/SaleList/sale_model.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Ledger/LedgerModel.dart';
+import 'package:PixiDrugs/Ledger/Payment.dart';
+import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class ApiCubit extends Cubit<ApiState> {
   final ApiRepository apiRepository;

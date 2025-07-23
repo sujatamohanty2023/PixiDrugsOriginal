@@ -1,5 +1,5 @@
 
-import 'package:pixidrugs/constant/all.dart'; // adjust this import path to your project
+import 'package:PixiDrugs/constant/all.dart'; // adjust this import path to your project
 
 class StaffAddBottomSheet extends StatefulWidget {
   final Function(String name, String phone, String email)? onSubmit;

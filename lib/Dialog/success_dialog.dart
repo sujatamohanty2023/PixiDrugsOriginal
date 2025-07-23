@@ -1,6 +1,6 @@
-import 'package:pixidrugs/Cart/ReceiptPrinterPage.dart';
-import 'package:pixidrugs/SaleList/sale_model.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/Cart/ReceiptPrinterPage.dart';
+import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class SuccessDialog extends StatefulWidget {
   SvgPicture image;

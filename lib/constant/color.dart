@@ -1,4 +1,4 @@
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class AppColors {
   static const kPrimaryLight = Color(0xFFDCEBFF);

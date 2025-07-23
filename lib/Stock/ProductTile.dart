@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;

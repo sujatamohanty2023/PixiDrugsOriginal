@@ -1,5 +1,5 @@
 
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class CartTab extends StatefulWidget {
   final void Function() onPressedProduct;

@@ -1,6 +1,6 @@
 import 'package:aws_common/aws_common.dart';
 import 'package:aws_signature_v4/aws_signature_v4.dart';
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class AddPurchaseBill extends StatefulWidget {
   final String path;

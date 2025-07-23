@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 Future<void> shareFileToWhatsApp({
   required String filePath,
@@ -9,26 +7,17 @@ Future<void> shareFileToWhatsApp({
   String? message,
 }) async {
   try {
-    // Compose WhatsApp chat URL with encoded message
-    final encodedMessage = Uri.encodeComponent(message ?? '');
-    final whatsappUrl = "https://wa.me/$phoneNumber?text=$encodedMessage";
 
-    // Launch WhatsApp chat with the message
-    if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-      await launchUrl(Uri.parse(whatsappUrl), mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint('Could not launch WhatsApp URL');
-      return;
+    const platform = MethodChannel('whatsapp_share');
+    try {
+      await platform.invokeMethod('sendFileToNumber', {
+        'filePath': filePath,
+        'phone': phoneNumber,
+        'message':message
+      });
+    } on PlatformException catch (e) {
+      print("Error: ${e.message}");
     }
-
-    // Wait for user to open WhatsApp chat before sharing file
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Share the PDF file via system share dialog
-    await Share.shareXFiles(
-      [XFile(filePath)],
-      text: message,
-    );
   } catch (e, stacktrace) {
     debugPrint('Error sharing file to WhatsApp: $e\n$stacktrace');
   }

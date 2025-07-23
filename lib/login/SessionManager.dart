@@ -1,5 +1,5 @@
 
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class SessionManager {
   static const _accessTokenKey = 'access_token';

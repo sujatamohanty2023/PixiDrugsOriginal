@@ -1,4 +1,4 @@
-import 'package:pixidrugs/constant/all.dart';
+import 'package:PixiDrugs/constant/all.dart';
 
 class InvoiceListWidget extends StatelessWidget {
   final bool isLoading;
