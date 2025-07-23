@@ -67,6 +67,9 @@ export '../invoiceDataExtraction/InvoiceSummaryPage.dart';
 export '../invoiceDataExtraction/TextractInvoiceParser.dart';
 
 
+export '../onboardingscreen/intro_screen.dart';
+
+
 
 
 
