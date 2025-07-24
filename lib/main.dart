@@ -23,8 +23,7 @@ void main() async {
 
   // Dynamically choose the provider based on build mode
   await FirebaseAppCheck.instance.activate(
-    androidProvider:
-    kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    androidProvider:AndroidProvider.playIntegrity,
   );
   runApp(const MyApp());
 }

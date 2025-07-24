@@ -53,6 +53,7 @@ android {
     //flutter build apk --split-per-abi --release
     //flutter build appbundle --release
     //flutter build apk --target-platform android-arm64 --analyze-size  --release
+    //flutter build apk  --release
 }
 
 dependencies {
@@ -62,7 +63,7 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.core:core:1.7.0")
-    implementation("com.google.android.play:integrity:1.4.0")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity:17.1.1")
 }
 
 flutter {

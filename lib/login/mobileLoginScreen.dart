@@ -32,7 +32,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content:
-              MyTextfield.textStyle_w300('reCAPTCHA verification failed. Please try again.', 16, Colors.white)),
+              MyTextfield.textStyle_w300('Verification failed: ${e.message}', 16, Colors.white)),
         );
       },
       codeSent: (String verId, int? resendToken) {
