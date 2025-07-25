@@ -67,11 +67,11 @@ class Invoice {
     return Invoice(
       invoiceId: json['invoice_no'] ?? '',
       invoiceDate: json['date'] ?? '',
-      sellerName: seller['name'] ?? '',
+      sellerName: seller['name'] ?? '--------',
       sellerAddress: seller['address'] ?? '',
       sellerPhone: seller['mobile'] ?? '',
       sellerGstin: '', // Not present in JSON, keep empty
-      userId: seller['id'] ?? '',       // Not present in JSON, keep empty
+      userId: seller['id'].toString() ?? '',       // Not present in JSON, keep empty
       netAmount: '',    // Not present, optional
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );

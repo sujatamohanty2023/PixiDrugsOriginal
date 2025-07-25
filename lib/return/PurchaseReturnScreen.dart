@@ -195,7 +195,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                               padding: const EdgeInsets.all(10),
                               child: Row(
                                 children: [
-                                  CircleAvatar(
+                                  return_invoice!.sellerName!.isNotEmpty?CircleAvatar(
                                     radius: screenWidth * 0.08,
                                     backgroundColor: AppColors.kPrimaryDark,
                                     child: MyTextfield.textStyle_w400(
@@ -203,7 +203,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                       screenWidth * 0.045,
                                       AppColors.kPrimary,
                                     ),
-                                  ),
+                                  ):SizedBox(),
                                   SizedBox(width: screenWidth * 0.03),
                                   Expanded(
                                     child: Column(
