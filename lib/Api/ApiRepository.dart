@@ -2,6 +2,8 @@
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../return/PurchaseReturn.dart';
+
 class ApiRepository {
   final Dio dio;
 
@@ -462,6 +464,107 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to cancel order: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> invoiceDetail(String invoice_no) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/getinvoicedetails/',
+        queryParameters: {'invoice_no': invoice_no},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load invoice');
+      }
+    } catch (e) {
+      throw Exception('Failed to load invoice: $e');
+    }
+  }
+  Future<Map<String, dynamic>> stockReturnList(String store_id) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/stockist-returns/',
+        queryParameters: {'store_id': store_id,'page':1},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to cancel order');
+      }
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
+    }
+  }
+  Future<Map<String, dynamic>> stockReturn(PurchaseReturn returnModel,String apiName) async {
+    // Check internet connection
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      // Perform POST request
+      final response = await dio.post(
+        '${AppString.baseUrl}api/stockist-returns/$apiName',
+        data: returnModel.toJson(), // Sending JSON
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json', // Ensures raw JSON POST
+          },
+        ),
+      );
+
+      // Debug print
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API Response: ${response.data}');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('POST error: $e');
+      throw Exception('Failed to post invoice: $e');
+    }
+  }
+  Future<Map<String, dynamic>> stockReturnDelete(String id) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.post(
+        '${AppString.baseUrl}api/stockist-returns/delete',
+        queryParameters: {'id': id},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to delete ');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete: $e');
     }
   }
 }

@@ -345,7 +345,6 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     final newInvoice = invoice.copyWith(
       items: updatedItems,
       netAmount: netAmount,
-      userId: userId,
       invoiceDate: formattedDate,
     );
 

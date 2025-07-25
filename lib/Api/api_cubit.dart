@@ -4,6 +4,9 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/return/ReturnDataModel.dart';
+
+import '../return/PurchaseReturn.dart';
 
 class ApiCubit extends Cubit<ApiState> {
   final ApiRepository apiRepository;
@@ -261,7 +264,8 @@ class ApiCubit extends Cubit<ApiState> {
     } catch (e) {
       emit(UpdatePaymentError('Failed to Update data: $e'));
     }
-  } //------------------------------------------------------------------------------------
+  }
+  //------------------------------------------------------------------------------------
   Future<void> DeletePayment({required String id}) async {
     try {
       emit(DeletePaymentLoading());
@@ -270,6 +274,62 @@ class ApiCubit extends Cubit<ApiState> {
       emit(DeletePaymentLoaded(message: message));
     } catch (e) {
       emit(DeletePaymentError('Failed to Delete data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StockReturnAdd({required PurchaseReturn returnModel}) async {
+    try {
+      emit(StockReturnAddLoading());
+      final response = await apiRepository.stockReturn(returnModel,'store');
+      final success = response['success'];
+      emit(StockReturnAddLoaded(success: success));
+    } catch (e) {
+      emit(StockReturnAddError('Failed to fetch data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StockReturnEdit({required PurchaseReturn returnModel}) async {
+    try {
+      emit(StockReturnEditLoading());
+      final response = await apiRepository.stockReturn(returnModel,'update');
+      final success = response['success'];
+      emit(StockReturnEditLoaded(success: success));
+    } catch (e) {
+      emit(StockReturnEditError('Failed to edit data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StockReturnDelete({required String id}) async {
+    try {
+      emit(StockReturnDeleteLoading());
+      final response = await apiRepository.stockReturnDelete(id);
+      final success = response['success'];
+      emit(StockReturnDeleteLoaded(success: success));
+    } catch (e) {
+      emit(StockReturnDeleteError('Failed to Delete data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchStockReturnList({required String store_id}) async {
+    try {
+      emit(StockReturnListLoading());
+      final response = await apiRepository.stockReturnList(store_id);
+      final data = response['data'] as List;
+      final list = data.map((json) => ReturnDataModel.fromJson(json)).toList();
+      emit(StockReturnListLoaded(returnList: list));
+    } catch (e) {
+      emit(StockReturnListError('Failed to load returnList: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> GetInvoiceDetail({required String invoice_id}) async {
+    try {
+      emit(GetInvoiceDetailLoading());
+      final response = await apiRepository.invoiceDetail(invoice_id);
+      final model = Invoice.fromJson_StockReturn(response);
+      emit(GetInvoiceDetailLoaded(invoiceModel: model));
+    } catch (e) {
+      emit(GetInvoiceDetailError('Failed to load invoice: $e'));
     }
   }
 }

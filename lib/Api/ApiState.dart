@@ -2,6 +2,8 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../return/ReturnDataModel.dart';
+
 abstract class ApiState {}
 
 class ApiInitial extends ApiState {}
@@ -268,4 +270,64 @@ class DeletePaymentLoaded extends ApiState {
 class DeletePaymentError extends ApiState {
   final String error;
   DeletePaymentError(this.error);
+}
+//--------------------------------------------------------------------
+class StockReturnEditLoading extends ApiState {}
+
+class StockReturnEditLoaded extends ApiState {
+  final bool success;
+  StockReturnEditLoaded({required this.success});
+}
+
+class StockReturnEditError extends ApiState {
+  final String error;
+  StockReturnEditError(this.error);
+}
+//--------------------------------------------------------------------
+class StockReturnDeleteLoading extends ApiState {}
+
+class StockReturnDeleteLoaded extends ApiState {
+  final bool success;
+  StockReturnDeleteLoaded({required this.success});
+}
+
+class StockReturnDeleteError extends ApiState {
+  final String error;
+  StockReturnDeleteError(this.error);
+}
+//--------------------------------------------------------------------
+class StockReturnAddLoading extends ApiState {}
+
+class StockReturnAddLoaded extends ApiState {
+  final bool success;
+  StockReturnAddLoaded({required this.success});
+}
+
+class StockReturnAddError extends ApiState {
+  final String error;
+  StockReturnAddError(this.error);
+}
+//--------------------------------------------------------------------
+class StockReturnListLoading extends ApiState {}
+
+class StockReturnListLoaded extends ApiState {
+  final List<ReturnDataModel> returnList;
+  StockReturnListLoaded({required this.returnList});
+}
+
+class StockReturnListError extends ApiState {
+  final String error;
+  StockReturnListError(this.error);
+}
+//--------------------------------------------------------------------
+class GetInvoiceDetailLoading extends ApiState {}
+
+class GetInvoiceDetailLoaded extends ApiState {
+  final Invoice invoiceModel;
+  GetInvoiceDetailLoaded({required this.invoiceModel});
+}
+
+class GetInvoiceDetailError extends ApiState {
+  final String error;
+  GetInvoiceDetailError(this.error);
 }

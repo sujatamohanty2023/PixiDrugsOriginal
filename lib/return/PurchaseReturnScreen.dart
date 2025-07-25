@@ -1,9 +1,14 @@
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/return/ReturnProductTile.dart';
 
+import 'PurchaseReturn.dart';
+
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
-  const PurchaseReturnScreen({Key? key,required this.invoiceNo}) : super(key: key);
+  final bool? edit;
+  final int? edit_id;
+  const PurchaseReturnScreen({Key? key,required this.invoiceNo,
+  this.edit=false,this.edit_id=0}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -29,8 +34,46 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     setState(() {
       isLoading = true;
     });
-    String? userId = await SessionManager.getUserId();
-    context.read<ApiCubit>().fetchInvoiceList(user_id: userId!);
+    context.read<ApiCubit>().GetInvoiceDetail(invoice_id: widget.invoiceNo);
+  }
+  Future<void> ReturnApiCall() async {
+    setState(() {
+      isLoading = true;
+    });
+    final userId = await SessionManager.getUserId() ?? '';
+    final selectedItems = return_invoice!.items
+        .where((item) => item.isSelected == true && item.returnQty > 0)
+        .map((item) => ReturnItem(
+      productId: item.id,
+      quantity: item.returnQty,
+      rate: double.parse(item.rate),
+      batchNo: item.batch,
+      expiry:item.expiry,
+      gstPercent:double.parse(item.gst),
+      discountPercent: double.parse(item.discount), totalAmount: (item.returnQty) * (double.tryParse(item.rate) ?? 0.0),
+    ))
+        .toList();
+
+    final totalAmount = selectedItems.fold<double>(
+      0.0,
+          (sum, item) => sum + (item.quantity * item.rate),
+    );
+    var returnModel = PurchaseReturn(
+      id: widget.edit!?widget.edit_id:null,
+      storeId:int.parse(userId),
+      invoicePurchaseId:return_invoice!.items.first.invoice_purchase_id,
+      sellerId:int.parse(return_invoice!.userId!),
+      returnDate:DateTime.now().toString(),
+      totalAmount:totalAmount,
+      reason:'',
+      items:selectedItems,
+    );
+    print(returnModel.toString());
+    if(!widget.edit!) {
+      context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
+    }else{
+      context.read<ApiCubit>().StockReturnEdit(returnModel: returnModel);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -39,14 +82,14 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     return Scaffold(
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
-          if (state is InvoiceListLoaded) {
+          if (state is GetInvoiceDetailLoaded) {
             setState(() {
               isLoading = false;
-              return_invoice = state.invoiceList[1].copyWith(invoiceId: invoice_No);
+              return_invoice = state.invoiceModel;
               returnList.add(return_invoice!);
               currentIndex = returnList.length - 1;
             });
-          } else if (state is InvoiceListError) {
+          } else if (state is GetInvoiceDetailError) {
             setState(() {
               isLoading = false;
             });
@@ -90,7 +133,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           ),
                         ],
                       ),
-                      Container(
+                     /* Container(
                         height: 40,
                         width: 140,
                         child: MyElevatedButton(
@@ -114,7 +157,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           custom_design: true,
                           buttonText: "Add More",
                         ),
-                      ),
+                      ),*/
                     ],
                   ),
                 ),
@@ -134,7 +177,9 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                         topLeft: Radius.circular(screenWidth * 0.07),
                       ),
                     ),
-                    child: SingleChildScrollView(
+                    child: return_invoice == null
+                        ? Center(child: CircularProgressIndicator())
+                        :  SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -154,7 +199,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                     radius: screenWidth * 0.08,
                                     backgroundColor: AppColors.kPrimaryDark,
                                     child: MyTextfield.textStyle_w400(
-                                      getInitials("JK Pharama"),
+                                      getInitials(return_invoice!.sellerName!),
                                       screenWidth * 0.045,
                                       AppColors.kPrimary,
                                     ),
@@ -166,7 +211,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                       CrossAxisAlignment.start,
                                       children: [
                                         MyTextfield.textStyle_w800(
-                                          "JK Pharama",
+                                          return_invoice!.sellerName!,
                                           screenWidth * 0.04,
                                           AppColors.kPrimary,
                                         ),
@@ -177,13 +222,13 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                         ),
                                         SizedBox(height: screenWidth * 0.01),
                                         MyTextfield.textStyle_w400(
-                                          'GSTIN: 123456789',
+                                          'GSTIN: ${return_invoice!.sellerGstin!}',
                                           screenWidth * 0.035,
                                           Colors.grey.shade700,
                                         ),
                                         SizedBox(height: screenWidth * 0.01),
                                         MyTextfield.textStyle_w400(
-                                          'Dt. 18/06/2025',
+                                          'Dt. ${return_invoice!.invoiceDate!}',
                                           screenWidth * 0.035,
                                           Colors.grey.shade700,
                                         ),
@@ -281,7 +326,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
 
                   setState(() {
                     if (currentIndex == returnList.length - 1) {
-
+                      ReturnApiCall();
                     } else {
                       currentIndex++;
                       return_invoice = returnList[currentIndex];

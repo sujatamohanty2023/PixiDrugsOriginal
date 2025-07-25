@@ -60,6 +60,22 @@ class Invoice {
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );
   }
+  factory Invoice.fromJson_StockReturn(Map<String, dynamic> json) {
+    final seller = json['seller'] ?? {};
+    final itemsJson = json['items'] as List? ?? [];
+
+    return Invoice(
+      invoiceId: json['invoice_no'] ?? '',
+      invoiceDate: json['date'] ?? '',
+      sellerName: seller['name'] ?? '',
+      sellerAddress: seller['address'] ?? '',
+      sellerPhone: seller['mobile'] ?? '',
+      sellerGstin: '', // Not present in JSON, keep empty
+      userId: seller['id'] ?? '',       // Not present in JSON, keep empty
+      netAmount: '',    // Not present, optional
+      items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
+    );
+  }
   Map<String, dynamic> toJson() => {
     'invoice_no': invoiceId,
     'invoice_date': invoiceDate,
@@ -104,6 +120,7 @@ class InvoiceItem {
    String total;
    DiscountType discountType;
 
+   int invoice_purchase_id;
    bool isSelected;
     int returnQty;
 
@@ -127,6 +144,7 @@ class InvoiceItem {
     this.discountType=DiscountType.percent,
     this.isSelected = false,
     this.returnQty = 0,
+    this.invoice_purchase_id = 0,
   });
    InvoiceItem copyWith({
      int? id,
@@ -148,6 +166,7 @@ class InvoiceItem {
      DiscountType? discountType,
      bool? isSelected,
     int? returnQty,
+    int? invoice_purchase_id,
    }) {
      return InvoiceItem(
        id: id ?? this.id,
@@ -168,6 +187,7 @@ class InvoiceItem {
        total: total ?? this.total,
        discountType: discountType??this.discountType,
        returnQty: returnQty??this.returnQty,
+       invoice_purchase_id: invoice_purchase_id??this.invoice_purchase_id,
      );
    }
 
@@ -325,6 +345,7 @@ class InvoiceItem {
       qty_free: qtyFree,
       gst: gstValue.toStringAsFixed(2),
       total: parseTotal(normalized),
+      invoice_purchase_id: parseId(normalized['invoice_purchase_id']),
     );
   }
 
