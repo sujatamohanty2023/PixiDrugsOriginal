@@ -194,7 +194,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        AppRoutes.navigateTo(context, ListScreen(type:'invoice'));
+                        AppRoutes.navigateTo(context, ListScreen(type:ListType.invoice));
                       },
                       child: _buildTaskCard(
                         title: "Invoice History",
@@ -212,7 +212,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        AppRoutes.navigateTo(context, ListScreen(type:'sale'));
+                        AppRoutes.navigateTo(context, ListScreen(type:ListType.sale));
                       },
                       child: _buildTaskCard(
                         title: "Sales Report",
@@ -251,8 +251,8 @@ class _HomeTabState extends State<HomeTab> {
                         );
                       },
                       child: _buildTaskCard(
-                        title: "Purchase Return",
-                        tasks: "Track return products to suppliers",
+                        title: "Stockiest Return",
+                        tasks: "Return products back to stockiest or suppliers",
                         icon: AppImages.purchase_return,
                       ),
                     ),
@@ -261,11 +261,31 @@ class _HomeTabState extends State<HomeTab> {
                         Navigator.pushNamed(context, '/saleReturn');
                       },
                       child: _buildTaskCard(
-                        title: "Sale Return",
-                        tasks: "Track return of products from customers",
+                        title: "Customer Return",
+                        tasks: "Manage products returned by customers",
                         icon: AppImages.sale_return,
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        AppRoutes.navigateTo(context, ListScreen(type:ListType.stockReturn));
+                      },
+                      child: _buildTaskCard(
+                        title: "Stock Return List",
+                        tasks: "View returns made to suppliers",
+                        icon: AppImages.stockiest_return,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        AppRoutes.navigateTo(context, ListScreen(type:ListType.saleReturn));
+                      },
+                      child: _buildTaskCard(
+                        title: "sale Return List",
+                        tasks: "View returns received from customers",
+                        icon: AppImages.customer_return,
+                      ),
+                    )
                   ],
                 ),
                 const SizedBox(height: 20), // bottom spacing

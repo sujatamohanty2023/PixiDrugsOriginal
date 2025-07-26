@@ -13,11 +13,23 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 import '../Dialog/show_image_picker.dart';
+import '../return/ReturnDataModel.dart';
+import '../return/SaleReturnListWidget.dart';
+
+enum ListType { invoice, sale, ledger, stockReturn, saleReturn }
+
+final Map<ListType, String> titleMap = {
+  ListType.invoice: 'Invoice List',
+  ListType.sale: 'Sale List',
+  ListType.ledger: 'Ledger List',
+  ListType.stockReturn: 'Stock Return List',
+  ListType.saleReturn: 'Sale Return List',
+};
 
 class ListScreen extends StatefulWidget {
-  final String? type;
+  final ListType type;
 
-  const ListScreen({Key? key, this.type = ''}) : super(key: key);
+  const ListScreen({Key? key, this.type = ListType.invoice}) : super(key: key);
 
   @override
   State<ListScreen> createState() => _ListScreenState();
@@ -29,6 +41,8 @@ class _ListScreenState extends State<ListScreen>
   List<Invoice> invoiceList = [];
   List<SaleModel> saleList = [];
   List<LedgerModel> ledgerList = [];
+  List<ReturnDataModel> stockReturnList= [];
+  List<ReturnDataModel> saleReturnList= [];
 
   @override
   void initState() {
@@ -65,12 +79,22 @@ class _ListScreenState extends State<ListScreen>
   Future<void> _fetchRecord() async {
     final userId = await SessionManager.getUserId();
     if (userId == null) return;
-    if (widget.type == 'invoice') {
-      context.read<ApiCubit>().fetchInvoiceList(user_id: userId);
-    } else if (widget.type == 'sale') {
-      context.read<ApiCubit>().fetchSaleList(user_id: userId);
-    }else if (widget.type == 'ledger') {
-      context.read<ApiCubit>().fetchLedgerList(user_id: userId);
+    switch (widget.type) {
+      case ListType.invoice:
+        context.read<ApiCubit>().fetchInvoiceList(user_id: userId);
+        break;
+      case ListType.sale:
+        context.read<ApiCubit>().fetchSaleList(user_id: userId);
+        break;
+      case ListType.ledger:
+        context.read<ApiCubit>().fetchLedgerList(user_id: userId);
+        break;
+      case ListType.stockReturn:
+        context.read<ApiCubit>().fetchStockReturnList(store_id: userId);
+        break;
+      case ListType.saleReturn:
+        context.read<ApiCubit>().fetchSaleReturnList(store_id: userId);
+        break;
     }
   }
 
@@ -88,21 +112,20 @@ class _ListScreenState extends State<ListScreen>
       );
     });
   }
-
   void _deleteRecord(String id) async {
     try {
-      if (widget.type == 'invoice') {
-        await context.read<ApiCubit>().InvoiceDelete(invoice_id: id);
-        setState(() {
-          invoiceList.removeWhere((invoice) => invoice.invoiceId == id);
-        });
-      } else if (widget.type == 'sale') {
-        await context.read<ApiCubit>().SaleDelete(billing_id: id);
-        setState(() {
-          saleList.removeWhere((sale) => sale.invoiceNo == int.parse(id));
-        });
+      switch (widget.type) {
+        case ListType.invoice:
+          await context.read<ApiCubit>().InvoiceDelete(invoice_id: id);
+          setState(() => invoiceList.removeWhere((inv) => inv.invoiceId == id));
+          break;
+        case ListType.sale:
+          await context.read<ApiCubit>().SaleDelete(billing_id: id);
+          setState(() => saleList.removeWhere((sale) => sale.invoiceNo == int.parse(id)));
+          break;
+        default:
+          break;
       }
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Record deleted successfully")),
       );
@@ -112,7 +135,6 @@ class _ListScreenState extends State<ListScreen>
       );
     }
   }
-
 
   void _showDeleteDialog(BuildContext context,String id) {
     CommonConfirmationDialog.show<String>(
@@ -131,18 +153,18 @@ class _ListScreenState extends State<ListScreen>
     return Scaffold(
       body: BlocBuilder<ApiCubit, ApiState>(
         builder: (context, state) {
-          // Update your lists based on state
-          if (state is InvoiceListLoaded) {
-            invoiceList = state.invoiceList;
-          } else if (state is SaleListLoaded) {
-            saleList = state.saleList;
-          }else if (state is LedgerListLoaded) {
-            ledgerList = state.leadgerList;
-          }
+          // Assign data lists
+          if (state is InvoiceListLoaded) invoiceList = state.invoiceList;
+          if (state is SaleListLoaded) saleList = state.saleList;
+          if (state is LedgerListLoaded) ledgerList = state.leadgerList;
+          if (state is StockReturnListLoaded) stockReturnList = state.returnList;
+          if (state is SaleReturnListLoaded) saleReturnList = state.returnList;
 
-          final isInvoiceLoading = state is InvoiceListLoading;
-          final isSaleLoading = state is SaleListLoading;
-          final isLedgerLoading = state is LedgerListLoading;
+          final isLoading = state is InvoiceListLoading ||
+              state is SaleListLoading ||
+              state is LedgerListLoading ||
+              state is StockReturnListLoading||
+              state is SaleReturnListLoading;
 
           return Container(
             color: AppColors.kPrimary,
@@ -154,47 +176,7 @@ class _ListScreenState extends State<ListScreen>
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _fetchRecord,
-                    child: widget.type == 'invoice'
-                        ? InvoiceListWidget(
-                      invoices: invoiceList,
-                      isLoading: isInvoiceLoading,
-                      searchQuery: searchQuery,
-                      onSearchChanged: (value) => setState(() => searchQuery = value),
-                      onAddPressed: _onAddInvoicePressed,
-                      onDeletePressed: (id) {
-                        _showDeleteDialog(context, id);
-                      },
-                      onEditPressed: (invoice) {
-                        AppRoutes.navigateTo(context, AddPurchaseBill(invoice: invoice));
-                      },
-                    ):widget.type == 'sale'?
-                        SaleListWidget(
-                        sales: saleList,
-                        isLoading: isSaleLoading,
-                        searchQuery: searchQuery,
-                        onSearchChanged: (value) => setState(() => searchQuery = value),
-                        onAddPressed: _onAddInvoicePressed,
-                        onDeletePressed: (id) {
-                          _showDeleteDialog(context, id);
-                        },
-                        onEditPressed: (saleItem) {
-                          AppRoutes.navigateTo(
-                            context,
-                            SaleDetailsPage(sale: saleItem, edit: true),
-                          );
-                        },
-                      onPrintPressed: (saleItem) {
-                        _onButtonPrintPressed(saleItem);
-                      },
-                      onSharePressed: (saleItem) {
-                        _shareReceiptAsPdf(saleItem);
-                        }
-                  )
-                        : LedgerListWidget(
-                        items: ledgerList,
-                        isLoading: isLedgerLoading,
-                        searchQuery: searchQuery,
-                        onSearchChanged: (value) => setState(() => searchQuery = value),)
+                    child: _buildListBody(isLoading),
                   ),
                 ),
               ],
@@ -202,14 +184,114 @@ class _ListScreenState extends State<ListScreen>
           );
         },
       ),
-
-      floatingActionButton: widget.type == 'invoice' && invoiceList.isNotEmpty
+      floatingActionButton: widget.type == ListType.invoice && invoiceList.isNotEmpty
           ? FloatingActionButton(
         onPressed: _onAddInvoicePressed,
         backgroundColor: AppColors.kPrimary,
         child: const Icon(Icons.add, color: Colors.white),
       )
           : null,
+    );
+  }
+
+  Widget _buildListBody(bool isLoading) {
+    switch (widget.type) {
+      case ListType.invoice:
+        return InvoiceListWidget(
+            invoices: invoiceList,
+            isLoading: isLoading,
+            searchQuery: searchQuery,
+            onSearchChanged: (v) => setState(() => searchQuery = v),
+            onAddPressed: _onAddInvoicePressed,
+            onDeletePressed: (id) {
+              _showDeleteDialog(context, id);
+            },
+            onEditPressed: (inv) =>
+                AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)));
+      case ListType.sale:
+        return SaleListWidget(
+          sales: saleList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: (v) => setState(() => searchQuery = v),
+          onDeletePressed: (id) {
+            _showDeleteDialog(context, id);
+          },
+          onEditPressed: (sale) =>
+              AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
+          onPrintPressed: _onButtonPrintPressed,
+          onSharePressed: _shareReceiptAsPdf, onAddPressed: () {  },
+        );
+      case ListType.ledger:
+        return LedgerListWidget(
+          items: ledgerList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: (v) => setState(() => searchQuery = v),
+        );
+      case ListType.stockReturn:
+        return SaleReturnListWidget(
+          type:widget.type,
+          items: stockReturnList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: (v) => setState(() => searchQuery = v),
+        );
+      case ListType.saleReturn:
+        return SaleReturnListWidget(
+          type:widget.type,
+          items: saleReturnList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: (v) => setState(() => searchQuery = v),
+        );
+    }
+  }
+
+  Widget _buildTopBar(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => HomePage()),
+                  (route) => false,
+            ),
+          ),
+          Text(
+            titleMap[widget.type] ?? '',
+            style: TextStyle(
+              fontSize: screenWidth * 0.055,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildSearchBar(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(screenWidth * 0.07),
+        ),
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: "Search by name",
+            hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
+            prefixIcon: Icon(Icons.search),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(vertical: 14),
+          ),
+          onChanged: (value) => setState(() => searchQuery = value),
+        ),
+      ),
     );
   }
   void _onButtonPrintPressed(SaleModel saleItem) {
@@ -471,49 +553,6 @@ Please find your receipt attached.
 Best regards,  
 PixiDrugs
 ''',
-    );
-  }
-
-  Widget _buildTopBar(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => HomePage()),
-                    (route) => false,
-              );
-            },
-          ),
-          MyTextfield.textStyle_w600( widget.type == 'invoice' ? 'Invoice List' : widget.type == 'sale' ?'Sale List':'Ledger', screenWidth * 0.055, Colors.white)
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(screenWidth * 0.07),
-        ),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: "Search by name",
-            hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
-          ),
-          onChanged: (value) => setState(() => searchQuery = value),
-        ),
-      ),
     );
   }
 }

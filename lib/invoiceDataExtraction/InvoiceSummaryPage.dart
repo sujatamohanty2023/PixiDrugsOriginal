@@ -35,7 +35,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       Future.delayed(Duration(milliseconds: 500), () {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => ListScreen(type:state is InvoiceAddLoaded || state is InvoiceEditLoaded ?'invoice':'sale')),
+          MaterialPageRoute(builder: (_) => ListScreen(type:state is InvoiceAddLoaded || state is InvoiceEditLoaded ?ListType.invoice:ListType.sale)),
               (route) => false,
         );
       });

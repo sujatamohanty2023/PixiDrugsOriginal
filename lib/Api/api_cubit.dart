@@ -313,7 +313,7 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> fetchStockReturnList({required String store_id}) async {
     try {
       emit(StockReturnListLoading());
-      final response = await apiRepository.stockReturnList(store_id);
+      final response = await apiRepository.returnList(store_id,'stockist-returns');
       final data = response['data'] as List;
       final list = data.map((json) => ReturnDataModel.fromJson(json)).toList();
       emit(StockReturnListLoaded(returnList: list));
@@ -330,6 +330,18 @@ class ApiCubit extends Cubit<ApiState> {
       emit(GetInvoiceDetailLoaded(invoiceModel: model));
     } catch (e) {
       emit(GetInvoiceDetailError('Failed to load invoice: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchSaleReturnList({required String store_id}) async {
+    try {
+      emit(SaleReturnListLoading());
+      final response = await apiRepository.returnList(store_id,'customer-returns');
+      final data = response['data'] as List;
+      final list = data.map((json) => ReturnDataModel.fromJson(json)).toList();
+      emit(SaleReturnListLoaded(returnList: list));
+    } catch (e) {
+      emit(SaleReturnListError('Failed to load returnList: $e'));
     }
   }
 }

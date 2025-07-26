@@ -19,7 +19,7 @@ class ReturnDataModel {
       currentPage: json['current_page'],
       perPage: json['per_page'],
       lastPage: json['last_page'],
-      total: json['total'],
+      total: json['total_amount'],
     );
   }
 }

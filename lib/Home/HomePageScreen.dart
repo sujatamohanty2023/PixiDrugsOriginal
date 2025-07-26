@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
       case 1:
         return CartTab(barcodeScan: true, onPressedProduct: () {});
       case 2:
-        return ListScreen(type:'ledger');
+        return ListScreen(type:ListType.ledger);
       case 3:
         return ProductListPage(flag: 1);
       case 4:

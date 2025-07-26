@@ -331,3 +331,15 @@ class GetInvoiceDetailError extends ApiState {
   final String error;
   GetInvoiceDetailError(this.error);
 }
+//--------------------------------------------------------------------
+class SaleReturnListLoading extends ApiState {}
+
+class SaleReturnListLoaded extends ApiState {
+  final List<ReturnDataModel> returnList;
+  SaleReturnListLoaded({required this.returnList});
+}
+
+class SaleReturnListError extends ApiState {
+  final String error;
+  SaleReturnListError(this.error);
+}

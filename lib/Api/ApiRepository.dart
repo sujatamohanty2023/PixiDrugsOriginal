@@ -489,7 +489,7 @@ class ApiRepository {
       throw Exception('Failed to load invoice: $e');
     }
   }
-  Future<Map<String, dynamic>> stockReturnList(String store_id) async {
+  Future<Map<String, dynamic>> returnList(String store_id,String apiName) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -497,7 +497,7 @@ class ApiRepository {
 
     try {
       final response = await dio.get(
-        '${AppString.baseUrl}api/stockist-returns/',
+        '${AppString.baseUrl}api/$apiName/',
         queryParameters: {'store_id': store_id,'page':1},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
