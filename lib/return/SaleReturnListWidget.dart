@@ -32,7 +32,7 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
 
     final filteredSales = widget.items
         .where((i) =>
-        i.data.first.items.first.productName!.toLowerCase().contains(widget.searchQuery.toLowerCase()))
+        i.items.first.productName!.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
     //i.sellerName.contains(widget.searchQuery.toLowerCase()))
     return  Container(
@@ -82,17 +82,17 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
               CircleAvatar(
                   radius: screenWidth * 0.08,
                   backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.sellerName),screenWidth * 0.045,AppColors.kPrimary) ),
+                  child: MyTextfield.textStyle_w600( getInitials(item.items.first.productName!),screenWidth * 0.045,AppColors.kPrimary) ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextfield.textStyle_w800(item.sellerName,screenWidth * 0.04,AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(item.items.first.productName!,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
-                    MyTextfield.textStyle_w400('Dt: ${item.re}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
-                    MyTextfield.textStyle_w600("Phone: ₹${item.totalCredit}", screenWidth * 0.035, Colors.green),
-                    MyTextfield.textStyle_w600("Address: ₹${item.totalDebit}", screenWidth * 0.035, Colors.orange),
+                    MyTextfield.textStyle_w400('Dt: ${item.returnDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
+                    MyTextfield.textStyle_w600("Return item: ₹${item.items.length}", screenWidth * 0.035, Colors.green),
+                    MyTextfield.textStyle_w600("Reason: ₹${item.reason}", screenWidth * 0.035, Colors.orange),
                     SizedBox(height: screenWidth * 0.01)
                   ],
                 ),
@@ -110,7 +110,7 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
                           borderRadius: BorderRadius.circular(screenWidth * 0.02),
                         ),
                         child: MyTextfield.textStyle_w600(
-                          "₹${item.total}",
+                          "₹${item.totalAmount}",
                           screenWidth * 0.04,
                           Colors.green,
                         ),

@@ -1,37 +1,12 @@
+
 class ReturnDataModel {
-  final List<ReturnData> data;
-  final int currentPage;
-  final int perPage;
-  final int lastPage;
-  final int total;
-
-  ReturnDataModel({
-    required this.data,
-    required this.currentPage,
-    required this.perPage,
-    required this.lastPage,
-    required this.total,
-  });
-
-  factory ReturnDataModel.fromJson(Map<String, dynamic> json) {
-    return ReturnDataModel(
-      data: (json['data'] as List).map((e) => ReturnData.fromJson(e)).toList(),
-      currentPage: json['current_page'],
-      perPage: json['per_page'],
-      lastPage: json['last_page'],
-      total: json['total_amount'],
-    );
-  }
-}
-
-class ReturnData {
   final int id;
   final String returnDate;
   final String reason;
   final String totalAmount;
   final List<ReturnItem> items;
 
-  ReturnData({
+  ReturnDataModel({
     required this.id,
     required this.returnDate,
     required this.reason,
@@ -39,11 +14,11 @@ class ReturnData {
     required this.items,
   });
 
-  factory ReturnData.fromJson(Map<String, dynamic> json) {
-    return ReturnData(
+  factory ReturnDataModel.fromJson(Map<String, dynamic> json) {
+    return ReturnDataModel(
       id: json['id'],
       returnDate: json['return_date'],
-      reason: json['reason'],
+      reason: json['reason']??'',
       totalAmount: json['total_amount'],
       items: (json['items'] as List).map((e) => ReturnItem.fromJson(e)).toList(),
     );
