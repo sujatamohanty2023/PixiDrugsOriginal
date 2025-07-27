@@ -1,14 +1,11 @@
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/return/ReturnProductTile.dart';
+import 'package:PixiDrugs/StockReturn/ReturnProductTile.dart';
 
-import 'PurchaseReturn.dart';
+import 'PurchaseReturnModel.dart';
 
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
-  final bool? edit;
-  final int? edit_id;
-  const PurchaseReturnScreen({Key? key,required this.invoiceNo,
-  this.edit=false,this.edit_id=0}) : super(key: key);
+  const PurchaseReturnScreen({Key? key,required this.invoiceNo}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -34,7 +31,8 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     setState(() {
       isLoading = true;
     });
-    context.read<ApiCubit>().GetInvoiceDetail(invoice_id: widget.invoiceNo);
+    final userId = await SessionManager.getUserId() ??'';
+    context.read<ApiCubit>().GetInvoiceDetail(invoice_id: widget.invoiceNo,store_id: userId);
   }
   Future<void> ReturnApiCall() async {
     setState(() {
@@ -43,37 +41,33 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     final userId = await SessionManager.getUserId() ?? '';
     final selectedItems = return_invoice!.items
         .where((item) => item.isSelected == true && item.returnQty > 0)
-        .map((item) => ReturnItem(
+        .map((item) => ReturnItemModel(
       productId: item.id,
       quantity: item.returnQty,
-      rate: double.parse(item.rate),
+      rate: item.rate,
       batchNo: item.batch,
       expiry:item.expiry,
-      gstPercent:double.parse(item.gst),
-      discountPercent: double.parse(item.discount), totalAmount: (item.returnQty) * (double.tryParse(item.rate) ?? 0.0),
+      gstPercent:item.gst,
+      discountPercent: item.discount,
+      totalAmount: (item.returnQty * (double.tryParse(item.rate) ?? 0.0)).toString(),
     ))
         .toList();
 
     final totalAmount = selectedItems.fold<double>(
       0.0,
-          (sum, item) => sum + (item.quantity * item.rate),
+          (sum, item) => sum + (item.quantity * double.parse(item.rate)),
     );
-    var returnModel = PurchaseReturn(
-      id: widget.edit!?widget.edit_id:null,
+    var returnModel = PurchaseReturnModel(
       storeId:int.parse(userId),
       invoicePurchaseId:return_invoice!.items.first.invoice_purchase_id,
       sellerId:int.parse(return_invoice!.userId!),
       returnDate:DateTime.now().toString(),
-      totalAmount:totalAmount,
+      totalAmount:totalAmount.toString(),
       reason:'',
       items:selectedItems,
     );
     print(returnModel.toString());
-    if(!widget.edit!) {
-      context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
-    }else{
-      context.read<ApiCubit>().StockReturnEdit(returnModel: returnModel);
-    }
+    context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
   }
   @override
   Widget build(BuildContext context) {
@@ -90,6 +84,30 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
               currentIndex = returnList.length - 1;
             });
           } else if (state is GetInvoiceDetailError) {
+            setState(() {
+              isLoading = false;
+            });
+            Navigator.pop(context); // Use caution here
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to load data: ${state.error}')),
+            );
+          }else if (state is StockReturnAddLoaded) {
+            setState(() {
+              isLoading = false;
+              if(state.success) {
+                Navigator.pop(context); // Use caution here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Successfully retrun to stock')),
+                );
+              }else{
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Failed to add StockReturn stock')),
+                );
+              }
+            });
+          } else if (state is StockReturnAddError) {
             setState(() {
               isLoading = false;
             });

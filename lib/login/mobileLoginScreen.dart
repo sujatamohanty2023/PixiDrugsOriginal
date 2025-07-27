@@ -1,6 +1,10 @@
 import 'package:PixiDrugs/login/OtpVerificationScreen.dart';
 
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../Profile/WebviewScreen.dart';
+import 'FCMService.dart';
 
 class MobileLoginScreen extends StatefulWidget {
 
@@ -14,6 +18,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? verificationId;
+  User? user;
 
   Future<void> sendOTP() async {
     final phoneNumber = '+91${phoneController.text.trim()}';
@@ -134,7 +139,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 20),
 
                     /// 🔘 Continue Button
                     SizedBox(
@@ -148,7 +153,44 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                         buttonText: AppString.continueText,
                       )
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap:signInWithGoogle,
+                      child: Container(
+                        decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius:BorderRadius.circular(12),
+                      ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.kPrimaryDark,
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(color: AppColors.kWhiteColor,width: 2),
+                                  boxShadow: const [
+                                    BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: SvgPicture.asset(
+                                    AppImages.gmail, // add this asset if needed
+                                    height: 20,
+                                    width: 20,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              MyTextfield.textStyle_w600("Continue with Gmail", 18, Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -157,5 +199,81 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         ),
       ),
     );
+  }
+  void signOut() async {
+    await GoogleSignIn().signOut();
+    await FirebaseAuth.instance.signOut();
+    setState(() {
+      user = null;
+    });
+  }
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sign-in cancelled")),
+        );
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      setState(() {
+        user = userCredential.user;
+      });
+      await loginApiCall(user);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Sign-in failed: $e")),
+      );
+    }
+  }
+  Future<void> loginApiCall(User? user) async {
+    String? fcm_token = await FCMService.getFCMToken();
+
+    if (fcm_token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to get FCM token")),
+      );
+      return;
+    }
+    print('API URL: ${user!.email}\n$fcm_token');
+    context.read<ApiCubit>().login(text: user.email!, fcm_token: fcm_token);
+
+    context.read<ApiCubit>().stream.listen((state) {
+      if (state is LoginLoaded) {
+        if(state.loginResponse.success){
+          _saveRole(state.loginResponse);
+        }else{
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login Failed.Please contact our support team')),
+          );
+          AppRoutes.navigateTo(
+              context, Webviewscreen(tittle: 'Contact Us'));
+        }
+      } else if (state is LoginError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.error)),
+        );
+      }
+    });
+  }
+  Future<void> _saveRole(LoginResponse loginResponse) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(loginResponse.message)),
+    );
+    await SessionManager.saveLoginResponse(loginResponse);
+    Navigator.pop(context);
+    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
   }
 }

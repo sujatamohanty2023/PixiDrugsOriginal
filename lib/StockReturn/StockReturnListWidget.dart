@@ -1,30 +1,30 @@
-import 'package:PixiDrugs/Ledger/LedgerDetailsPage.dart';
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 
 import '../ListPageScreen/ListScreen.dart';
-import 'ReturnDataModel.dart';
 
-class SaleReturnListWidget extends StatefulWidget {
+class StockReturnListWidget extends StatefulWidget {
   final ListType type;
   final bool isLoading;
-  final List<ReturnDataModel> items;
+  final List<PurchaseReturnModel> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
+  final Function(PurchaseReturnModel returnModel) onEditPressed;
 
-  const SaleReturnListWidget({
+  const StockReturnListWidget({
     required this.type,
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
+    required this.onEditPressed,
   });
 
   @override
-  State<SaleReturnListWidget> createState() => _SaleReturnListWidgetState();
+  State<StockReturnListWidget> createState() => _StockReturnListWidgetState();
 }
 
-class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
+class _StockReturnListWidgetState extends State<StockReturnListWidget> {
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +49,9 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
-        tittle: 'No Ledger Record Found',
-        description:
-        "Please add important details about the new party such as name, address, GSTIN, total due amount",
-        button_tittle: 'Add New Party',
+        tittle: 'No Stock Return Found',
+        description: 'No stock StockReturn entries available. Upload invoices or create a StockReturn entry to get started.',
+        button_tittle: '',
       )
           : ListView.builder(
         padding: EdgeInsets.zero,
@@ -65,10 +64,10 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
     );
   }
 
-  Widget _buildReturnCard(ReturnDataModel item, double screenWidth, BuildContext context) {
+  Widget _buildReturnCard(PurchaseReturnModel item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){
-
+        widget.onEditPressed(item);
       },
       child: Card(
         color: Colors.white,
@@ -82,17 +81,17 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
               CircleAvatar(
                   radius: screenWidth * 0.08,
                   backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.items.first.productName!),screenWidth * 0.045,AppColors.kPrimary) ),
+                  child: MyTextfield.textStyle_w600( getInitials(item.sellerName!),screenWidth * 0.045,AppColors.kPrimary) ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextfield.textStyle_w800(item.items.first.productName!,screenWidth * 0.04,AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(item.sellerName!,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
                     MyTextfield.textStyle_w400('Dt: ${item.returnDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
-                    MyTextfield.textStyle_w600("Return item: ₹${item.items.length}", screenWidth * 0.035, Colors.green),
-                    MyTextfield.textStyle_w600("Reason: ₹${item.reason}", screenWidth * 0.035, Colors.orange),
+                    MyTextfield.textStyle_w600("Return item: ${item.items.length}", screenWidth * 0.035, Colors.green),
+                    MyTextfield.textStyle_w600("Reason: ${item.reason}", screenWidth * 0.035, Colors.orange),
                     SizedBox(height: screenWidth * 0.01)
                   ],
                 ),
@@ -100,6 +99,47 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  /*PopupMenuButton<String>(
+                    onSelected: (value) {
+                       if (value == 'edit') {
+                        widget.onEditPressed(item);
+                      } else if (value == 'delete') {
+                        onDeletePressed(sale.invoiceNo!.toString());
+                      }else if (value == 'share') {
+                         onSharePressed(sale);
+                       }
+                    },
+                    itemBuilder: (context) => [
+                     PopupMenuItem(value: 'edit',
+                          child:Row(
+                            children: [
+                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kGreyColor800),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kGreyColor800),
+                            ],
+                          )),
+                     *//* PopupMenuItem(value: 'share',
+                          child:Row(
+                            children: [
+                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kGreyColor800),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Share', 13, AppColors.kGreyColor800),
+                            ],
+                          )),
+
+                      PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
+                            ],
+                          )
+                      ),*//*
+                    ],
+                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
+                  ),*/
                   SizedBox(height: screenWidth * 0.015),
                   Builder(
                     builder: (context) {

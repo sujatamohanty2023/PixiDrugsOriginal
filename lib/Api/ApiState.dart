@@ -2,7 +2,7 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-import '../return/ReturnDataModel.dart';
+import '../StockReturn/PurchaseReturnModel.dart';
 
 abstract class ApiState {}
 
@@ -12,7 +12,7 @@ class ApiInitial extends ApiState {}
 class LoginLoading extends ApiState {}
 
 class LoginLoaded extends ApiState {
-  LoginModel loginResponse;
+  LoginResponse loginResponse;
 
   LoginLoaded({required this.loginResponse});
 }
@@ -311,7 +311,7 @@ class StockReturnAddError extends ApiState {
 class StockReturnListLoading extends ApiState {}
 
 class StockReturnListLoaded extends ApiState {
-  final List<ReturnDataModel> returnList;
+  final List<PurchaseReturnModel> returnList;
   StockReturnListLoaded({required this.returnList});
 }
 
@@ -335,7 +335,7 @@ class GetInvoiceDetailError extends ApiState {
 class SaleReturnListLoading extends ApiState {}
 
 class SaleReturnListLoaded extends ApiState {
-  final List<ReturnDataModel> returnList;
+  final List<PurchaseReturnModel> returnList;
   SaleReturnListLoaded({required this.returnList});
 }
 

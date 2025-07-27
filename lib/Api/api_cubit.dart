@@ -4,9 +4,8 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/return/ReturnDataModel.dart';
 
-import '../return/PurchaseReturn.dart';
+import '../StockReturn/PurchaseReturnModel.dart';
 
 class ApiCubit extends Cubit<ApiState> {
   final ApiRepository apiRepository;
@@ -15,18 +14,17 @@ class ApiCubit extends Cubit<ApiState> {
 
 //------------------------------------------------------------------------------------
   Future<void> login(
-      {required String mobile, required String fcm_token}) async {
+      {required String text, required String fcm_token}) async {
     try {
       emit(LoginLoading());
-      final response = await apiRepository.loginUser(mobile, fcm_token);
+      final response = await apiRepository.loginUser(text, fcm_token);
 
-      final loginModel = LoginModel.fromJson(response);
+      final loginModel = LoginResponse.fromJson(response);
       emit(LoginLoaded(loginResponse: loginModel));
     } catch (e) {
       emit(LoginError('Failed to load login response: $e'));
     }
   }
-
   //------------------------------------------------------------------------------------
   Future<void> fetchBanner() async {
     try {
@@ -277,7 +275,7 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> StockReturnAdd({required PurchaseReturn returnModel}) async {
+  Future<void> StockReturnAdd({required PurchaseReturnModel returnModel}) async {
     try {
       emit(StockReturnAddLoading());
       final response = await apiRepository.stockReturn(returnModel,'store');
@@ -288,7 +286,7 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> StockReturnEdit({required PurchaseReturn returnModel}) async {
+  Future<void> StockReturnEdit({required PurchaseReturnModel returnModel}) async {
     try {
       emit(StockReturnEditLoading());
       final response = await apiRepository.stockReturn(returnModel,'update');
@@ -315,17 +313,17 @@ class ApiCubit extends Cubit<ApiState> {
       emit(StockReturnListLoading());
       final response = await apiRepository.returnList(store_id,'stockist-returns');
       final data = response['data'] as List;
-      final list = data.map((json) => ReturnDataModel.fromJson(json)).toList();
+      final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
       emit(StockReturnListLoaded(returnList: list));
     } catch (e) {
       emit(StockReturnListError('Failed to load returnList: $e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> GetInvoiceDetail({required String invoice_id}) async {
+  Future<void> GetInvoiceDetail({required String invoice_id,required String store_id}) async {
     try {
       emit(GetInvoiceDetailLoading());
-      final response = await apiRepository.invoiceDetail(invoice_id);
+      final response = await apiRepository.invoiceDetail(invoice_id,store_id);
       final model = Invoice.fromJson_StockReturn(response);
       emit(GetInvoiceDetailLoaded(invoiceModel: model));
     } catch (e) {
@@ -338,7 +336,7 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleReturnListLoading());
       final response = await apiRepository.returnList(store_id,'customer-returns');
       final data = response['data'] as List;
-      final list = data.map((json) => ReturnDataModel.fromJson(json)).toList();
+      final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
       emit(SaleReturnListLoaded(returnList: list));
     } catch (e) {
       emit(SaleReturnListError('Failed to load returnList: $e'));

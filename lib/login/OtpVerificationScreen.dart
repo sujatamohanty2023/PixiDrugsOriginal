@@ -1,6 +1,8 @@
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/FCMService.dart';
 
+import '../Profile/WebviewScreen.dart';
+
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
   final String verificationId;
@@ -77,14 +79,18 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       return;
     }
     print('API URL: ${widget.phoneNumber}\n$fcm_token');
-    context.read<ApiCubit>().login(mobile: widget.phoneNumber, fcm_token: fcm_token);
+    context.read<ApiCubit>().login(text: widget.phoneNumber, fcm_token: fcm_token);
 
     context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {
-        if(state.loginResponse.message.contains('Login successful')){
+        if(state.loginResponse.success){
           _saveRole(state.loginResponse);
-        }else if(state.loginResponse.message.contains('No data')){
-
+        }else{
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login Failed.Please contact our support team')),
+          );
+          AppRoutes.navigateTo(
+              context, Webviewscreen(tittle: 'Contact Us'));
         }
       } else if (state is LoginError) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +99,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       }
     });
   }
-  Future<void> _saveRole(LoginModel loginResponse) async {
+  Future<void> _saveRole(LoginResponse loginResponse) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(loginResponse.message)),
     );

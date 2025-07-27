@@ -92,7 +92,7 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
                         const SizedBox(height: 4),
                         MyTextfield.textStyle_w400("HSN: ${product.hsn}",14,Colors.grey),
                         MyTextfield.textStyle_w400("Batch: ${product.batch ?? '-'}",14,Colors.grey),
-                        MyTextfield.textStyle_w400("Stock: ₹${product.qty}",16,Colors.deepOrangeAccent),
+                        MyTextfield.textStyle_w400("Stock: ${product.qty}",16,Colors.deepOrangeAccent),
                         MyTextfield.textStyle_w600("Exp: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product.expiry))}",16,expColor),
                       ],
                     ),
@@ -110,7 +110,7 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
                       product.isSelected ?SizedBox(
                         height: 35,
                         width: 80,
-                        child: MyEdittextfield(controller: _returnQtyController, hintText: 'return Qty',keyboardType: TextInputType.number),
+                        child: MyEdittextfield(controller: _returnQtyController, hintText: 'StockReturn Qty',keyboardType: TextInputType.number),
                       ):SizedBox(),
                     ],
                   ),

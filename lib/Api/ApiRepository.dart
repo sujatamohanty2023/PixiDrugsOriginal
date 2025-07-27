@@ -2,7 +2,7 @@
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-import '../return/PurchaseReturn.dart';
+import '../StockReturn/PurchaseReturnModel.dart';
 
 class ApiRepository {
   final Dio dio;
@@ -10,7 +10,7 @@ class ApiRepository {
   ApiRepository({Dio? dio}) : dio = dio ?? Dio();
 
   Future<Map<String, dynamic>> loginUser(
-      String mobile, String fcm_token) async {
+      String text, String fcm_token) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -19,7 +19,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/login',
-        queryParameters: {'mobile': mobile, 'fcm_token': fcm_token},
+        queryParameters: {text.contains('@')?'email': 'mobile': text, 'fcm_token': fcm_token},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
@@ -467,7 +467,7 @@ class ApiRepository {
     }
   }
 
-  Future<Map<String, dynamic>> invoiceDetail(String invoice_no) async {
+  Future<Map<String, dynamic>> invoiceDetail(String invoice_no,String store_id) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -476,7 +476,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/getinvoicedetails/',
-        queryParameters: {'invoice_no': invoice_no},
+        queryParameters: {'invoice_no': invoice_no,'store_id': store_id},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
@@ -511,7 +511,7 @@ class ApiRepository {
       throw Exception('Failed to cancel order: $e');
     }
   }
-  Future<Map<String, dynamic>> stockReturn(PurchaseReturn returnModel,String apiName) async {
+  Future<Map<String, dynamic>> stockReturn(PurchaseReturnModel returnModel,String apiName) async {
     // Check internet connection
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {

@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -13,8 +14,8 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 import '../Dialog/show_image_picker.dart';
-import '../return/ReturnDataModel.dart';
-import '../return/SaleReturnListWidget.dart';
+import '../StockReturn/ReturnDetailsBottomSheet.dart';
+import '../StockReturn/StockReturnListWidget.dart';
 
 enum ListType { invoice, sale, ledger, stockReturn, saleReturn }
 
@@ -41,8 +42,8 @@ class _ListScreenState extends State<ListScreen>
   List<Invoice> invoiceList = [];
   List<SaleModel> saleList = [];
   List<LedgerModel> ledgerList = [];
-  List<ReturnDataModel> stockReturnList= [];
-  List<ReturnDataModel> saleReturnList= [];
+  List<PurchaseReturnModel> stockReturnList= [];
+  List<PurchaseReturnModel> saleReturnList= [];
 
   @override
   void initState() {
@@ -230,20 +231,31 @@ class _ListScreenState extends State<ListScreen>
           onSearchChanged: (v) => setState(() => searchQuery = v),
         );
       case ListType.stockReturn:
-        return SaleReturnListWidget(
+        return StockReturnListWidget(
           type:widget.type,
           items: stockReturnList,
           isLoading: isLoading,
           searchQuery: searchQuery,
           onSearchChanged: (v) => setState(() => searchQuery = v),
+          onEditPressed: (returnModel) =>
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (_) => ReturnDetailsBottomSheet(returnData: returnModel),
+              ),
+           // AppRoutes.navigateTo(context, PurchaseReturnScreen(invoiceNo: returnModel.i,edit: true,)),
         );
       case ListType.saleReturn:
-        return SaleReturnListWidget(
+        return StockReturnListWidget(
           type:widget.type,
           items: saleReturnList,
           isLoading: isLoading,
           searchQuery: searchQuery,
           onSearchChanged: (v) => setState(() => searchQuery = v),
+            onEditPressed: (returnModel) =>{}
         );
     }
   }

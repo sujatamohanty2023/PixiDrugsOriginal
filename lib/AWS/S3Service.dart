@@ -47,7 +47,7 @@ class S3UploadService {
       }
     }
 
-    // Optionally, return the list of uploaded URLs if needed
+    // Optionally, StockReturn the list of uploaded URLs if needed
     return uploadedFileUrls; // Return the list of uploaded file URLs
   }
 

@@ -11,6 +11,7 @@ class AppImages {
   static String indiaIcon = "${PNGFolder}india.jpg";
   static String otpIcon = "${PNGFolder}otp.png";
 
+  static String gmail = "${svgFolder}gmail.svg";
   static String home_address = "${svgFolder}home_address.svg";
   static String delete = '${svgFolder}delete.svg';
   static String empty_cart = "${svgFolder}empty_cart.svg";

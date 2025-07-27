@@ -9,9 +9,9 @@ class SessionManager {
   static const _currentLatLngKey = 'saved_latlng';
 
   // Save login response
-  static Future<void> saveLoginResponse(LoginModel response) async {
+  static Future<void> saveLoginResponse(LoginResponse response) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_accessTokenKey, response.accessToken);
+    await prefs.setString(_accessTokenKey, response.accessToken??'');
     await prefs.setString(_roleKey, response.user!.role);
     await prefs.setString(_userIdKey, response.user!.id.toString());
   }

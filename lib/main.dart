@@ -5,7 +5,7 @@ import 'package:PixiDrugs/Stock/ProductList.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/FCMService.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
-import 'package:PixiDrugs/return/PurchaseReturnScreen.dart';
+import 'package:PixiDrugs/StockReturn/PurchaseReturnScreen.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 @pragma('vm:entry-point')
