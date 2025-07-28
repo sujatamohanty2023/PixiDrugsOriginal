@@ -2,15 +2,16 @@ import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 
 import '../ListPageScreen/ListScreen.dart';
+import 'BillingModel.dart';
 
-class StockReturnListWidget extends StatefulWidget {
+class SaleReturnListWidget extends StatefulWidget {
   final bool isLoading;
-  final List<PurchaseReturnModel> items;
+  final List<Billing> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
-  final Function(PurchaseReturnModel returnModel) onEditPressed;
+  final Function(Billing returnModel) onEditPressed;
 
-  const StockReturnListWidget({
+  const SaleReturnListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
@@ -19,10 +20,10 @@ class StockReturnListWidget extends StatefulWidget {
   });
 
   @override
-  State<StockReturnListWidget> createState() => _StockReturnListWidgetState();
+  State<SaleReturnListWidget> createState() => _SaleReturnListWidgetState();
 }
 
-class _StockReturnListWidgetState extends State<StockReturnListWidget> {
+class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
 
     final filteredSales = widget.items
         .where((i) =>
-        i.items.first.productName!.toLowerCase().contains(widget.searchQuery.toLowerCase()))
+        i.items.first.productName.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
     //i.sellerName.contains(widget.searchQuery.toLowerCase()))
     return  Container(
@@ -47,8 +48,8 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
-        tittle: 'No Stock Return Found',
-        description: 'No stock StockReturn entries available. Upload invoices or create a StockReturn entry to get started.',
+        tittle: 'No Customer Return Found',
+        description: 'No Customer Return entries available.',
         button_tittle: '',
       )
           : ListView.builder(
@@ -62,7 +63,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
     );
   }
 
-  Widget _buildReturnCard(PurchaseReturnModel item, double screenWidth, BuildContext context) {
+  Widget _buildReturnCard(Billing item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){
         widget.onEditPressed(item);
@@ -76,7 +77,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              CircleAvatar(
+             /* CircleAvatar(
                   radius: screenWidth * 0.08,
                   backgroundColor: AppColors.kPrimaryDark,
                   child: MyTextfield.textStyle_w600( getInitials(item.sellerName!),screenWidth * 0.045,AppColors.kPrimary) ),
@@ -87,57 +88,16 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
                   children: [
                     MyTextfield.textStyle_w800(item.sellerName!,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
-                    MyTextfield.textStyle_w400('Dt: ${item.returnDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
+                    MyTextfield.textStyle_w400('Dt: ${item.billingDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
                     MyTextfield.textStyle_w600("Return item: ${item.items.length}", screenWidth * 0.035, Colors.green),
                     MyTextfield.textStyle_w600("Reason: ${item.reason}", screenWidth * 0.035, Colors.orange),
                     SizedBox(height: screenWidth * 0.01)
                   ],
                 ),
-              ),
+              ),*/
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  /*PopupMenuButton<String>(
-                    onSelected: (value) {
-                       if (value == 'edit') {
-                        widget.onEditPressed(item);
-                      } else if (value == 'delete') {
-                        onDeletePressed(sale.invoiceNo!.toString());
-                      }else if (value == 'share') {
-                         onSharePressed(sale);
-                       }
-                    },
-                    itemBuilder: (context) => [
-                     PopupMenuItem(value: 'edit',
-                          child:Row(
-                            children: [
-                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kGreyColor800),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kGreyColor800),
-                            ],
-                          )),
-                     *//* PopupMenuItem(value: 'share',
-                          child:Row(
-                            children: [
-                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kGreyColor800),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Share', 13, AppColors.kGreyColor800),
-                            ],
-                          )),
-
-                      PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
-                            ],
-                          )
-                      ),*//*
-                    ],
-                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
-                  ),*/
                   SizedBox(height: screenWidth * 0.015),
                   Builder(
                     builder: (context) {

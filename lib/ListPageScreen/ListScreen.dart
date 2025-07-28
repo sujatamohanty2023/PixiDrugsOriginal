@@ -14,6 +14,8 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 import '../Dialog/show_image_picker.dart';
+import '../SaleReturn/BillingModel.dart';
+import '../SaleReturn/SaleReturnListWidget.dart';
 import '../StockReturn/ReturnDetailsBottomSheet.dart';
 import '../StockReturn/StockReturnListWidget.dart';
 
@@ -43,7 +45,7 @@ class _ListScreenState extends State<ListScreen>
   List<SaleModel> saleList = [];
   List<LedgerModel> ledgerList = [];
   List<PurchaseReturnModel> stockReturnList= [];
-  List<PurchaseReturnModel> saleReturnList= [];
+  List<Billing> saleReturnList= [];
 
   @override
   void initState() {
@@ -159,7 +161,7 @@ class _ListScreenState extends State<ListScreen>
           if (state is SaleListLoaded) saleList = state.saleList;
           if (state is LedgerListLoaded) ledgerList = state.leadgerList;
           if (state is StockReturnListLoaded) stockReturnList = state.returnList;
-          if (state is SaleReturnListLoaded) saleReturnList = state.returnList;
+          if (state is SaleReturnListLoaded) saleReturnList = state.billList;
 
           final isLoading = state is InvoiceListLoading ||
               state is SaleListLoading ||
@@ -232,7 +234,6 @@ class _ListScreenState extends State<ListScreen>
         );
       case ListType.stockReturn:
         return StockReturnListWidget(
-          type:widget.type,
           items: stockReturnList,
           isLoading: isLoading,
           searchQuery: searchQuery,
@@ -249,13 +250,20 @@ class _ListScreenState extends State<ListScreen>
            // AppRoutes.navigateTo(context, PurchaseReturnScreen(invoiceNo: returnModel.i,edit: true,)),
         );
       case ListType.saleReturn:
-        return StockReturnListWidget(
-          type:widget.type,
+        return SaleReturnListWidget(
           items: saleReturnList,
           isLoading: isLoading,
           searchQuery: searchQuery,
           onSearchChanged: (v) => setState(() => searchQuery = v),
-            onEditPressed: (returnModel) =>{}
+          onEditPressed: (returnModel) =>{}
+             /* showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (_) => ReturnDetailsBottomSheet(returnData: returnModel),
+              ),*/
         );
     }
   }

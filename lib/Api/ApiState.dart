@@ -1,5 +1,6 @@
 import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../StockReturn/PurchaseReturnModel.dart';
@@ -332,11 +333,47 @@ class GetInvoiceDetailError extends ApiState {
   GetInvoiceDetailError(this.error);
 }
 //--------------------------------------------------------------------
+class GetSaleBillDetailLoading extends ApiState {}
+
+class GetSaleBillDetailLoaded extends ApiState {
+  final Billing billingModel;
+  GetSaleBillDetailLoaded({required this.billingModel});
+}
+
+class GetSaleBillDetailError extends ApiState {
+  final String error;
+  GetSaleBillDetailError(this.error);
+}
+//--------------------------------------------------------------------
+class SaleReturnAddLoading extends ApiState {}
+
+class SaleReturnAddLoaded extends ApiState {
+  final bool success;
+  SaleReturnAddLoaded({required this.success});
+}
+
+class SaleReturnAddError extends ApiState {
+  final String error;
+  SaleReturnAddError(this.error);
+}
+//--------------------------------------------------------------------
+class SaleReturnEditLoading extends ApiState {}
+
+class SaleReturnEditLoaded extends ApiState {
+  final bool success;
+  SaleReturnEditLoaded({required this.success});
+}
+
+class SaleReturnEditError extends ApiState {
+  final String error;
+  SaleReturnEditError(this.error);
+}
+//--------------------------------------------------------------------
 class SaleReturnListLoading extends ApiState {}
 
 class SaleReturnListLoaded extends ApiState {
-  final List<PurchaseReturnModel> returnList;
-  SaleReturnListLoaded({required this.returnList});
+  final List<Billing> billList;
+  SaleReturnListLoaded({required this.billList});
 }
 
 class SaleReturnListError extends ApiState {

@@ -39,7 +39,8 @@ dependencies:
   cached_network_image: ^3.4.1
   dio: ^5.4.0
   connectivity_plus: ^5.0.2
-  barcode_scan2: ^4.5.1
+  just_audio: ^0.10.4
+  mobile_scanner: ^3.5.3
   mime: ^1.0.0
   aws_common: ^0.7.7
   aws_signature_v4: ^0.6.5
@@ -93,6 +94,7 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/fonts/
+    - assets/sound/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

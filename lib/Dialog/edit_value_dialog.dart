@@ -6,6 +6,7 @@ class EditValueDialog extends StatelessWidget {
   final String initialValue;
   final void Function(String)? onSave;
   final void Function(String)? addMore;
+  final String type;
 
   const EditValueDialog({
     super.key,
@@ -13,6 +14,7 @@ class EditValueDialog extends StatelessWidget {
     required this.initialValue,
     this.onSave,
     this.addMore,
+    this.type='',
   });
 
   @override
@@ -39,6 +41,7 @@ class EditValueDialog extends StatelessWidget {
               controller: controller,
               hintText: "Enter $title",
               keyboardType: TextInputType.text,
+              autofocus: true,
             ),
             const SizedBox(height: 20),
             Row(
@@ -59,10 +62,18 @@ class EditValueDialog extends StatelessWidget {
                     }else if(addMore !=null){
                       addMore?.call(controller.text.trim());
                       Navigator.pop(context);
-                    }else {
+                    }else if(type =='stockReturn'){
                       Navigator.pop(context);
                       await Future.delayed(Duration(milliseconds: 100));
                       Navigator.pushNamed(context, '/purchaseReturn',arguments: controller.text.trim());
+                    }else if(type =='saleReturn'){
+                      Navigator.pop(context);
+                      await Future.delayed(Duration(milliseconds: 100));
+                      Navigator.pushNamed(context, '/saleReturn',arguments: controller.text.trim());
+                    }else if(type =='barcode'){
+                      Navigator.pop(context);
+                      await Future.delayed(Duration(milliseconds: 100));
+                      Navigator.pop(context,controller.text.trim());
                     }
                   },
                   style: ElevatedButton.styleFrom(

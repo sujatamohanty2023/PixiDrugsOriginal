@@ -1,6 +1,8 @@
 
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../BarcodeScan/barcode_screen_page.dart';
+
 class CartTab extends StatefulWidget {
   final void Function() onPressedProduct;
   final bool barcodeScan;
@@ -87,10 +89,14 @@ class _CartTabState extends State<CartTab> {
   /// Initiates barcode scan
   Future<void> _scanBarcode() async {
     try {
-      var result = await BarcodeScanner.scan();
-      if (result.rawContent.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result.rawContent);
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
+      );
+      if (result.isNotEmpty) {
+        context.read<ApiCubit>().BarcodeScan(code: result);
       }
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to scan barcode')),

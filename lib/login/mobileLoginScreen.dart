@@ -118,7 +118,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                             width: 25,
                           ),
                           const SizedBox(width: 6),
-                        MyTextfield.textStyle_w600('+91',20,AppColors.kPrimary),
+                          MyTextfield.textStyle_w600('+91',20,AppColors.kPrimary),
                           const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
@@ -143,46 +143,33 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
 
                     /// 🔘 Continue Button
                     SizedBox(
-                      height: 48,
-                      width: double.infinity,
-                      child:MyElevatedButton(
-                        onPressed: () {
-                          sendOTP();
-                        },
-                        custom_design: false,
-                        buttonText: AppString.continueText,
-                      )
+                        height: 48,
+                        width: double.infinity,
+                        child:MyElevatedButton(
+                          onPressed: () {
+                            sendOTP();
+                          },
+                          custom_design: false,
+                          buttonText: AppString.continueText,
+                        )
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
                       onTap:signInWithGoogle,
                       child: Container(
                         decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius:BorderRadius.circular(12),
-                      ),
+                          color: Colors.redAccent,
+                          borderRadius:BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.kPrimaryDark,
-                                  borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(color: AppColors.kWhiteColor,width: 2),
-                                  boxShadow: const [
-                                    BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5.0),
-                                  child: SvgPicture.asset(
-                                    AppImages.gmail, // add this asset if needed
-                                    height: 20,
-                                    width: 20,
-                                  ),
-                                ),
+                              SvgPicture.asset(
+                                AppImages.gmail, // add this asset if needed
+                                height: 30,
+                                width: 30,
                               ),
                               const SizedBox(width: 10),
                               MyTextfield.textStyle_w600("Continue with Gmail", 18, Colors.white),
@@ -210,6 +197,10 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (user != null) {
+        signOut();
+      }
 
       if (googleUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/SaleReturn/SaleReturnScreen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:PixiDrugs/Home/HomePageScreen.dart';
 import 'package:PixiDrugs/SplashScreen.dart';
@@ -73,6 +74,11 @@ class _MyAppState extends State<MyApp> {
             final value = settings.arguments;
             return MaterialPageRoute(
               builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString()),
+            );
+          }else if (settings.name == '/saleReturn') {
+            final value = settings.arguments;
+            return MaterialPageRoute(
+              builder: (_) => SaleReturnScreen(billNo: value.toString()),
             );
           }
           return null;

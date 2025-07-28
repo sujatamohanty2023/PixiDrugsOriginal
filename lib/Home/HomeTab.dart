@@ -4,6 +4,8 @@ import 'package:PixiDrugs/Dialog/show_image_picker.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../BarcodeScan/barcode_screen_page.dart';
+
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
 
@@ -246,7 +248,8 @@ class _HomeTabState extends State<HomeTab> {
                           context: context,
                           builder: (_) => EditValueDialog(
                               title: 'Invoice No.',
-                              initialValue: ''
+                              initialValue: '',
+                              type:'stockReturn'
                           ),
                         );
                       },
@@ -258,7 +261,14 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/saleReturn');
+                        showDialog(
+                          context: context,
+                          builder: (_) => EditValueDialog(
+                              title: 'Bill No.',
+                              initialValue: '',
+                              type:'saleReturn'
+                          ),
+                        );
                       },
                       child: _buildTaskCard(
                         title: "Customer Return",
@@ -349,11 +359,15 @@ class _HomeTabState extends State<HomeTab> {
   }
   Future<void> _scanBarcode() async {
     try {
-      var result = await BarcodeScanner.scan();
-      if (result.rawContent.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result.rawContent);
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
+      );
+      if (result.isNotEmpty) {
+        context.read<ApiCubit>().BarcodeScan(code: result);
         widget.onGoToCart();
       }
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to scan barcode')),

@@ -12,7 +12,44 @@
           "package_name": "com.medico.pixidrugs"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "966864565336-4dhhgitbi792kutn89p15vpm16rq4ljr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.medico.pixidrugs",
+            "certificate_hash": "5d1df009f5dae2ed4191005248ffcf8b17fc4435"
+          }
+        },
+        {
+          "client_id": "966864565336-ag0rndkgue6tb0qom7eckrvguqug1qie.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.medico.pixidrugs",
+            "certificate_hash": "57ad5d4b38609fcf130d47ff087ad9aad15e761b"
+          }
+        },
+        {
+          "client_id": "966864565336-bsr3h2a49vsafsf270m5lv4ee0ppt11u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.medico.pixidrugs",
+            "certificate_hash": "068cb0865552fc67237340a1b56ba303365a6cad"
+          }
+        },
+        {
+          "client_id": "966864565336-q7ldi3nprrdh2logjcigk2d8d18foqmi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.medico.pixidrugs",
+            "certificate_hash": "fd0e05dfdfdf23dec8ba149fd00e1811519dbb59"
+          }
+        },
+        {
+          "client_id": "966864565336-b4gq9odjjpg0hvjr244nmn934ek2ouj1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDzi7ujburwJvHtmGzugRj40uvn02xTqY4"
@@ -20,7 +57,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "966864565336-b4gq9odjjpg0hvjr244nmn934ek2ouj1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

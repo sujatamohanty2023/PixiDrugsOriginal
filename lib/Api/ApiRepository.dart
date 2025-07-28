@@ -2,6 +2,7 @@
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../SaleReturn/SaleReturnRequest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 class ApiRepository {
@@ -489,6 +490,29 @@ class ApiRepository {
       throw Exception('Failed to load invoice: $e');
     }
   }
+
+  Future<Map<String, dynamic>> billDetail(String bill_id,String store_id) async {
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      final response = await dio.get(
+        '${AppString.baseUrl}api/getsalesetails/',
+        queryParameters: {'billing_id': bill_id,'store_id': store_id},
+      );
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API URL: $response');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load invoice');
+      }
+    } catch (e) {
+      throw Exception('Failed to load invoice: $e');
+    }
+  }
   Future<Map<String, dynamic>> returnList(String store_id,String apiName) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
@@ -565,6 +589,40 @@ class ApiRepository {
       }
     } catch (e) {
       throw Exception('Failed to delete: $e');
+    }
+  }
+  Future<Map<String, dynamic>> saleReturn(SaleReturnRequest returnModel,String apiName) async {
+    // Check internet connection
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      // Perform POST request
+      final response = await dio.post(
+        '${AppString.baseUrl}api/customer-returns/$apiName',
+        data: returnModel.toJson(), // Sending JSON
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json', // Ensures raw JSON POST
+          },
+        ),
+      );
+
+      // Debug print
+      print('API URL➡️ Request URL: ${response.requestOptions.uri}');
+      print('API Response: ${response.data}');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('POST error: $e');
+      throw Exception('Failed to post invoice: $e');
     }
   }
 }

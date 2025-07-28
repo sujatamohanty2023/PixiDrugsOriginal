@@ -3,8 +3,10 @@
 import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
+import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../SaleReturn/SaleReturnRequest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 class ApiCubit extends Cubit<ApiState> {
@@ -331,13 +333,46 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
+  Future<void> GetSaleBillDetail({required String bill_id,required String store_id}) async {
+    try {
+      emit(GetSaleBillDetailLoading());
+      final response = await apiRepository.billDetail(bill_id,store_id);
+      final model = Billing.fromJson(response);
+      emit(GetSaleBillDetailLoaded(billingModel: model));
+    } catch (e) {
+      emit(GetSaleBillDetailError('Failed to load invoice: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SaleReturnAdd({required SaleReturnRequest returnModel}) async {
+    try {
+      emit(SaleReturnAddLoading());
+      final response = await apiRepository.saleReturn(returnModel,'store');
+      final success = response['success'];
+      emit(SaleReturnAddLoaded(success: success));
+    } catch (e) {
+      emit(SaleReturnAddError('Failed to fetch data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SaleReturnEdit({required SaleReturnRequest returnModel}) async {
+    try {
+      emit(SaleReturnEditLoading());
+      final response = await apiRepository.saleReturn(returnModel,'update');
+      final success = response['success'];
+      emit(SaleReturnEditLoaded(success: success));
+    } catch (e) {
+      emit(SaleReturnEditError('Failed to edit data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
   Future<void> fetchSaleReturnList({required String store_id}) async {
     try {
       emit(SaleReturnListLoading());
       final response = await apiRepository.returnList(store_id,'customer-returns');
       final data = response['data'] as List;
-      final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
-      emit(SaleReturnListLoaded(returnList: list));
+      final list = data.map((json) => Billing.fromJson(json)).toList();
+      emit(SaleReturnListLoaded(billList: list));
     } catch (e) {
       emit(SaleReturnListError('Failed to load returnList: $e'));
     }

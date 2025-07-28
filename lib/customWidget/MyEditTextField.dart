@@ -7,6 +7,7 @@ class MyEdittextfield extends StatelessWidget {
   TextInputType keyboardType;
   int maxLines;
   bool readOnly;
+  bool autofocus;
   Function()? onTap;
   String? Function(String?)? validator;
   final Function(String)? onChanged;
@@ -19,6 +20,7 @@ class MyEdittextfield extends StatelessWidget {
     this.onTap,
     this.validator,
     this.onChanged,
+    this.autofocus = false,
   });
 
   @override
@@ -57,6 +59,7 @@ class MyEdittextfield extends StatelessWidget {
         readOnly: readOnly, // Make the TextField read-only
         onTap: onTap,
         onChanged: onChanged,
+        autofocus: autofocus,
       ),
     );
   }
