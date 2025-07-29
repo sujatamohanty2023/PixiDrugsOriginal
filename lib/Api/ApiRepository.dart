@@ -625,4 +625,60 @@ class ApiRepository {
       throw Exception('Failed to post invoice: $e');
     }
   }
+  Future<Map<String, dynamic>> Expense(
+      String id,
+      String storeId,
+      String title,
+      String amount,
+      String expanseDate,
+      String note,
+      String apiName,
+      ) async {
+    // Check internet connection
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      // Build query parameters
+      final Map<String, dynamic> queryParams = {
+        'store_id': storeId,
+        'title': title,
+        'amount': amount,
+        'expanse_date': expanseDate,
+        'note': note,
+      };
+
+      if (id.isNotEmpty) {
+        queryParams['id'] = id;
+      }
+
+      // Perform POST request
+      final response = await dio.post(
+        '${AppString.baseUrl}api/expense/$apiName',
+        queryParameters: queryParams,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      // Debug output
+      print('API URL ➡️ ${response.requestOptions.uri}');
+      print('API Response: ${response.data}');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('POST error: $e');
+      throw Exception('Failed to post expense: $e');
+    }
+  }
+
 }

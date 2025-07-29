@@ -5,7 +5,8 @@ import 'PurchaseReturnModel.dart';
 
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
-  const PurchaseReturnScreen({Key? key,required this.invoiceNo}) : super(key: key);
+  PurchaseReturnModel? returnModel;
+  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -13,12 +14,20 @@ class PurchaseReturnScreen extends StatefulWidget {
 
 class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
   String? invoice_No;
-  int currentIndex = 0;
-  List<Invoice> returnList = [];
   Invoice? return_invoice;
-
+  bool edit=false;
   bool isLoading = true;
   DateTime selectedDate = DateTime.now();
+  List<String> returnReasons = [
+    'Select return reason',
+    'Expired Product',
+    'Damaged Product',
+    'Wrong Item Delivered',
+    'Excess Quantity',
+    'Other',
+  ];
+
+  String? selectedReason;
 
   @override
   void initState() {
@@ -58,16 +67,21 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
           (sum, item) => sum + (item.quantity * double.parse(item.rate)),
     );
     var returnModel = PurchaseReturnModel(
+      id: edit && widget.returnModel !=null?widget.returnModel?.id:null,
       storeId:int.parse(userId),
       invoicePurchaseId:return_invoice!.items.first.invoice_purchase_id,
-      sellerId:int.parse(return_invoice!.userId!),
+      sellerId:int.parse(return_invoice!.sellerId!),
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount.toString(),
-      reason:'',
+      reason: selectedReason ?? '',
       items:selectedItems,
     );
     print(returnModel.toString());
-    context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
+    if(edit && widget.returnModel !=null){
+      context.read<ApiCubit>().StockReturnEdit(returnModel: returnModel);
+    }else {
+      context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -80,8 +94,30 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
             setState(() {
               isLoading = false;
               return_invoice = state.invoiceModel;
-              returnList.add(return_invoice!);
-              currentIndex = returnList.length - 1;
+
+              if (widget.returnModel != null) {
+                if(widget.returnModel!.reason.isEmpty){
+                  selectedReason =returnReasons.first;
+                }else {
+                  selectedReason = widget.returnModel!.reason;
+                }
+                final returnItems = widget.returnModel!.items;
+
+                for (var item in returnItems) {
+                  final matchingItem = return_invoice?.items.firstWhere(
+                        (invItem) =>
+                    invItem.id == item.productId &&
+                        invItem.batch == item.batchNo &&
+                        invItem.expiry == item.expiry,
+                  );
+
+                  if (matchingItem != null) {
+                    matchingItem.isSelected = true;
+                    matchingItem.returnQty = item.quantity;
+                  }
+                }
+
+              }
             });
           } else if (state is GetInvoiceDetailError) {
             setState(() {
@@ -114,6 +150,30 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
             Navigator.pop(context); // Use caution here
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to load data: ${state.error}')),
+            );
+          }else if (state is StockReturnEditLoaded) {
+            setState(() {
+              isLoading = false;
+              if(state.success) {
+                Navigator.pop(context); // Use caution here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Successfully Updated')),
+                );
+              }else{
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Failed to Update')),
+                );
+              }
+            });
+          } else if (state is StockReturnEditError) {
+            setState(() {
+              isLoading = false;
+            });
+            Navigator.pop(context); // Use caution here
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to update api : ${state.error}')),
             );
           }
         },
@@ -151,31 +211,16 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           ),
                         ],
                       ),
-                     /* Container(
-                        height: 40,
-                        width: 140,
-                        child: MyElevatedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => EditValueDialog(
-                                title: 'Invoice No.',
-                                initialValue: '',
-                                addMore: (value) {
-                                  setState(() {
-                                      invoice_No=value;
-                                      _fetchStockList();
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                          backgroundColor: AppColors.kPrimaryDark,
-                          titleColor: AppColors.kPrimary,
-                          custom_design: true,
-                          buttonText: "Add More",
+                      widget.returnModel!=null?Padding(
+                        padding: const EdgeInsets.only(right: 15.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
+                          onPressed: ()=>setState(() {
+                            edit = true;
+                          }),
+                          tooltip: 'Edit',
                         ),
-                      ),*/
+                      ):SizedBox()
                     ],
                   ),
                 ),
@@ -234,13 +279,13 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                                           AppColors.kPrimary,
                                         ),
                                         MyTextfield.textStyle_w400(
-                                          "Invoice No. #${returnList.isEmpty?invoice_No:returnList[currentIndex].invoiceId}",
+                                          "Invoice No. #$invoice_No",
                                           screenWidth * 0.04,
                                           Colors.green,
                                         ),
                                         SizedBox(height: screenWidth * 0.01),
                                         MyTextfield.textStyle_w400(
-                                          'GSTIN: ${return_invoice!.sellerGstin!}',
+                                          'Mob: ${return_invoice!.sellerPhone!}',
                                           screenWidth * 0.035,
                                           Colors.grey.shade700,
                                         ),
@@ -258,8 +303,51 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
+                            SizedBox(height: 12),
+                            MyTextfield.textStyle_w600(
+                              'Reason for Return',
+                              screenWidth * 0.045,
+                              Colors.black,
+                            ),
+                            const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: selectedReason,
+                          items: returnReasons.map((reason) {
+                            return DropdownMenuItem<String>(
+                              value: reason,
+                              child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
+                            ),
+                            disabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                            ),
+                          ),
 
+                          onChanged: (widget.returnModel == null || edit)
+                              ? (value) {
+                            setState(() {
+                              selectedReason = value;
+                            });
+                          }
+                              : null, // ❌ disables the dropdown when not editable
+                          hint: const Text("Select a reason"),
+                        ),
+                          const SizedBox(height: 16),
                           // Product List Title
                           MyTextfield.textStyle_w600(
                             'Product Detail',
@@ -269,16 +357,16 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           const SizedBox(height: 10),
 
                           // Product List
-                          returnList.isNotEmpty && currentIndex < returnList.length
-                              ? ListView.builder(
-                            itemCount: returnList[currentIndex].items.length,
+                          return_invoice!.items.isNotEmpty ? ListView.builder(
+                            itemCount: return_invoice!.items.length,
                             padding: EdgeInsets.zero,
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
-                              final item = returnList[currentIndex].items[index];
+                              final item = return_invoice!.items[index];
                               return ReturnProductTile(
                                 product: item,
+                                editable: widget.returnModel == null || edit,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
@@ -312,47 +400,16 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
+      floatingActionButton: !edit && widget.returnModel !=null?SizedBox():Row(
         children: [
-          if (currentIndex > 0)
-            Expanded(
-              child:
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      currentIndex--;
-                      return_invoice = returnList[currentIndex];
-                    });
-                  },
-                  label:  MyTextfield.textStyle_w600("Previous", AppUtils.size_18, AppColors.kPrimary),
-                  style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: AppColors.kPrimaryLight,side: BorderSide(color: AppColors.kPrimary,width: 1.2)
-                  ),
-                ),
-              ),
-            ),
-          if (currentIndex > 0) const SizedBox(width: 12),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left:8,right: 8),
               child: ElevatedButton.icon(
                 onPressed: () {
-
-
-                  setState(() {
-                    if (currentIndex == returnList.length - 1) {
-                      ReturnApiCall();
-                    } else {
-                      currentIndex++;
-                      return_invoice = returnList[currentIndex];
-                    }
-                  });
-
+                  ReturnApiCall();
                 },
-                label: MyTextfield.textStyle_w600(currentIndex == returnList.length - 1 ? "Confirm" : "Next", AppUtils.size_18, AppColors.kWhiteColor),
+                label: MyTextfield.textStyle_w600("Confirm", AppUtils.size_18, AppColors.kWhiteColor),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   backgroundColor: AppColors.kPrimary,

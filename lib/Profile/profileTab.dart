@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/Expense/AddExpenseScreen.dart';
+import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:PixiDrugs/Profile/StaffAddBottomSheet.dart';
 import 'package:PixiDrugs/Profile/WebviewScreen.dart';
@@ -135,7 +136,7 @@ class ProfileScreen extends StatefulWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, Addexpensescreen());
+                          AppRoutes.navigateTo(context, ListScreen(type:ListType.expense));
                         },
                         child: _buildMenuItem(Icons.add_chart, "Add Expense",
                             Colors.cyan),

@@ -3,6 +3,7 @@ class PurchaseReturnModel {
   final int? storeId;
   final int? invoicePurchaseId;
   final int? sellerId;
+  final String? invoiceNo;
   final String returnDate;
   final String reason;
   final String totalAmount;
@@ -14,6 +15,7 @@ class PurchaseReturnModel {
     this.storeId,
     this.invoicePurchaseId,
     this.sellerId,
+    this.invoiceNo,
     required this.returnDate,
     required this.reason,
     required this.totalAmount,
@@ -27,10 +29,11 @@ class PurchaseReturnModel {
       storeId: json['store_id'],
       invoicePurchaseId: json['invoice_purchase_id'],
       sellerId: json['seller_id'],
+      invoiceNo: json['invoice_no'],
       returnDate: json['return_date'],
       reason: json['reason'] ?? '',
       totalAmount: json['total_amount'].toString(),
-      sellerName: json['seller_name'],
+      sellerName: json['seller_name']??'-------',
       items: (json['items'] as List).map((e) => ReturnItemModel.fromJson(e)).toList(),
     );
   }
@@ -40,6 +43,7 @@ class PurchaseReturnModel {
       if (storeId != null) 'store_id': storeId,
       if (invoicePurchaseId != null) 'invoice_purchase_id': invoicePurchaseId,
       if (sellerId != null) 'seller_id': sellerId,
+      if (invoiceNo != null) 'invoice_no': invoiceNo,
       'return_date': returnDate,
       'reason': reason,
       'total_amount': totalAmount,

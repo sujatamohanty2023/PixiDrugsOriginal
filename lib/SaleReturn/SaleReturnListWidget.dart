@@ -3,20 +3,20 @@ import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 
 import '../ListPageScreen/ListScreen.dart';
 import 'BillingModel.dart';
+import 'CustomerReturnsResponse.dart';
+import 'SaleReturnScreen.dart';
 
 class SaleReturnListWidget extends StatefulWidget {
   final bool isLoading;
-  final List<Billing> items;
+  final List<CustomerReturnsResponse> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
-  final Function(Billing returnModel) onEditPressed;
 
   const SaleReturnListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
-    required this.onEditPressed,
   });
 
   @override
@@ -31,9 +31,8 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
 
     final filteredSales = widget.items
         .where((i) =>
-        i.items.first.productName.toLowerCase().contains(widget.searchQuery.toLowerCase()))
+        i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
-    //i.sellerName.contains(widget.searchQuery.toLowerCase()))
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -63,10 +62,10 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
     );
   }
 
-  Widget _buildReturnCard(Billing item, double screenWidth, BuildContext context) {
+  Widget _buildReturnCard(CustomerReturnsResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){
-        widget.onEditPressed(item);
+        AppRoutes.navigateTo(context, SaleReturnScreen(billNo:item.billingId,returnModel: item));
       },
       child: Card(
         color: Colors.white,
@@ -77,24 +76,24 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-             /* CircleAvatar(
+              CircleAvatar(
                   radius: screenWidth * 0.08,
                   backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.sellerName!),screenWidth * 0.045,AppColors.kPrimary) ),
+                  child: MyTextfield.textStyle_w600( getInitials(item.customer.name),screenWidth * 0.045,AppColors.kPrimary) ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextfield.textStyle_w800(item.sellerName!,screenWidth * 0.04,AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(item.customer.name,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
-                    MyTextfield.textStyle_w400('Dt: ${item.billingDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
+                    MyTextfield.textStyle_w400('Dt: ${item.returnDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
                     MyTextfield.textStyle_w600("Return item: ${item.items.length}", screenWidth * 0.035, Colors.green),
-                    MyTextfield.textStyle_w600("Reason: ${item.reason}", screenWidth * 0.035, Colors.orange),
+                    MyTextfield.textStyle_w600("Reason: ${item.reason}", screenWidth * 0.035, Colors.redAccent),
                     SizedBox(height: screenWidth * 0.01)
                   ],
                 ),
-              ),*/
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

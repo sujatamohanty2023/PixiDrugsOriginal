@@ -3,6 +3,8 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../Expense/ExpenseResponse.dart';
+import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 abstract class ApiState {}
@@ -372,11 +374,47 @@ class SaleReturnEditError extends ApiState {
 class SaleReturnListLoading extends ApiState {}
 
 class SaleReturnListLoaded extends ApiState {
-  final List<Billing> billList;
+  final List<CustomerReturnsResponse> billList;
   SaleReturnListLoaded({required this.billList});
 }
 
 class SaleReturnListError extends ApiState {
   final String error;
   SaleReturnListError(this.error);
+}
+//--------------------------------------------------------------------
+class ExpenseAddLoading extends ApiState {}
+
+class ExpenseAddLoaded extends ApiState {
+  final bool success;
+  ExpenseAddLoaded({required this.success});
+}
+
+class ExpenseAddError extends ApiState {
+  final String error;
+  ExpenseAddError(this.error);
+}
+//--------------------------------------------------------------------
+class ExpenseEditLoading extends ApiState {}
+
+class ExpenseEditLoaded extends ApiState {
+  final bool success;
+  ExpenseEditLoaded({required this.success});
+}
+
+class ExpenseEditError extends ApiState {
+  final String error;
+  ExpenseEditError(this.error);
+}
+//--------------------------------------------------------------------
+class ExpenseListLoading extends ApiState {}
+
+class ExpenseListLoaded extends ApiState {
+  final List<ExpenseResponse> list;
+  ExpenseListLoaded({required this.list});
+}
+
+class ExpenseListError extends ApiState {
+  final String error;
+  ExpenseListError(this.error);
 }

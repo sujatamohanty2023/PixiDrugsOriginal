@@ -3,6 +3,7 @@ enum DiscountType { flat, percent }
 class Invoice {
   String? invoiceId;
    String? invoiceDate;
+  String? sellerId;
    String? sellerName;
    String? sellerGstin;
    String? sellerAddress;
@@ -14,6 +15,7 @@ class Invoice {
   Invoice({
     this.invoiceId='',
     this.invoiceDate='',
+    this.sellerId='',
     this.sellerName='',
     this.sellerGstin='',
     this.sellerAddress='',
@@ -25,6 +27,7 @@ class Invoice {
   Invoice copyWith({
     String? invoiceId,
     String? invoiceDate,
+    String? sellerId,
     String? sellerName,
     String? sellerGstin,
     String? sellerAddress,
@@ -36,6 +39,7 @@ class Invoice {
     return Invoice(
       invoiceId: invoiceId ?? this.invoiceId,
       invoiceDate: invoiceDate ?? this.invoiceDate,
+      sellerId: sellerId ?? this.sellerId,
       sellerName: sellerName ?? this.sellerName,
       sellerGstin: sellerGstin ?? this.sellerGstin,
       sellerAddress: sellerAddress ?? this.sellerAddress,
@@ -66,13 +70,11 @@ class Invoice {
 
     return Invoice(
       invoiceId: json['invoice_no'] ?? '',
-      invoiceDate: json['date'] ?? '',
+      invoiceDate: json['invoice_date'] ?? '',
       sellerName: seller['name'] ?? '--------',
       sellerAddress: seller['address'] ?? '',
       sellerPhone: seller['mobile'] ?? '',
-      sellerGstin: '', // Not present in JSON, keep empty
-      userId: seller['id'].toString() ?? '',       // Not present in JSON, keep empty
-      netAmount: '',    // Not present, optional
+      sellerId: seller['id'].toString() ?? '',
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );
   }

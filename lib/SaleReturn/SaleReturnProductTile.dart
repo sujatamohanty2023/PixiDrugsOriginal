@@ -7,9 +7,10 @@ class SaleReturnProductTile extends StatefulWidget {
   final Item product;
   final ValueChanged<bool> onChecked;
   final ValueChanged<String> onQtyChanged;
+  final bool editable;
 
   const SaleReturnProductTile({super.key, required this.product,
-    required this.onChecked, required this.onQtyChanged,});
+    required this.onChecked, required this.onQtyChanged,required this.editable,});
 
   @override
   State<SaleReturnProductTile> createState() => _SaleReturnProductTileState();
@@ -66,7 +67,9 @@ class _SaleReturnProductTileState extends State<SaleReturnProductTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: () => widget.onChecked(!product.isSelected),
+                    onTap: widget.editable
+                        ? () => widget.onChecked(!product.isSelected)
+                        : null,
                     child: Icon(
                       size: 30,
                       product.isSelected ? Icons.check_box : Icons.check_box_outline_blank,
@@ -99,7 +102,7 @@ class _SaleReturnProductTileState extends State<SaleReturnProductTile> {
                       product.isSelected ?SizedBox(
                         height: 35,
                         width: 80,
-                        child: MyEdittextfield(controller: _returnQtyController, hintText: 'Return Qty',keyboardType: TextInputType.number),
+                        child: MyEdittextfield(readOnly:!widget.editable,controller: _returnQtyController, hintText: 'StockReturn Qty',keyboardType: TextInputType.number),
                       ):SizedBox(),
                     ],
                   ),

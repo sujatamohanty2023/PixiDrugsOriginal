@@ -3,6 +3,8 @@ class Billing {
   final String billingDate;
   final String totalAmount;
   final int customerId;
+  final String customerName;
+  final String customerMobile;
   final int sellerId;
   final List<Item> items;
 
@@ -11,6 +13,8 @@ class Billing {
     required this.billingDate,
     required this.totalAmount,
     required this.customerId,
+    required this.customerName,
+    required this.customerMobile,
     required this.sellerId,
     required this.items,
   });
@@ -21,6 +25,8 @@ class Billing {
       billingDate: json['billing_date'],
       totalAmount: json['total_amount'],
       customerId: json['customer_id'],
+      customerName: json['customer_name'],
+      customerMobile: json['customer_mobile'],
       sellerId: json['seller_id'],
       items: List<Item>.from(json['items'].map((item) => Item.fromJson(item))),
     );

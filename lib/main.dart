@@ -78,7 +78,7 @@ class _MyAppState extends State<MyApp> {
           }else if (settings.name == '/saleReturn') {
             final value = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => SaleReturnScreen(billNo: value.toString()),
+              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString())),
             );
           }
           return null;

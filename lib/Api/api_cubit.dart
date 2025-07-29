@@ -6,6 +6,8 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../Expense/ExpenseResponse.dart';
+import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
@@ -371,10 +373,44 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleReturnListLoading());
       final response = await apiRepository.returnList(store_id,'customer-returns');
       final data = response['data'] as List;
-      final list = data.map((json) => Billing.fromJson(json)).toList();
+      final list = data.map((json) => CustomerReturnsResponse.fromJson(json)).toList();
       emit(SaleReturnListLoaded(billList: list));
     } catch (e) {
       emit(SaleReturnListError('Failed to load returnList: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> ExpenseAdd({required String store_id,required String title,required String amount,required String expanse_date,required String note}) async {
+    try {
+      emit(ExpenseAddLoading());
+      final response = await apiRepository.Expense('',store_id,title,amount,expanse_date,note,'store');
+      final success = response['status'];
+      emit(ExpenseAddLoaded(success: success));
+    } catch (e) {
+      emit(ExpenseAddError('Failed to add data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> ExpenseEdit({required String id,required String store_id,required String title,required String amount,required String expanse_date,required String note}) async {
+    try {
+      emit(ExpenseEditLoading());
+      final response = await apiRepository.Expense(id,store_id,title,amount,expanse_date,note,'update');
+      final success = response['status'];
+      emit(ExpenseEditLoaded(success: success));
+    } catch (e) {
+      emit(ExpenseEditError('Failed to edit data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchExpenseList({required String store_id}) async {
+    try {
+      emit(ExpenseListLoading());
+      final response = await apiRepository.returnList(store_id,'expense');
+      final data = response['data'] as List;
+      final list = data.map((json) => ExpenseResponse.fromJson(json)).toList();
+      emit(ExpenseListLoaded(list: list));
+    } catch (e) {
+      emit(ExpenseListError('Failed to load data: $e'));
     }
   }
 }

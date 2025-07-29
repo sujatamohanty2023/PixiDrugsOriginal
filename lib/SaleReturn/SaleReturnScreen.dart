@@ -1,22 +1,36 @@
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/StockReturn/ReturnProductTile.dart';
 
+import '../SaleList/sale_details.dart';
 import 'BillingModel.dart';
+import 'CustomerReturnsResponse.dart';
 import 'SaleReturnProductTile.dart';
 import 'SaleReturnRequest.dart';
 
 class SaleReturnScreen extends StatefulWidget {
-  final String billNo;
-  const SaleReturnScreen({Key? key,required this.billNo}) : super(key: key);
+  final int billNo;
+  CustomerReturnsResponse? returnModel;
 
+   SaleReturnScreen({Key? key,required this.billNo,this.returnModel}) : super(key: key);
   @override
   State<SaleReturnScreen> createState() => _SaleReturnScreenState();
 }
 
 class _SaleReturnScreenState extends State<SaleReturnScreen> {
+  bool edit=false;
   Billing? returnBill;
   bool isLoading = true;
   DateTime selectedDate = DateTime.now();
+  List<String> returnReasons = [
+    'Select return reason',
+    'Expired Product',
+    'Damaged Product',
+    'Wrong Item Delivered',
+    'Excess Quantity',
+    'Other',
+  ];
+
+  String? selectedReason;
 
   @override
   void initState() {
@@ -29,7 +43,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
       isLoading = true;
     });
     final userId = await SessionManager.getUserId() ??'';
-    context.read<ApiCubit>().GetSaleBillDetail(bill_id: widget.billNo,store_id: userId);
+    context.read<ApiCubit>().GetSaleBillDetail(bill_id: widget.billNo.toString(),store_id: userId);
   }
   Future<void> ReturnApiCall() async {
     setState(() {
@@ -53,16 +67,21 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
           (sum, item) => sum + (item.quantity * item.price),
     );
     var returnModel = SaleReturnRequest(
+      id: edit && widget.returnModel !=null?widget.returnModel?.id:null,
       storeId:int.parse(userId),
       billingId:returnBill!.billingId,
       customerId:returnBill!.customerId,
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount,
-      reason:'',
+      reason: selectedReason ?? '',
       items:selectedItems,
     );
     print(returnModel.toString());
-    context.read<ApiCubit>().SaleReturnAdd(returnModel: returnModel);
+    if(edit && widget.returnModel !=null){
+      context.read<ApiCubit>().SaleReturnEdit(returnModel: returnModel);
+    }else {
+      context.read<ApiCubit>().SaleReturnAdd(returnModel: returnModel);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -75,6 +94,27 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
             setState(() {
               isLoading = false;
               returnBill = state.billingModel;
+              if (widget.returnModel != null) {
+                if(widget.returnModel!.reason.isEmpty){
+                  selectedReason =returnReasons.first;
+                }else {
+                  selectedReason = widget.returnModel!.reason;
+                }
+                final returnItems = widget.returnModel!.items;
+
+                for (var item in returnItems) {
+                  final matchingItem = returnBill?.items.firstWhere(
+                        (invItem) =>
+                    invItem.productId == item.productId
+                  );
+
+                  if (matchingItem != null) {
+                    matchingItem.isSelected = true;
+                    matchingItem.returnQty = item.quantity;
+                  }
+                }
+
+              }
             });
           } else if (state is GetSaleBillDetailError) {
             setState(() {
@@ -107,6 +147,30 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
             Navigator.pop(context); // Use caution here
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to load data: ${state.error}')),
+            );
+          }else if (state is SaleReturnEditLoaded) {
+            setState(() {
+              isLoading = false;
+              if(state.success) {
+                Navigator.pop(context); // Use caution here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Successfully Updated')),
+                );
+              }else{
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Failed to update')),
+                );
+              }
+            });
+          } else if (state is SaleReturnEditError) {
+            setState(() {
+              isLoading = false;
+            });
+            Navigator.pop(context); // Use caution here
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to update api: ${state.error}')),
             );
           }
         },
@@ -144,6 +208,16 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                           ),
                         ],
                       ),
+                      widget.returnModel!=null?Padding(
+                        padding: const EdgeInsets.only(right: 15.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
+                          onPressed: ()=>setState(() {
+                            edit = true;
+                          }),
+                          tooltip: 'Edit',
+                        ),
+                      ):SizedBox()
                     ],
                   ),
                 ),
@@ -170,6 +244,106 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 5),
+                          Card(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                screenWidth * 0.03,
+                              ),
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: screenWidth * 0.08,
+                                    backgroundColor: AppColors.kPrimaryDark,
+                                    child: MyTextfield.textStyle_w400(
+                                      getInitials(returnBill!.customerName),
+                                      screenWidth * 0.045,
+                                      AppColors.kPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(width: screenWidth * 0.03),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        MyTextfield.textStyle_w800(
+                                          returnBill!.customerName,
+                                          screenWidth * 0.04,
+                                          AppColors.kPrimary,
+                                        ),
+                                        MyTextfield.textStyle_w400(
+                                          "Bill No. #${widget.billNo}",
+                                          screenWidth * 0.04,
+                                          Colors.green,
+                                        ),
+                                        SizedBox(height: screenWidth * 0.01),
+                                        MyTextfield.textStyle_w400(
+                                          'Mob: ${returnBill!.customerMobile!}',
+                                          screenWidth * 0.035,
+                                          Colors.grey.shade700,
+                                        ),
+                                        SizedBox(height: screenWidth * 0.01),
+                                        MyTextfield.textStyle_w400(
+                                          'Dt. ${returnBill!.billingDate}',
+                                          screenWidth * 0.035,
+                                          Colors.grey.shade700,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          MyTextfield.textStyle_w600(
+                            'Reason for Return',
+                            screenWidth * 0.045,
+                            Colors.black,
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            value: selectedReason,
+                            items: returnReasons.map((reason) {
+                              return DropdownMenuItem<String>(
+                                value: reason,
+                                child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
+                              );
+                            }).toList(),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                              ),
+                            ),
+
+                            onChanged: (widget.returnModel == null || edit)
+                                ? (value) {
+                              setState(() {
+                                selectedReason = value;
+                              });
+                            }
+                                : null, // ❌ disables the dropdown when not editable
+                            hint: const Text("Select a reason"),
+                          ),
+                          const SizedBox(height: 16),
 
                           // Product List Title
                           MyTextfield.textStyle_w600(
@@ -190,6 +364,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                               final item = returnBill!.items[index];
                               return SaleReturnProductTile(
                                 product: item,
+                                editable: widget.returnModel == null || edit,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
@@ -223,9 +398,8 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
+      floatingActionButton: !edit && widget.returnModel !=null?SizedBox():Row(
         children: [
-
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left:8,right: 8),

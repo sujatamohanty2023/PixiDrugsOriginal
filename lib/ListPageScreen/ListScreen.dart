@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/Expense/ExpenseResponse.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,12 +15,13 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 import '../Dialog/show_image_picker.dart';
-import '../SaleReturn/BillingModel.dart';
+import '../Expense/AddExpenseScreen.dart';
+import '../Expense/ExpenseListWidget.dart';
+import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnListWidget.dart';
-import '../StockReturn/ReturnDetailsBottomSheet.dart';
 import '../StockReturn/StockReturnListWidget.dart';
 
-enum ListType { invoice, sale, ledger, stockReturn, saleReturn }
+enum ListType { invoice, sale, ledger, stockReturn, saleReturn,expense }
 
 final Map<ListType, String> titleMap = {
   ListType.invoice: 'Invoice List',
@@ -27,6 +29,7 @@ final Map<ListType, String> titleMap = {
   ListType.ledger: 'Ledger List',
   ListType.stockReturn: 'Stock Return List',
   ListType.saleReturn: 'Sale Return List',
+  ListType.expense: 'Expense List',
 };
 
 class ListScreen extends StatefulWidget {
@@ -45,7 +48,8 @@ class _ListScreenState extends State<ListScreen>
   List<SaleModel> saleList = [];
   List<LedgerModel> ledgerList = [];
   List<PurchaseReturnModel> stockReturnList= [];
-  List<Billing> saleReturnList= [];
+  List<CustomerReturnsResponse> saleReturnList= [];
+  List<ExpenseResponse> expenseList= [];
 
   @override
   void initState() {
@@ -98,11 +102,17 @@ class _ListScreenState extends State<ListScreen>
       case ListType.saleReturn:
         context.read<ApiCubit>().fetchSaleReturnList(store_id: userId);
         break;
+      case ListType.expense:
+        context.read<ApiCubit>().fetchExpenseList(store_id: userId);
+        break;
     }
   }
 
   Future<void> _onAddInvoicePressed() async {
     showImageBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 1);
+  }
+  Future<void> _onAddExpense() async {
+    AppRoutes.navigateTo(context, Addexpensescreen());
   }
 
   void _setSelectedImage(List<File> files) {
@@ -162,12 +172,14 @@ class _ListScreenState extends State<ListScreen>
           if (state is LedgerListLoaded) ledgerList = state.leadgerList;
           if (state is StockReturnListLoaded) stockReturnList = state.returnList;
           if (state is SaleReturnListLoaded) saleReturnList = state.billList;
+          if (state is ExpenseListLoaded) expenseList = state.list;
 
           final isLoading = state is InvoiceListLoading ||
               state is SaleListLoading ||
               state is LedgerListLoading ||
               state is StockReturnListLoading||
-              state is SaleReturnListLoading;
+              state is SaleReturnListLoading||
+              state is ExpenseListLoading;
 
           return Container(
             color: AppColors.kPrimary,
@@ -193,7 +205,12 @@ class _ListScreenState extends State<ListScreen>
         backgroundColor: AppColors.kPrimary,
         child: const Icon(Icons.add, color: Colors.white),
       )
-          : null,
+          : widget.type == ListType.expense && expenseList.isNotEmpty?
+      FloatingActionButton(
+        onPressed: _onAddExpense,
+        backgroundColor: AppColors.kPrimary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ):SizedBox(),
     );
   }
 
@@ -238,16 +255,6 @@ class _ListScreenState extends State<ListScreen>
           isLoading: isLoading,
           searchQuery: searchQuery,
           onSearchChanged: (v) => setState(() => searchQuery = v),
-          onEditPressed: (returnModel) =>
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (_) => ReturnDetailsBottomSheet(returnData: returnModel),
-              ),
-           // AppRoutes.navigateTo(context, PurchaseReturnScreen(invoiceNo: returnModel.i,edit: true,)),
         );
       case ListType.saleReturn:
         return SaleReturnListWidget(
@@ -255,15 +262,13 @@ class _ListScreenState extends State<ListScreen>
           isLoading: isLoading,
           searchQuery: searchQuery,
           onSearchChanged: (v) => setState(() => searchQuery = v),
-          onEditPressed: (returnModel) =>{}
-             /* showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (_) => ReturnDetailsBottomSheet(returnData: returnModel),
-              ),*/
+        );
+      case ListType.expense:
+        return ExpenseListWidget(
+          items: expenseList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: (v) => setState(() => searchQuery = v)
         );
     }
   }
