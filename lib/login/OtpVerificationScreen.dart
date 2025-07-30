@@ -13,7 +13,7 @@ class OtpVerificationScreen extends StatefulWidget {
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
   final List<TextEditingController> _otpControllers =
   List.generate(6, (_) => TextEditingController());
   final FocusNode _focusNode = FocusNode();
