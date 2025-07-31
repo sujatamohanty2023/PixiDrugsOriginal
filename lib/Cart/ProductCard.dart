@@ -174,7 +174,7 @@ class _ProductCardState extends State<ProductCard> {
                     color: AppColors.kPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: MyTextfield.textStyle_w600("ADD", 14, Colors.white),
+                  child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
                 ),
               );
             }else {
