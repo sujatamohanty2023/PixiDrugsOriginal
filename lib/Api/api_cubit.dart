@@ -95,13 +95,13 @@ class ApiCubit extends Cubit<ApiState> {
   }
 
   //------------------------------------------------------------------------------------
-  Future<void> BarcodeScan({required String code}) async {
+  Future<void> BarcodeScan({required String code,required String storeId,String source = 'scan'}) async {
     try {
       emit(BarcodeScanLoading());
-      final response = await apiRepository.barcodeScan(code);
-      final json = response['product'];
-      final model =  InvoiceItem.fromJson(json);
-      emit(BarcodeScanLoaded(model: model));
+      final response = await apiRepository.barcodeScan(code,storeId);
+      final data = response['data'] as List;
+      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
+      emit(BarcodeScanLoaded(list: list,source: source));
     } catch (e) {
       emit(BarcodeScanError('Failed to fetch data: $e'));
     }

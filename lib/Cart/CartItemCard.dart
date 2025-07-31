@@ -117,8 +117,8 @@ class _CartItemCardState extends State<CartItemCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MyTextfield.textStyle_w600(item.product, 18, Colors.black),
+        MyTextfield.textStyle_w200('Batch No.${item.batch}', 12, AppColors.kPrimary, maxLines: 2),
         MyTextfield.textStyle_w200(item.composition, 12, Colors.grey[600]!, maxLines: 2),
-        const SizedBox(height: 4),
         MyTextfield.textStyle_w600(
           "${AppString.Rupees}${item.mrp}",
           16,

@@ -2,6 +2,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../BarcodeScan/barcode_screen_page.dart';
+import '../Stock/ProductList.dart';
 
 class CartTab extends StatefulWidget {
   final void Function() onPressedProduct;
@@ -18,33 +19,30 @@ class CartTab extends StatefulWidget {
 }
 
 class _CartTabState extends State<CartTab> {
+  List<InvoiceItem> searchResults = [];
+  String userId='';
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+  Future<void> _loadUserId() async {
+    final id = await SessionManager.getUserId();
+    setState(() {
+      userId = id ?? '';
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppUtils.BaseAppBar(
-        context: context,
-        title: widget.barcodeScan ? 'Sale Product' : 'My Cart',
-        leading: false,
-        actions: [
-          if (widget.barcodeScan)
-            Padding(
-              padding: const EdgeInsets.only(right: 15.0),
-              child: IconButton(
-                icon: const Icon(Icons.qr_code_scanner, color: AppColors.kWhiteColor, size: 30),
-                onPressed: _scanBarcode,
-                tooltip: 'Scan QR Code',
-              ),
-            )
-        ],
-      ),
+      appBar: cartAppBar(context),
 
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
-          if (state is BarcodeScanLoaded) {
-            final model = state.model;
+          if (state is BarcodeScanLoaded && state.source=='scan') {
+            searchResults = state.list;
             final cartCubit = context.read<CartCubit>();
-            cartCubit.addToCart(model, 1,type: CartType.barcode);
-
+            cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
           } else if (state is BarcodeScanError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error)),
@@ -52,6 +50,33 @@ class _CartTabState extends State<CartTab> {
           }
         },
         child: _buildCartContent(context),
+      ),
+    );
+  }
+
+  Widget buildActionButton(IconData icon, String label,int flag) {
+    return GestureDetector(
+      onTap: (){
+        if(flag==1) {
+          AppRoutes.navigateTo(context,ProductListPage(flag: 4));
+        }else if(flag==2) {
+          _scanBarcode();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: AppColors.myGradient,
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.kPrimary,size: 14,),
+            const SizedBox(width: 1),
+            MyTextfield.textStyle_w600(label, 16, AppColors.kPrimary),
+          ],
+        ),
       ),
     );
   }
@@ -67,7 +92,8 @@ class _CartTabState extends State<CartTab> {
 
   /// Shows empty page or the main CartPage
   Widget _buildCartOrEmpty(List<InvoiceItem> items) {
-    return items.isEmpty ? _buildEmptyPage() : CartPage(barcodeScan: widget.barcodeScan);
+    return items.isEmpty ? _buildEmptyPage() : CartPage(
+        barcodeScan: widget.barcodeScan);
   }
 
   /// Shows a customizable empty cart page
@@ -94,13 +120,48 @@ class _CartTabState extends State<CartTab> {
         MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
       );
       if (result.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result);
+        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
       }
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to scan barcode')),
       );
     }
+  }
+
+  PreferredSizeWidget cartAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(85),
+      child: Container(
+        color: AppColors.kPrimary,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: MyTextfield.textStyle_w600(
+                    'Sale Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 15.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 8,),
+                    buildActionButton(Icons.edit, 'Add Manually',1),
+                    SizedBox(width: 8,),
+                    buildActionButton(Icons.qr_code_scanner, 'Scan Barcode', 2),
+                    SizedBox(width: 8,),
+                    buildActionButton(Icons.browse_gallery, 'Pick Image',3),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 5),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

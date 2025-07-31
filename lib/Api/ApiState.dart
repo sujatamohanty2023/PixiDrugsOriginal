@@ -81,8 +81,9 @@ class UpdateFCMTokenError extends ApiState {
 class BarcodeScanLoading extends ApiState {}
 
 class BarcodeScanLoaded extends ApiState {
-  final InvoiceItem model;
-  BarcodeScanLoaded({required this.model});
+  final List<InvoiceItem> list;
+  final String source;
+  BarcodeScanLoaded({required this.list, this.source = 'scan'});
 }
 
 class BarcodeScanError extends ApiState {

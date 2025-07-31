@@ -3,6 +3,8 @@ import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 
+import '../Cart/ProductCard.dart';
+
 class SaleDetailsPage extends StatefulWidget {
   final SaleModel? sale;
   final bool? edit;
@@ -145,7 +147,10 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                         data: cartItems,
                         physics: const NeverScrollableScrollPhysics(),
                         onTap: _onCartItemTap,
-                        itemBuilder: (item) => CartItemCard(item: item,edit:widget.edit!,onRemove: () {
+                        itemBuilder: (item) => ProductCard(item: item,
+                          editable:widget.edit!,
+                          mode: ProductCardMode.cart,
+                          onRemove: () {
                           setState(() {
                             cartItems.removeWhere((e) => e.id == item.id);
                           });

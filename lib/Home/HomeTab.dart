@@ -364,7 +364,8 @@ class _HomeTabState extends State<HomeTab> {
         MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
       );
       if (result.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result);
+        final userId = await SessionManager.getUserId() ??'';
+        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
         widget.onGoToCart();
       }
 

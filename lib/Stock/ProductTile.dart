@@ -21,7 +21,6 @@ class ProductTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ Removed the CircleAvatar
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

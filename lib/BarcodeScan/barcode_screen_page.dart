@@ -80,7 +80,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
     showDialog(
       context: context,
       builder: (_) => EditValueDialog(
-          title: 'Invoice No.',
+          title: 'BarCode No.',
           initialValue: '',
           type:'barcode'
       ),

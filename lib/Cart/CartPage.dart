@@ -3,6 +3,7 @@ import 'package:PixiDrugs/Dialog/success_dialog.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
+import 'ProductCard.dart';
 
 class CartPage extends StatefulWidget {
   final bool barcodeScan;
@@ -124,7 +125,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
                 onTap: _onCartItemTap,
-                itemBuilder: (item) => CartItemCard(item: item, barcodeScan: widget.barcodeScan),
+                itemBuilder: (item) => ProductCard(
+                    item: item,
+                    mode: ProductCardMode.cart,
+                  barcodeScan: widget.barcodeScan,
+                    showRemoveIcon:true
+                ),
               ),
               const SizedBox(height: 15),
               PaymentRow(title: "Order Summary", value: "", isBold: true),

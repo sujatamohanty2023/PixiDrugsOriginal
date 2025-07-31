@@ -129,7 +129,7 @@ class ApiRepository {
     }
   }
 
-  Future<Map<String, dynamic>> barcodeScan(String barcode) async {
+  Future<Map<String, dynamic>> barcodeScan(String barcode,String store_id) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -138,7 +138,7 @@ class ApiRepository {
     try {
       final response = await dio.get(
         '${AppString.baseUrl}api/barcodepro',
-        queryParameters: {'barcode': barcode},
+        queryParameters: {'barcode': barcode,'store_id': store_id},
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
