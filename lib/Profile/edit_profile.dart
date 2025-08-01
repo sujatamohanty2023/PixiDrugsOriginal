@@ -37,13 +37,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     context.read<ApiCubit>().GetUserData(userId: userId!);
     context.read<ApiCubit>().stream.listen((state) {
       if (state is UserProfileLoaded) {
-        nameController.text = state.userModel.name;
-        emailController.text = state.userModel.email;
-        phoneController.text = state.userModel.phoneNumber;
-        gstController.text = state.userModel.phoneNumber;
-        regController.text = state.userModel.phoneNumber;
-        addressController.text = state.userModel.phoneNumber;
-        String imageUrl = state.userModel.profilePicture;
+        nameController.text = state.userModel.user.name;
+        emailController.text = state.userModel.user.email;
+        phoneController.text = state.userModel.user.phoneNumber;
+        gstController.text = state.userModel.user.phoneNumber;
+        regController.text = state.userModel.user.phoneNumber;
+        addressController.text = state.userModel.user.phoneNumber;
+        String imageUrl = state.userModel.user.profilePicture;
         setState(() {
           _imageFile = imageUrl;
         });

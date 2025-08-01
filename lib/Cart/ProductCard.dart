@@ -123,6 +123,7 @@ class _ProductCardState extends State<ProductCard> {
                   controller: discController,
                   hintText: "Discount",
                   keyboardType: TextInputType.number,
+                  readOnly: !widget.editable,
                   onChanged: (val) {
                     final discount = double.tryParse(val) ?? 0.0;
                     item.discount = discount.toString();
@@ -157,11 +158,16 @@ class _ProductCardState extends State<ProductCard> {
         padding: const EdgeInsets.only(top: 40.0),
         child: BlocBuilder<CartCubit, CartState>(
           builder: (context, state) {
-            final quantity = (isSearchMode || isCartMode)
-                ? (widget.barcodeScan
-                ? state.barcodeCartItems.firstWhere((e) => e.id == item.id, orElse: () => item).qty
-                : state.cartItems.firstWhere((e) => e.id == item.id, orElse: () => item).qty)
-                : item.qty;
+            InvoiceItem? cartItem;
+            try {
+              cartItem = widget.barcodeScan
+                  ? state.barcodeCartItems.firstWhere((e) => e.id == item.id)
+                  : state.cartItems.firstWhere((e) => e.id == item.id);
+            } catch (e) {
+              cartItem = null;
+            }
+
+            final quantity = cartItem?.qty ?? 0;
 
             if (isSearchMode && quantity == 0) {
               return GestureDetector(
@@ -177,7 +183,7 @@ class _ProductCardState extends State<ProductCard> {
                   child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
                 ),
               );
-            }else {
+            } else {
               return Row(
                 children: [
                   _buildQuantityButton(
@@ -209,8 +215,7 @@ class _ProductCardState extends State<ProductCard> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  MyTextfield.textStyle_w600(
-                      quantity.toString(), 18, Colors.black87),
+                  _buildQuantityDisplay(),
                   const SizedBox(width: 8),
                   _buildQuantityButton(
                     type: 1,
@@ -237,7 +242,28 @@ class _ProductCardState extends State<ProductCard> {
       ),
     );
   }
+  Widget _buildQuantityDisplay() {
+    return Builder(
+      builder: (context) {
+        return widget.editable?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
+            :BlocBuilder<CartCubit, CartState>(
+          builder: (context, state) {
+            final quantity = widget.barcodeScan
+                ? state.barcodeCartItems.firstWhere(
+                  (e) => e.id == item.id,
+              orElse: () => item,
+            ).qty
+                : state.cartItems.firstWhere(
+                  (e) => e.id == item.id,
+              orElse: () => item,
+            ).qty;
 
+            return MyTextfield.textStyle_w600(quantity.toString(), 18, Colors.black87);
+          },
+        );
+      },
+    );
+  }
   Widget _buildQuantityButton({
     required int type,
     required IconData icon,

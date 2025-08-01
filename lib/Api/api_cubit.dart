@@ -48,8 +48,7 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(UserProfileLoading());
       final response = await apiRepository.GetUserProfile(userId);
-      final data = response['user'];
-      final model = UserProfileModel.fromJson(data);
+      final model = UserProfileResponse.fromJson(response);
       emit(UserProfileLoaded(userModel: model));
     } catch (e) {
       emit(UserProfileError('Failed to load user profile: $e'));
@@ -71,7 +70,7 @@ class ApiCubit extends Cubit<ApiState> {
           user_id, name, email, phone_number, gander, dob, profile_picture);
       final data = response['user'];
       final message = response['message'];
-      final model = UserProfileModel.fromJson(data);
+      final model = UserProfile.fromJson(data);
       emit(EditProfileLoaded(userModel: model, message: message));
     } catch (e) {
       emit(EditProfileError('Failed to edit user profile: $e'));

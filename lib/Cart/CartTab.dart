@@ -1,5 +1,6 @@
 
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 import '../BarcodeScan/barcode_screen_page.dart';
 import '../Stock/ProductList.dart';
@@ -21,6 +22,8 @@ class CartTab extends StatefulWidget {
 class _CartTabState extends State<CartTab> {
   List<InvoiceItem> searchResults = [];
   String userId='';
+  final ImagePicker _picker = ImagePicker();
+  String extractedBatchNumber = '';
   @override
   void initState() {
     super.initState();
@@ -41,8 +44,14 @@ class _CartTabState extends State<CartTab> {
         listener: (context, state) {
           if (state is BarcodeScanLoaded && state.source=='scan') {
             searchResults = state.list;
-            final cartCubit = context.read<CartCubit>();
-            cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
+            if (searchResults.isNotEmpty) {
+              final cartCubit = context.read<CartCubit>();
+              cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No products found.')),
+              );
+            }
           } else if (state is BarcodeScanError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error)),
@@ -61,6 +70,8 @@ class _CartTabState extends State<CartTab> {
           AppRoutes.navigateTo(context,ProductListPage(flag: 4));
         }else if(flag==2) {
           _scanBarcode();
+        }else if(flag==3){
+          scanBatchNumber();
         }
       },
       child: Container(
@@ -125,6 +136,55 @@ class _CartTabState extends State<CartTab> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to scan barcode')),
+      );
+    }
+  }
+  Future<void> scanBatchNumber() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile == null) return;
+
+    final inputImage = InputImage.fromFile(File(pickedFile.path));
+    final textRecognizer = TextRecognizer();
+    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+
+    String? batchNumber;
+
+    for (TextBlock block in recognizedText.blocks) {
+      for (var line in block.lines) {
+        print('Recognized line: ${line.text}');
+
+        final pattern = RegExp(
+          r'\b(?:b[\.\s]*no[\.\s]*)[:\s]*([A-Z0-9\-]+)',
+          caseSensitive: false,
+        );
+
+        final match = pattern.firstMatch(line.text);
+        if (match != null) {
+          batchNumber = match.group(1);
+          print("Matched batch number: $batchNumber");
+          break;
+        }
+      }
+      if (batchNumber != null) break;
+    }
+
+    await textRecognizer.close();
+
+    if (batchNumber != null && batchNumber.isNotEmpty) {
+      setState(() {
+        extractedBatchNumber = batchNumber!;
+      });
+
+      print("Calling API with batch: $extractedBatchNumber");
+
+      context.read<ApiCubit>().BarcodeScan(
+        code: extractedBatchNumber,
+        storeId: userId,
+        source: 'scan',
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Batch number not found')),
       );
     }
   }

@@ -1,7 +1,7 @@
 import 'package:PixiDrugs/Expense/AddExpenseScreen.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:PixiDrugs/Profile/StaffAddBottomSheet.dart';
+import 'package:PixiDrugs/Profile/AddStaffScreen.dart';
 import 'package:PixiDrugs/Profile/WebviewScreen.dart';
 import 'package:PixiDrugs/Profile/edit_profile.dart';
 import 'package:PixiDrugs/constant/all.dart';
@@ -16,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
     String? name = 'Guest';
     String? email = '';
     String? image = '';
+    Staff? staff;
 
     @override
     void initState() {
@@ -50,9 +51,10 @@ class ProfileScreen extends StatefulWidget {
           .listen((state) {
         if (state is UserProfileLoaded) {
           setState(() {
-            name = state.userModel.name;
-            email = state.userModel.email;
-            image = state.userModel.profilePicture;
+            name = state.userModel.user.name;
+            email = state.userModel.user.email;
+            image = state.userModel.user.profilePicture;
+            staff=state.userModel.staff;
           });
         } else if (state is UserProfileError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -129,7 +131,7 @@ class ProfileScreen extends StatefulWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          ShowStaffDialog();
+                          AppRoutes.navigateTo(context, AddStaffScreen(staff:staff));
                         },
                         child: _buildMenuItem(Icons.person, "Add/Edit Staff",
                             Colors.purpleAccent),
@@ -212,43 +214,6 @@ class ProfileScreen extends StatefulWidget {
             ],
           ),
         ),
-      );
-    }
-
-    void ShowStaffDialog() {
-      String? staffName = '';
-      String? staffPhone = '';
-      String? staffEmail = '';
-
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: AppColors.kWhiteColor,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
-        ),
-        constraints: BoxConstraints.loose(Size(
-          SizeConfig.screenWidth!,
-          SizeConfig.screenHeight! * 0.60,
-        )),
-        isScrollControlled: false,
-        builder: (_) =>
-            StaffAddBottomSheet(
-              name: staffName,
-              phone: staffPhone,
-              email: staffEmail,
-              onSubmit: (name1, phone1, email1) {
-                setState(() {
-                  staffName = name1;
-                  staffPhone = phone1;
-                  staffEmail = email1;
-                });
-                /* context.read<CartCubit>().setBarcodeCustomerDetails(
-              name: name1,
-              phone: phone1,
-              address: submittedAddress1,
-            );*/
-              },
-            ),
       );
     }
 

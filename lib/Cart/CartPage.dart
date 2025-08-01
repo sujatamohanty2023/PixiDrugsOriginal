@@ -129,7 +129,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                     item: item,
                     mode: ProductCardMode.cart,
                   barcodeScan: widget.barcodeScan,
-                    showRemoveIcon:true
+                    showRemoveIcon:true,
+                    editable: true,
                 ),
               ),
               const SizedBox(height: 15),

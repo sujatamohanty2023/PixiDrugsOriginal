@@ -166,20 +166,27 @@ class _ListScreenState extends State<ListScreen>
     return Scaffold(
       body: BlocBuilder<ApiCubit, ApiState>(
         builder: (context, state) {
-          // Assign data lists
-          if (state is InvoiceListLoaded) invoiceList = state.invoiceList;
-          if (state is SaleListLoaded) saleList = state.saleList;
-          if (state is LedgerListLoaded) ledgerList = state.leadgerList;
-          if (state is StockReturnListLoaded) stockReturnList = state.returnList;
-          if (state is SaleReturnListLoaded) saleReturnList = state.billList;
-          if (state is ExpenseListLoaded) expenseList = state.list;
 
           final isLoading = state is InvoiceListLoading ||
               state is SaleListLoading ||
               state is LedgerListLoading ||
-              state is StockReturnListLoading||
-              state is SaleReturnListLoading||
+              state is StockReturnListLoading ||
+              state is SaleReturnListLoading ||
               state is ExpenseListLoading;
+
+          if (state is InvoiceListLoaded) {
+            invoiceList = state.invoiceList;
+          }else if (state is SaleListLoaded) {
+            saleList = state.saleList;
+          }else if (state is LedgerListLoaded) {
+            ledgerList = state.leadgerList;
+          }else if (state is StockReturnListLoaded) {
+            stockReturnList = state.returnList;
+          }else if (state is SaleReturnListLoaded) {
+            saleReturnList = state.billList;
+          }else if (state is ExpenseListLoaded) {
+            expenseList = state.list;
+          }
 
           return Container(
             color: AppColors.kPrimary,
@@ -199,18 +206,16 @@ class _ListScreenState extends State<ListScreen>
           );
         },
       ),
-      floatingActionButton: widget.type == ListType.invoice && invoiceList.isNotEmpty
+
+      // ✅ FAB logic placed after list population
+      floatingActionButton: ((widget.type == ListType.invoice && invoiceList.isNotEmpty) ||
+          (widget.type == ListType.expense && expenseList.isNotEmpty))
           ? FloatingActionButton(
-        onPressed: _onAddInvoicePressed,
+        onPressed: widget.type == ListType.invoice ? _onAddInvoicePressed : _onAddExpense,
         backgroundColor: AppColors.kPrimary,
         child: const Icon(Icons.add, color: Colors.white),
       )
-          : widget.type == ListType.expense && expenseList.isNotEmpty?
-      FloatingActionButton(
-        onPressed: _onAddExpense,
-        backgroundColor: AppColors.kPrimary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ):SizedBox(),
+          : const SizedBox.shrink(),
     );
   }
 

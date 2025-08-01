@@ -43,7 +43,7 @@ export '../main.dart';
 export '../Cart/CartBloc/CartCubit.dart';
 export '../Cart/CartBloc/CartState.dart';
 export '../Cart/CartPage.dart';
-export '../Cart/CartItemCard.dart';
+export '../Cart/ProductCard.dart';
 export '../Cart/no_item_page.dart';
 export '../Cart/OrderPlaceModel.dart';
 

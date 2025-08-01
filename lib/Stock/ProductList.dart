@@ -1,9 +1,6 @@
 import 'package:PixiDrugs/Stock/ProductTile.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-import '../Cart/ProductCard.dart';
-import '../Cart/SerchProductCard.dart';
-
 class ProductListPage extends StatefulWidget {
   final int flag;
   const ProductListPage({super.key,required this.flag});
@@ -15,6 +12,7 @@ class ProductListPage extends StatefulWidget {
 class _ProductListPageState extends State<ProductListPage> {
   final List<InvoiceItem> _products = [];
   List<InvoiceItem> _filteredProducts = [];
+  Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
   bool isLoading = true;
   @override
@@ -43,18 +41,32 @@ class _ProductListPageState extends State<ProductListPage> {
     }
   }
   void _onSearch() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredProducts = _products.where((product) {
-        return product.product.toLowerCase().contains(query) ||
-            product.hsn.toLowerCase().contains(query);
-      }).toList();
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    setState(() {});// <-- Trigger UI update for clear button visibility
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final query = _searchController.text.trim();
+
+      if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
+        String? userId = await SessionManager.getUserId();
+        context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual');
+      } else {
+        // Local filtering if not in search mode (flag != 4)
+        setState(() {
+          _filteredProducts = _products.where((product) {
+            return product.product.toLowerCase().contains(query.toLowerCase()) ||
+                product.hsn.toLowerCase().contains(query.toLowerCase());
+          }).toList();
+        });
+      }
     });
   }
 
-  Future<void> _onSearchTap() async {
-    String? userId=await SessionManager.getUserId();
-    context.read<ApiCubit>().BarcodeScan(code:_searchController.text,storeId: userId!,source:'manual');
+  Future<void> _onclearTap() async {
+    setState(() {
+      _searchController.text='';
+    });
   }
 
   void _onAddProduct() {
@@ -65,7 +77,7 @@ class _ProductListPageState extends State<ProductListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBar(context, _searchController, _onSearchTap,flag:widget.flag),
+      appBar: customAppBar(context, _searchController, _onclearTap,flag:widget.flag),
       body: BlocConsumer<ApiCubit, ApiState>(
         listener: (context, state) {
           if (state is StockListLoaded ||
@@ -108,7 +120,7 @@ class _ProductListPageState extends State<ProductListPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: ProductCard(
                         item: _products[index],
-                        mode: ProductCardMode.cart,
+                        mode: ProductCardMode.search,
                         barcodeScan: true,
                       ),
                     ):ProductTile(product: _filteredProducts[index]),
@@ -164,7 +176,7 @@ Widget _buildEmptyPage({required int flag,required VoidCallback onAddProduct}) {
 }
 // ✅ Custom AppBar with search + barcode
 PreferredSizeWidget customAppBar(BuildContext context,
-    TextEditingController searchController, VoidCallback onSearchTap, {required int flag}) {
+    TextEditingController searchController, VoidCallback onclearTap, {required int flag}) {
   var tittle='';
   if(flag==1) {
     tittle='My Stock';
@@ -228,10 +240,10 @@ PreferredSizeWidget customAppBar(BuildContext context,
                         ),
                       ),
                     ),
-                    flag==4?IconButton(
-                      onPressed: onSearchTap,
-                      icon: const Icon(Icons.arrow_forward_outlined,
-                          color: AppColors.kPrimary),
+                    searchController.text.isNotEmpty?IconButton(
+                      onPressed: onclearTap,
+                      icon: const Icon(Icons.clear_rounded,
+                          color: Colors.grey),
                     ):SizedBox(),
                   ],
                 ),

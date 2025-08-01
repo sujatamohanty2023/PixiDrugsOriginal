@@ -59,9 +59,9 @@ class _HomeTabState extends State<HomeTab> {
     context.read<ApiCubit>().stream.listen((state) {
       if (state is UserProfileLoaded) {
         setState(() {
-          name = state.userModel.name;
-          email = state.userModel.email;
-          image = state.userModel.profilePicture;
+          name = state.userModel.user.name;
+          email = state.userModel.user.email;
+          image = state.userModel.user.profilePicture;
         });
       } else if (state is UserProfileError) {
         ScaffoldMessenger.of(context).showSnackBar(

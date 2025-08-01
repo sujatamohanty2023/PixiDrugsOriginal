@@ -41,7 +41,7 @@ class BannerError extends ApiState {
 class UserProfileLoading extends ApiState {}
 
 class UserProfileLoaded extends ApiState {
-  final UserProfileModel userModel;
+  final UserProfileResponse userModel;
 
   UserProfileLoaded({required this.userModel});
 }
@@ -55,7 +55,7 @@ class UserProfileError extends ApiState {
 class EditProfileLoading extends ApiState {}
 
 class EditProfileLoaded extends ApiState {
-  final UserProfileModel userModel;
+  final UserProfile userModel;
   final String message;
 
   EditProfileLoaded({required this.userModel, required this.message});
