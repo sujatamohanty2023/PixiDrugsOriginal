@@ -8,11 +8,13 @@ class ExpenseListWidget extends StatefulWidget {
   final List<ExpenseResponse> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
+  final VoidCallback onAddPressed;
   const ExpenseListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
+    required this.onAddPressed,
   });
 
   @override
@@ -25,41 +27,54 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final filteredSales = widget.items
+    final filteredExpense = widget.items
         .where((i) =>
         i.title.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
-    //i.sellerName.contains(widget.searchQuery.toLowerCase()))
-    return  Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.myGradient,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(screenWidth * 0.07),
-          topRight: Radius.circular(screenWidth * 0.07),
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(screenWidth * 0.07),
+              topRight: Radius.circular(screenWidth * 0.07),
+            ),
+          ),
+          child: widget.isLoading
+              ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+              : widget.items.isEmpty
+              ? NoItemPage(
+            onTap: (){},
+            image: AppImages.no_invoice,
+            tittle: 'No Expenses Found',
+            description: 'You haven\'t recorded any expenses yet. Add your first expense to keep track of your store\'s spending.',
+            button_tittle: 'Add Expense',
+          )
+              : ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: filteredExpense.length,
+            itemBuilder: (_, index) {
+              final item = filteredExpense[index];
+              return _buildExpenseCard(item, screenWidth,context);
+            },
+          ),
         ),
-      ),
-      child: widget.isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : widget.items.isEmpty
-          ? NoItemPage(
-        onTap: (){},
-        image: AppImages.no_invoice,
-        tittle: 'No Expenses Found',
-        description: 'You haven\'t recorded any expenses yet. Add your first expense to keep track of your store\'s spending.',
-        button_tittle: 'Add Expense',
-      )
-          : ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: filteredSales.length,
-        itemBuilder: (_, index) {
-          final item = filteredSales[index];
-          return _buildReturnCard(item, screenWidth,context);
-        },
-      ),
+        // FAB Positioned at bottom right
+          widget.items.isNotEmpty?Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: widget.onAddPressed,
+              backgroundColor: AppColors.kPrimary,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+          ):SizedBox(),
+        ]
     );
   }
 
-  Widget _buildReturnCard(ExpenseResponse item, double screenWidth, BuildContext context) {
+  Widget _buildExpenseCard(ExpenseResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){
         AppRoutes.navigateTo(context, Addexpensescreen(expenseResponse: item));

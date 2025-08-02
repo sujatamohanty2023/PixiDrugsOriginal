@@ -5,6 +5,7 @@ import 'package:PixiDrugs/constant/all.dart';
 
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
+import '../Staff/StaffModel.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 abstract class ApiState {}
@@ -418,4 +419,40 @@ class ExpenseListLoaded extends ApiState {
 class ExpenseListError extends ApiState {
   final String error;
   ExpenseListError(this.error);
+}
+//--------------------------------------------------------------------
+class StaffAddLoading extends ApiState {}
+
+class StaffAddLoaded extends ApiState {
+  final bool message;
+  StaffAddLoaded({required this.message});
+}
+
+class StaffAddError extends ApiState {
+  final String error;
+  StaffAddError(this.error);
+}
+//--------------------------------------------------------------------
+class StaffEditLoading extends ApiState {}
+
+class StaffEditLoaded extends ApiState {
+  final String message;
+  StaffEditLoaded({required this.message});
+}
+
+class StaffEditError extends ApiState {
+  final String error;
+  StaffEditError(this.error);
+}
+//--------------------------------------------------------------------
+class StaffListLoading extends ApiState {}
+
+class StaffListLoaded extends ApiState {
+  final List<StaffModel> staffList;
+  StaffListLoaded({required this.staffList});
+}
+
+class StaffListError extends ApiState {
+  final String error;
+  StaffListError(this.error);
 }

@@ -28,33 +28,47 @@ class InvoiceListWidget extends StatelessWidget {
         i.sellerName!.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
 
-    return  Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.myGradient,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(screenWidth * 0.07),
-          topRight: Radius.circular(screenWidth * 0.07),
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(screenWidth * 0.07),
+              topRight: Radius.circular(screenWidth * 0.07),
+            ),
+          ),
+          child: isLoading
+              ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+              : invoices.isEmpty
+              ? NoItemPage(
+            onTap: onAddPressed,
+            image: AppImages.no_invoice,
+            tittle: 'Add an Invoice record.',
+            description:
+            "Please add your invoice details for better tracking.",
+            button_tittle: 'Add Invoice',
+          )
+              : ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: filteredInvoices.length,
+            itemBuilder: (_, index) {
+              final invoice = filteredInvoices[index];
+              return buildInvoiceCard(context,invoice, screenWidth);
+            },
+          ),
         ),
-      ),
-      child: isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : invoices.isEmpty
-          ? NoItemPage(
-        onTap: onAddPressed,
-        image: AppImages.no_invoice,
-        tittle: 'Add an Invoice record.',
-        description:
-        "Please add your invoice details for better tracking.",
-        button_tittle: 'Add Invoice',
-      )
-          : ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: filteredInvoices.length,
-        itemBuilder: (_, index) {
-          final invoice = filteredInvoices[index];
-          return buildInvoiceCard(context,invoice, screenWidth);
-        },
-      ),
+        // FAB Positioned at bottom right
+        invoices.isNotEmpty?Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton(
+            onPressed: onAddPressed,
+            backgroundColor: AppColors.kPrimary,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ):SizedBox(),
+        ]
     );
   }
 

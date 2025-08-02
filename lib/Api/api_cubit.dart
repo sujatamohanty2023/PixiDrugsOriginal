@@ -9,6 +9,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
+import '../Staff/StaffModel.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 class ApiCubit extends Cubit<ApiState> {
@@ -314,7 +315,7 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> fetchStockReturnList({required String store_id}) async {
     try {
       emit(StockReturnListLoading());
-      final response = await apiRepository.returnList(store_id,'stockist-returns');
+      final response = await apiRepository.fetchList(store_id,'stockist-returns');
       final data = response['data'] as List;
       final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
       emit(StockReturnListLoaded(returnList: list));
@@ -370,7 +371,7 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> fetchSaleReturnList({required String store_id}) async {
     try {
       emit(SaleReturnListLoading());
-      final response = await apiRepository.returnList(store_id,'customer-returns');
+      final response = await apiRepository.fetchList(store_id,'customer-returns');
       final data = response['data'] as List;
       final list = data.map((json) => CustomerReturnsResponse.fromJson(json)).toList();
       emit(SaleReturnListLoaded(billList: list));
@@ -404,12 +405,69 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> fetchExpenseList({required String store_id}) async {
     try {
       emit(ExpenseListLoading());
-      final response = await apiRepository.returnList(store_id,'expense');
+      final response = await apiRepository.fetchList(store_id,'expense');
       final data = response['data'] as List;
       final list = data.map((json) => ExpenseResponse.fromJson(json)).toList();
       emit(ExpenseListLoaded(list: list));
     } catch (e) {
       emit(ExpenseListError('Failed to load data: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> fetchStaffList({required String store_id}) async {
+    try {
+      emit(StaffListLoading());
+      final response = await apiRepository.fetchList(store_id,'staff');
+      final data = response['data'] as List;
+      final list = data.map((json) => StaffModel.fromJson(json)).toList();
+      emit(StaffListLoaded(staffList: list));
+    } catch (e) {
+      emit(StaffListError('Failed to load Staff: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StaffEdit({
+    required String id,
+    required String name,
+    required String email,
+    required String phone_number,
+    required String gender,
+    required String dob,
+    required String address,
+    required String password,
+    required String password_confirmation,
+    required String store_id,
+    required String status,}) async {
+    try {
+      emit(StaffEditLoading());
+      final response = await apiRepository.Staff(id, name, email, phone_number, gender, dob, address,
+                        password, password_confirmation, store_id, status,);
+      final data = response['message'];
+
+      emit(StaffEditLoaded(message: data));
+    } catch (e) {
+      emit(StaffEditError('Failed to Staff: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> StaffAdd({
+    required String name,
+    required String email,
+    required String phone_number,
+    required String gender,
+    required String dob,
+    required String address,
+    required String password,
+    required String password_confirmation,
+    required String store_id,}) async {
+    try {
+      emit(StaffAddLoading());
+      final response = await apiRepository.Staff('',name, email, phone_number, gender, dob, address,
+          password, password_confirmation, store_id,'');
+      final message = response['message'];
+      emit(StaffAddLoaded(message: message));
+    } catch (e) {
+      emit(StaffAddError('Failed to Delete data: $e'));
     }
   }
 }

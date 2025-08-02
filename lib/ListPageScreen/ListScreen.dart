@@ -1,4 +1,6 @@
 import 'package:PixiDrugs/Expense/ExpenseResponse.dart';
+import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
+import 'package:PixiDrugs/Staff/StaffModel.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,9 +21,10 @@ import '../Expense/AddExpenseScreen.dart';
 import '../Expense/ExpenseListWidget.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnListWidget.dart';
+import '../Staff/StaffListWidget.dart';
 import '../StockReturn/StockReturnListWidget.dart';
 
-enum ListType { invoice, sale, ledger, stockReturn, saleReturn,expense }
+enum ListType { invoice, sale, ledger, stockReturn, saleReturn,expense,staff }
 
 final Map<ListType, String> titleMap = {
   ListType.invoice: 'Invoice List',
@@ -30,6 +33,7 @@ final Map<ListType, String> titleMap = {
   ListType.stockReturn: 'Stock Return List',
   ListType.saleReturn: 'Sale Return List',
   ListType.expense: 'Expense List',
+  ListType.staff: 'Staff List',
 };
 
 class ListScreen extends StatefulWidget {
@@ -50,6 +54,7 @@ class _ListScreenState extends State<ListScreen>
   List<PurchaseReturnModel> stockReturnList= [];
   List<CustomerReturnsResponse> saleReturnList= [];
   List<ExpenseResponse> expenseList= [];
+  List<StaffModel> staffList= [];
 
   @override
   void initState() {
@@ -105,6 +110,9 @@ class _ListScreenState extends State<ListScreen>
       case ListType.expense:
         context.read<ApiCubit>().fetchExpenseList(store_id: userId);
         break;
+      case ListType.staff:
+        context.read<ApiCubit>().fetchStaffList(store_id: userId);
+        break;
     }
   }
 
@@ -113,6 +121,9 @@ class _ListScreenState extends State<ListScreen>
   }
   Future<void> _onAddExpense() async {
     AppRoutes.navigateTo(context, Addexpensescreen());
+  }
+  Future<void> _onAddStaff() async {
+    AppRoutes.navigateTo(context, AddStaffScreen());
   }
 
   void _setSelectedImage(List<File> files) {
@@ -172,7 +183,8 @@ class _ListScreenState extends State<ListScreen>
               state is LedgerListLoading ||
               state is StockReturnListLoading ||
               state is SaleReturnListLoading ||
-              state is ExpenseListLoading;
+              state is ExpenseListLoading||
+              state is StaffListLoading;
 
           if (state is InvoiceListLoaded) {
             invoiceList = state.invoiceList;
@@ -186,6 +198,8 @@ class _ListScreenState extends State<ListScreen>
             saleReturnList = state.billList;
           }else if (state is ExpenseListLoaded) {
             expenseList = state.list;
+          }else if (state is StaffListLoaded) {
+            staffList = state.staffList;
           }
 
           return Container(
@@ -206,16 +220,6 @@ class _ListScreenState extends State<ListScreen>
           );
         },
       ),
-
-      // ✅ FAB logic placed after list population
-      floatingActionButton: ((widget.type == ListType.invoice && invoiceList.isNotEmpty) ||
-          (widget.type == ListType.expense && expenseList.isNotEmpty))
-          ? FloatingActionButton(
-        onPressed: widget.type == ListType.invoice ? _onAddInvoicePressed : _onAddExpense,
-        backgroundColor: AppColors.kPrimary,
-        child: const Icon(Icons.add, color: Colors.white),
-      )
-          : const SizedBox.shrink(),
     );
   }
 
@@ -273,7 +277,16 @@ class _ListScreenState extends State<ListScreen>
           items: expenseList,
           isLoading: isLoading,
           searchQuery: searchQuery,
+          onAddPressed: _onAddExpense,
           onSearchChanged: (v) => setState(() => searchQuery = v)
+        );
+      case ListType.staff:
+        return StaffListWidget(
+            list: staffList,
+            isLoading: isLoading,
+            searchQuery: searchQuery,
+            onAddPressed: _onAddStaff,
+            onSearchChanged: (v) => setState(() => searchQuery = v)
         );
     }
   }
@@ -291,14 +304,7 @@ class _ListScreenState extends State<ListScreen>
                   (route) => false,
             ),
           ),
-          Text(
-            titleMap[widget.type] ?? '',
-            style: TextStyle(
-              fontSize: screenWidth * 0.055,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
+          MyTextfield.textStyle_w400(titleMap[widget.type] ?? '', screenWidth * 0.055,Colors.white,),
         ],
       ),
     );

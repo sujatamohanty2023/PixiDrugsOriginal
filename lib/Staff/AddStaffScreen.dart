@@ -1,11 +1,11 @@
 
-
 import 'package:intl/intl.dart';
 
 import '../constant/all.dart';
+import 'StaffModel.dart';
 
 class AddStaffScreen extends StatefulWidget {
-  Staff? staff;
+  StaffModel? staff;
   AddStaffScreen({Key? key,this.staff }) : super(key: key);
 
   @override
@@ -139,7 +139,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                   ),
                   child: Form(
                     key: _formKey,
-                    child: isAddingStaff?SingleChildScrollView(
+                    child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -207,16 +207,10 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                           ):SizedBox(),
                         ],
                       ),
-                    ): NoItemPage(
-                      onTap: _AddStaff,
-                      image: AppImages.empty_cart,
-                      tittle: "No Staff Members",
-                      description: "Add staff to manage inventory, sales,\nand keep your business running smoothly.",
-                      button_tittle: "Add Staff",
                     ),
-                  ),
                 ),
               ),
+              )
             ],
           ),
         ),

@@ -1,7 +1,7 @@
 import 'package:PixiDrugs/Expense/AddExpenseScreen.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:PixiDrugs/Profile/AddStaffScreen.dart';
+import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/Profile/WebviewScreen.dart';
 import 'package:PixiDrugs/Profile/edit_profile.dart';
 import 'package:PixiDrugs/constant/all.dart';
@@ -16,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
     String? name = 'Guest';
     String? email = '';
     String? image = '';
-    Staff? staff;
 
     @override
     void initState() {
@@ -54,7 +53,6 @@ class ProfileScreen extends StatefulWidget {
             name = state.userModel.user.name;
             email = state.userModel.user.email;
             image = state.userModel.user.profilePicture;
-            staff=state.userModel.staff;
           });
         } else if (state is UserProfileError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -131,9 +129,9 @@ class ProfileScreen extends StatefulWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, AddStaffScreen(staff:staff));
+                          AppRoutes.navigateTo(context, ListScreen(type:ListType.staff));
                         },
-                        child: _buildMenuItem(Icons.person, "Add/Edit Staff",
+                        child: _buildMenuItem(Icons.person, "Staff List",
                             Colors.purpleAccent),
                       ),
                       GestureDetector(

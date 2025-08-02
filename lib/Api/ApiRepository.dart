@@ -513,7 +513,7 @@ class ApiRepository {
       throw Exception('Failed to load invoice: $e');
     }
   }
-  Future<Map<String, dynamic>> returnList(String store_id,String apiName) async {
+  Future<Map<String, dynamic>> fetchList(String store_id,String apiName) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
       throw Exception('No internet connection');
@@ -657,6 +657,72 @@ class ApiRepository {
       // Perform POST request
       final response = await dio.post(
         '${AppString.baseUrl}api/expense/$apiName',
+        queryParameters: queryParams,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      // Debug output
+      print('API URL ➡️ ${response.requestOptions.uri}');
+      print('API Response: ${response.data}');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('POST error: $e');
+      throw Exception('Failed to post expense: $e');
+    }
+  }
+  Future<Map<String, dynamic>> Staff(
+       String id,
+      String name,
+       String email,
+       String phone_number,
+       String gender,
+       String dob,
+       String address,
+       String password,
+       String password_confirmation,
+       String store_id,
+      String status,
+      ) async {
+    // Check internet connection
+    bool isConnected = await ConnectivityService.isConnected();
+    if (!isConnected) {
+      throw Exception('No internet connection');
+    }
+
+    try {
+      // Build query parameters
+      final Map<String, dynamic> queryParams = {
+        'name': name,
+        'email': email,
+        'phone_number': phone_number,
+        'gender': gender,
+        'dob': dob,
+        'address': address,
+        'password': password,
+        'password_confirmation': password_confirmation,
+        'store_id': store_id,
+      };
+
+      if (status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+      if (id.isNotEmpty) {
+        queryParams['id'] = id;
+      }
+
+      // Perform POST request
+      final response = await dio.post(
+        '${AppString.baseUrl}api/staff/store',
         queryParameters: queryParams,
         options: Options(
           headers: {

@@ -1,26 +1,22 @@
 class UserProfileResponse {
   final String message;
   final UserProfile user;
-  final Staff staff;
 
   UserProfileResponse({
     required this.message,
     required this.user,
-    required this.staff,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
     return UserProfileResponse(
       message: json['message'] ?? '',
       user: UserProfile.fromJson(json['user']),
-      staff: Staff.fromJson(json['staff']),
     );
   }
 
   Map<String, dynamic> toJson() => {
     'message': message,
     'user': user.toJson(),
-    'staff': staff.toJson(),
   };
 }
 
@@ -37,6 +33,10 @@ class UserProfile {
   final String rememberToken;
   final String gender;
   final String dob;
+  final String ownerName;
+  final String address;
+  final String gstin;
+  final String license;
   final String createdAt;
   final String updatedAt;
 
@@ -54,6 +54,10 @@ class UserProfile {
     this.rememberToken = '',
     this.gender = '',
     this.dob = '',
+    this.ownerName = '',
+    this.address = '',
+    this.gstin = '',
+    this.license = '',
     this.createdAt = '', // Default to empty string
     this.updatedAt = '', // Default to empty string
   });
@@ -73,6 +77,10 @@ class UserProfile {
       rememberToken: json['remember_token'] ?? '',
       gender: json['gander'] ?? '',
       dob: json['dob'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      address: json['address'] ?? '',
+      gstin: json['gstin'] ?? '',
+      license: json['license'] ?? '',
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
     );
@@ -96,67 +104,4 @@ class UserProfile {
       'updated_at': updatedAt,
     };
   }
-}
-class Staff {
-  final int? id;
-  final String? name;
-  final String? email;
-  final String? photo;
-  final String? phoneNumber;
-  final String? profilePicture;
-  final String? provider;
-  final String? providerId;
-  final String? status;
-  final String? rememberToken;
-  final String? fcmToken;
-  final String? gander;
-  final String? dob;
-
-  Staff({
-    this.id,
-    this.name,
-    this.email,
-    this.photo,
-    this.phoneNumber,
-    this.profilePicture,
-    this.provider,
-    this.providerId,
-    this.status,
-    this.rememberToken,
-    this.fcmToken,
-    this.gander,
-    this.dob,
-  });
-
-  factory Staff.fromJson(Map<String, dynamic> json) => Staff(
-    id: json['id']??0,
-    name: json['name'] ?? '',
-    email: json['email'] ?? '',
-    photo: json['photo'] ?? '',
-    phoneNumber: json['phone_number'] ?? '',
-    profilePicture: json['profile_picture'] ?? '',
-    provider: json['provider']?? '',
-    providerId: json['provider_id']?? '',
-    status: json['status'] ?? '',
-    rememberToken: json['remember_token']?? '',
-    fcmToken: json['fcm_token']?? '',
-    gander: json['gander']?? '',
-    dob: json['dob']?? '',
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'photo': photo,
-    'phone_number': phoneNumber,
-    'profile_picture': profilePicture,
-    'provider': provider,
-    'provider_id': providerId,
-    'status': status,
-    'remember_token': rememberToken,
-    'fcm_token': fcmToken,
-    'gander': gander,
-    'dob': dob,
-  };
 }
