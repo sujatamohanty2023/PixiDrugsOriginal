@@ -76,9 +76,9 @@ class _HomeTabState extends State<HomeTab> {
     _pageController.dispose();
     super.dispose();
   }
-  void _onNotificationTap() {
+  Future<void> _onNotificationTap() async {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Notification tapped")),
+      SnackBar(content: Text("Notification tapped")),
     );
   }
   PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onNotificationTap) {

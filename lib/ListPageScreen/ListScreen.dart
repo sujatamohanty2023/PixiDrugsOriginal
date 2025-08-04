@@ -123,7 +123,7 @@ class _ListScreenState extends State<ListScreen>
     AppRoutes.navigateTo(context, Addexpensescreen());
   }
   Future<void> _onAddStaff() async {
-    AppRoutes.navigateTo(context, AddStaffScreen());
+    AppRoutes.navigateTo(context, AddStaffScreen(add:true));
   }
 
   void _setSelectedImage(List<File> files) {

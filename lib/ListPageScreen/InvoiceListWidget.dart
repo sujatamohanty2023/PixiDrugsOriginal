@@ -8,8 +8,9 @@ class InvoiceListWidget extends StatelessWidget {
   final VoidCallback onAddPressed;
   final Function(Invoice invoice) onEditPressed;
   final Function(String id) onDeletePressed;
+  String? role;
 
-  const InvoiceListWidget({
+  InvoiceListWidget({
     required this.isLoading,
     required this.invoices,
     required this.searchQuery,
@@ -18,11 +19,13 @@ class InvoiceListWidget extends StatelessWidget {
     required this.onDeletePressed,
     required this.onEditPressed,
   });
-
+  void loadUserData() async {
+    role = await SessionManager.getRole();
+  }
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
+    loadUserData();
     final filteredInvoices = invoices
         .where((i) =>
         i.sellerName!.toLowerCase().contains(searchQuery.toLowerCase()))
@@ -138,6 +141,7 @@ class InvoiceListWidget extends StatelessWidget {
                                       MyTextfield.textStyle_w600('Edit', 13, Colors.black),
                                     ],
                                   )),
+                              if(role=='owner')
                               PopupMenuItem(
                                   value: 'delete',
                                   child: Row(

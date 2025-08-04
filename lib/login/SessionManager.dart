@@ -10,10 +10,16 @@ class SessionManager {
 
   // Save login response
   static Future<void> saveLoginResponse(LoginResponse response) async {
+    int? id=0;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, response.accessToken??'');
     await prefs.setString(_roleKey, response.user!.role);
-    await prefs.setString(_userIdKey, response.user!.id.toString());
+    if(response.user!.role=='staff'){
+      id=response.user!.parentId;
+    }else if(response.user!.role=='owner'){
+      id=response.user!.id;
+    }
+    await prefs.setString(_userIdKey,id.toString());
   }
 
   // Load access token

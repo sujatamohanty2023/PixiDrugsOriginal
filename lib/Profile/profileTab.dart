@@ -16,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
     String? name = 'Guest';
     String? email = '';
     String? image = '';
+    String? role = '';
 
     @override
     void initState() {
@@ -37,6 +38,7 @@ class ProfileScreen extends StatefulWidget {
 
     void _GetProfileCall() async {
       String? userId = await SessionManager.getUserId();
+      role=await SessionManager.getRole();
       if (userId != null) {
         context.read<ApiCubit>().GetUserData(userId: userId);
       } else {
@@ -120,13 +122,15 @@ class ProfileScreen extends StatefulWidget {
                   child: ListView(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      GestureDetector(
+                      if(role=='owner')
+                        GestureDetector(
                         onTap: () {
                           AppRoutes.navigateTo(context, EditProfileScreen());
                         },
                         child: _buildMenuItem(
                             Icons.edit, "Edit Profile", Colors.blue),
                       ),
+                      if(role=='owner')
                       GestureDetector(
                         onTap: () {
                           AppRoutes.navigateTo(context, ListScreen(type:ListType.staff));
@@ -134,6 +138,7 @@ class ProfileScreen extends StatefulWidget {
                         child: _buildMenuItem(Icons.person, "Staff List",
                             Colors.purpleAccent),
                       ),
+                      if(role=='owner')
                       GestureDetector(
                         onTap: () {
                           AppRoutes.navigateTo(context, ListScreen(type:ListType.expense));
@@ -141,6 +146,7 @@ class ProfileScreen extends StatefulWidget {
                         child: _buildMenuItem(Icons.add_chart, "Add Expense",
                             Colors.cyan),
                       ),
+                      if(role=='owner')
                       GestureDetector(
                         onTap: () {
 

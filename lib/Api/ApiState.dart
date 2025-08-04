@@ -424,7 +424,7 @@ class ExpenseListError extends ApiState {
 class StaffAddLoading extends ApiState {}
 
 class StaffAddLoaded extends ApiState {
-  final bool message;
+  final String message;
   StaffAddLoaded({required this.message});
 }
 

@@ -705,7 +705,7 @@ class ApiRepository {
         'name': name,
         'email': email,
         'phone_number': phone_number,
-        'gender': gender,
+        'gander': gender,
         'dob': dob,
         'address': address,
         'password': password,

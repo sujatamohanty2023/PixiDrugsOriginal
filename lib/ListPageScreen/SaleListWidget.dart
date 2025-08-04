@@ -12,8 +12,9 @@ class SaleListWidget extends StatelessWidget {
   final Function(String id) onDeletePressed;
   final Function(SaleModel sale) onPrintPressed;
   final Function(SaleModel sale) onSharePressed;
+  String? role;
 
-  const SaleListWidget({
+  SaleListWidget({
     required this.isLoading,
     required this.sales,
     required this.searchQuery,
@@ -25,10 +26,13 @@ class SaleListWidget extends StatelessWidget {
     required this.onSharePressed,
   });
 
+  void loadUserData() async {
+    role = await SessionManager.getRole();
+  }
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
+    loadUserData();
     final filteredSales = sales
         .where((i) =>
         i.customer.name.toLowerCase().contains(searchQuery.toLowerCase()))
@@ -118,27 +122,28 @@ class SaleListWidget extends StatelessWidget {
                       PopupMenuItem(value: 'print',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kGreyColor800),
+                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kBlackColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kGreyColor800),
+                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kBlackColor800),
                             ],
                           )),
                       PopupMenuItem(value: 'share',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kGreyColor800),
+                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kBlackColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Share', 13, AppColors.kGreyColor800),
+                              MyTextfield.textStyle_w600('Share', 13, AppColors.kBlackColor800),
                             ],
                           )),
                       PopupMenuItem(value: 'edit',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kGreyColor800),
+                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kBlackColor800),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kGreyColor800),
+                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kBlackColor800),
                             ],
                           )),
+                      if(role=='owner')
                       PopupMenuItem(
                           value: 'delete',
                           child: Row(

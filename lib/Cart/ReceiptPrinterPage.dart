@@ -5,6 +5,7 @@ import 'package:PixiDrugs/Home/HomePageScreen.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:image/image.dart' as img;
+import 'package:network_info_plus/network_info_plus.dart';
 
 class ReceiptPrinterPage extends StatefulWidget {
 
@@ -22,6 +23,18 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   double totalItemAmount = 0;
   double totalDiscount = 0;
   double totalAmount = 0;
+  String printerIp = '192.168.1.251';
+  List<String> _foundPrinters = [];
+
+  Future<void> savePrinterIp(String ip) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('printer_ip', ip);
+  }
+
+  Future<String?> getPrinterIp() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('printer_ip');
+  }
 
   @override
   void initState() {
@@ -34,6 +47,16 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
     totalItemAmount=calculateItemTotal(products.items);
     totalDiscount=calculateTotalDiscount(products.items);
     totalAmount=totalItemAmount - totalDiscount;
+
+    getPrinterIp().then((value) {
+      if (value != null) {
+        setState(() {
+          printerIp = value;
+        });
+      }else{
+        _manualScan();
+      }
+    });
   }
   double calculateItemTotal(List<SaleItem> items) {
     double totalOriginal= 0;
@@ -85,11 +108,52 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
 
     return grayscale;
   }
+
+  void _showManualEntryIPAddress() {
+    showDialog(
+      context: context,
+      builder: (_) => EditValueDialog(
+          title: 'IP Address',
+          initialValue: printerIp,
+         onSave: (value) {
+            setState(() {
+              printerIp=value;
+            });
+            savePrinterIp(value);
+          },
+      ),
+    );
+  }
+  Future<void> _manualScan() async {
+    setState(() {
+      _foundPrinters.clear();
+    });
+
+    final info = NetworkInfo();
+    String? ip = await info.getWifiIP();
+    String? subnet = ip?.substring(0, ip.lastIndexOf('.'));
+
+    const port = 9100;
+    List<String> activeIps = [];
+
+    for (int i = 1; i <= 254; i++) {
+      String host = '$subnet.$i';
+      try {
+        final socket = await Socket.connect(host, port, timeout: Duration(milliseconds: 300));
+        socket.destroy();
+        activeIps.add(host);
+      } catch (_) {}
+    }
+
+    setState(() {
+      _foundPrinters = activeIps;
+      printerIp=_foundPrinters.first.toString();
+      savePrinterIp(printerIp);
+    });
+  }
   Future<void> _printBill(BuildContext context) async {
     final profile = await CapabilityProfile.load();
     final printer = NetworkPrinter(PaperSize.mm80, profile);
-
-    const String printerIp = '192.168.1.251';
     const int port = 9100;
 
     final PosPrintResult res = await printer.connect(printerIp, port: port);
@@ -159,7 +223,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       AppRoutes.navigateTo(context, HomePage());
       context.read<CartCubit>().clearCart(type: CartType.barcode);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Failed: $res')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Failed: $res.Please Check your IP Address.')));
     }
   }
 
@@ -180,7 +244,25 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                   children: [
                     MyTextfield.textStyle_w600("Print Details", AppUtils.size_16, Colors.black),
                     const SizedBox(height: 20),
-
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        MyTextfield.textStyle_w600('', 16,AppColors.kBlackColor900),
+                        GestureDetector(
+                          onTap: _showManualEntryIPAddress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: AppColors.myGradient,
+                              borderRadius:BorderRadius.circular(5),
+                              border: Border.all(color: AppColors.kPrimary)
+                            ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: MyTextfield.textStyle_w600("Find IP Address", AppUtils.size_14, AppColors.kPrimary),
+                              )),
+                        ),
+                      ],
+                    ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

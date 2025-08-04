@@ -17,8 +17,17 @@ class LedgerDetailsPage extends StatefulWidget {
 }
 
 class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
-  int deleteId = 0;
 
+  int deleteId = 0;
+  String? role;
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+  void loadUserData() async {
+    role = await SessionManager.getRole();
+  }
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -469,6 +478,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                               ],
                                                             ),
                                                           ),
+                                                          if(role=='owner')
                                                           PopupMenuItem(
                                                             value: 'delete',
                                                             child: Row(
