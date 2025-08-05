@@ -243,7 +243,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
 
     context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {
-        if(state.loginResponse.success){
+        if(state.loginResponse.success && state.loginResponse.user?.status=='active'){
           _saveRole(state.loginResponse);
         }else{
           ScaffoldMessenger.of(context).showSnackBar(

@@ -59,7 +59,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     discountAmount = cartItems.fold(0.0, (sum, item) {
       final mrp = double.tryParse(item.mrp) ?? 0.0;
       final qty = item.qty;
-      final discountSale = double.tryParse(item.discountSale) ?? 0.0;
+      final discountSale = double.tryParse(item.discountSale??'') ?? 0.0;
       final itemDiscount = item.discountType == DiscountType.percent
           ? (mrp * qty) * (discountSale / 100)
           : discountSale * qty;

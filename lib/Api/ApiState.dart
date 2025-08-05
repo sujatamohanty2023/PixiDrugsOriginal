@@ -425,7 +425,8 @@ class StaffAddLoading extends ApiState {}
 
 class StaffAddLoaded extends ApiState {
   final String message;
-  StaffAddLoaded({required this.message});
+  final String status;
+  StaffAddLoaded({required this.message,required this.status});
 }
 
 class StaffAddError extends ApiState {
@@ -437,7 +438,8 @@ class StaffEditLoading extends ApiState {}
 
 class StaffEditLoaded extends ApiState {
   final String message;
-  StaffEditLoaded({required this.message});
+  final String status;
+  StaffEditLoaded({required this.message,required this.status});
 }
 
 class StaffEditError extends ApiState {

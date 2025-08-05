@@ -346,6 +346,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       items: updatedItems,
       netAmount: netAmount,
       invoiceDate: formattedDate,
+      userId: userId
     );
 
     print("📄 Invoice: ${newInvoice.toJson()}");

@@ -128,8 +128,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                 itemBuilder: (item) => ProductCard(
                     item: item,
                     mode: ProductCardMode.cart,
-                  barcodeScan: widget.barcodeScan,
-                    showRemoveIcon:true,
+                    barcodeScan: widget.barcodeScan,
+                    saleCart:true,
                     editable: true,
                 ),
               ),

@@ -104,17 +104,17 @@ class Invoice {
   }
 }
 class InvoiceItem {
-    int id;
+    int? id;
    String hsn;
    String product;
-   String composition;
+   String? composition;
    String packing;
    String batch;
    String mrp;
    String rate;
    String taxable;
    String discount;
-    String discountSale;
+    String? discountSale;
    String expiry;
    int qty;
    int qty_free;
@@ -127,17 +127,17 @@ class InvoiceItem {
     int returnQty;
 
     InvoiceItem({
-    this.id=0,
+    this.id,
     this.hsn='',
     this.product='',
-    this.composition='',
+    this.composition,
     this.packing='',
     this.batch='',
     this.mrp='',
     this.rate='',
     this.taxable='',
     this.discount='0',
-    this.discountSale='0',
+    this.discountSale,
     this.expiry='',
     this.qty=0,
     this.qty_free=0,
@@ -228,9 +228,14 @@ class InvoiceItem {
     }
     return 0;
   }
-    static int parseId(String? id) {
-      if (id == null) return 0;
-      return int.parse(id);
+
+    static int? parseId(String? id) {
+      if (id == null || id.trim().isEmpty) return null;
+      return int.tryParse(id);
+    }
+    static String? parseNullString(String? composition) {
+      if (composition == null || composition.trim().isEmpty) return null;
+      return composition;
     }
 
   /// Parse last valid double number from messy string input (handles commas, newlines)
@@ -317,7 +322,7 @@ class InvoiceItem {
     final qtyFree = parseQtyFree(qtyRaw);
 
     return InvoiceItem(
-      id: parseId(normalized['id']??'0'),
+      id: parseId(normalized['id']),
       hsn: normalized['Product_Code']??normalized['hsn_code'] ?? normalized['hsn']?? normalized['HSN'] ?? normalized['Product Code']??'',
       product: normalized['product name'] ??
           normalized['product Name'] ??
@@ -328,14 +333,14 @@ class InvoiceItem {
           normalized['drugname'] ??
           normalized['name'] ??
           '',
-      composition: normalized['composition']??'',
+      composition: parseNullString(normalized['composition']),
       packing: normalized['pack'] ?? normalized['package'] ?? normalized['packing'] ?? '',
       batch:normalized['Batch No']?? normalized['batch no'] ??normalized['batch_no'] ?? normalized['batch'] ?? normalized['batch number'] ?? '',
       mrp: mrpValue.toStringAsFixed(2),
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
       discount: discountValue.toString(),
-      discountSale: normalized['discountSale']??'',
+      discountSale: parseNullString(normalized['discountSale']),
       expiry: normalized['expiry date'] ??
           normalized['expiry'] ??
           normalized['exp'] ??
@@ -347,22 +352,22 @@ class InvoiceItem {
       qty_free: qtyFree,
       gst: gstValue.toStringAsFixed(2),
       total: parseTotal(normalized),
-      invoice_purchase_id: parseId(normalized['invoice_purchase_id']),
+      invoice_purchase_id: parseId(normalized['invoice_purchase_id'])??0,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
+    if (id != null) 'id': id,
     'hsn': hsn,
     'product': product,
-    'composition': composition,
+    if (composition != null) 'composition': composition,
     'packing': packing,
     'batch_no': batch,
     'mrp': mrp,
     'rate': rate,
     'taxable': taxable,
     'discount': discount,
-    'discountSale': discountSale,
+    if (discountSale != null) 'discountSale': discountSale,
     'expiry': expiry,
     'quantity': qty,
     'qty_free': qty_free,

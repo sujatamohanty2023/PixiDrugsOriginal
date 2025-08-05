@@ -1,5 +1,4 @@
 import 'package:PixiDrugs/SaleReturn/SaleReturnScreen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:PixiDrugs/Home/HomePageScreen.dart';
 import 'package:PixiDrugs/SplashScreen.dart';
 import 'package:PixiDrugs/Stock/ProductList.dart';

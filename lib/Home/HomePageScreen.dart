@@ -23,11 +23,11 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        return HomeTab(onGoToCart: () => switchToTab(1));
+        return HomeTab(onGoToCart: () => switchToTab(2));
       case 1:
-        return CartTab(barcodeScan: true, onPressedProduct: () {});
-      case 2:
         return ListScreen(type:ListType.ledger);
+      case 2:
+      return CartTab(barcodeScan: true, onPressedProduct: () {});
       case 3:
         return ProductListPage(flag: 1);
       case 4:
@@ -64,19 +64,19 @@ class _HomePageState extends State<HomePage> {
           ),
           TabItem(
             icon: SvgPicture.asset(
-              AppImages.scan_cart,
-              height: 24,
-              color: selectedPos == 1 ?AppColors.kWhiteColor : AppColors.kPrimaryLight,
-            ),
-            title: 'Cart',
-          ),
-          TabItem(
-            icon: SvgPicture.asset(
               AppImages.ledger,
               height: 24,
               color: selectedPos == 2 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Ledger',
+          ),
+          TabItem(
+            icon: SvgPicture.asset(
+              AppImages.scan_cart,
+              height: 24,
+              color: selectedPos == 1 ?AppColors.kWhiteColor : AppColors.kPrimaryLight,
+            ),
+            title: 'Sell',
           ),
           TabItem(
             icon: SvgPicture.asset(

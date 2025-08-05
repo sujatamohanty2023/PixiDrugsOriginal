@@ -128,25 +128,36 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         body: BlocListener<ApiCubit, ApiState>(
           listener: (context, state) {
             if (state is StaffAddLoaded) {
-              setState(() {
-                Navigator.pop(context); // Use caution here
+              if(state.status=='success') {
+                setState(() {
+                  Navigator.pop(context); // Use caution here
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(state.message)),
+                  );
+                });
+              }else{
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text(state.message)),
                 );
-              });
+              }
             } else if (state is StaffAddError) {
               Navigator.pop(context); // Use caution here
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Failed to add: ${state.error}')),
               );
             }else if (state is StaffEditLoaded) {
-              setState(() {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(state.message)),
-                );
-              });
+              if(state.status=='success') {
+                setState(() {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(state.message)),
+                  );
+                });
+              }else{
+
+              }
             } else if (state is StaffEditError) {
               Navigator.pop(context); // Use caution here
               ScaffoldMessenger.of(context).showSnackBar(

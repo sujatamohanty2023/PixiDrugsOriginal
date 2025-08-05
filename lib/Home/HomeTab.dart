@@ -187,24 +187,6 @@ class _HomeTabState extends State<HomeTab> {
                   crossAxisSpacing: 12,
                   children: [
                     GestureDetector(
-                      onTap: _UploadInvoice,
-                      child: _buildTaskCard(
-                        title: "Upload Invoice",
-                        tasks: "Create a new invoice",
-                        icon: AppImages.add_invoice,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        AppRoutes.navigateTo(context, ListScreen(type:ListType.invoice));
-                      },
-                      child: _buildTaskCard(
-                        title: "Invoice History",
-                        tasks: "View all previous invoices",
-                        icon: AppImages.invoice_list,
-                      ),
-                    ),
-                    GestureDetector(
                       onTap: _newSaleEntry,
                       child: _buildTaskCard(
                         title: "New Sale Entry",
@@ -220,6 +202,24 @@ class _HomeTabState extends State<HomeTab> {
                         title: "Sales Report",
                         tasks: "Track sales summary",
                         icon: AppImages.sale_list,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _UploadInvoice,
+                      child: _buildTaskCard(
+                        title: "Upload Invoice",
+                        tasks: "Create a new invoice",
+                        icon: AppImages.add_invoice,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        AppRoutes.navigateTo(context, ListScreen(type:ListType.invoice));
+                      },
+                      child: _buildTaskCard(
+                        title: "Invoice History",
+                        tasks: "View all previous invoices",
+                        icon: AppImages.invoice_list,
                       ),
                     ),
                     GestureDetector(
@@ -254,8 +254,8 @@ class _HomeTabState extends State<HomeTab> {
                         );
                       },
                       child: _buildTaskCard(
-                        title: "Stockiest Return",
-                        tasks: "Return products back to stockiest or suppliers",
+                        title: "Stockist Return",
+                        tasks: "Return products back to stockist or suppliers",
                         icon: AppImages.purchase_return,
                       ),
                     ),
@@ -291,7 +291,7 @@ class _HomeTabState extends State<HomeTab> {
                         AppRoutes.navigateTo(context, ListScreen(type:ListType.saleReturn));
                       },
                       child: _buildTaskCard(
-                        title: "sale Return List",
+                        title: "Sale Return List",
                         tasks: "View returns received from customers",
                         icon: AppImages.customer_return,
                       ),

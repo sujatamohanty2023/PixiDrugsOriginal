@@ -443,8 +443,8 @@ class ApiCubit extends Cubit<ApiState> {
       final response = await apiRepository.Staff(id, name, email, phone_number, gender, dob, address,
                         password, password_confirmation, store_id, status,);
       final data = response['message'];
-
-      emit(StaffEditLoaded(message: data));
+      final status1 = response['status'];
+      emit(StaffEditLoaded(message: data,status:status1));
     } catch (e) {
       emit(StaffEditError('Failed to Staff: $e'));
     }
@@ -465,7 +465,8 @@ class ApiCubit extends Cubit<ApiState> {
       final response = await apiRepository.Staff('',name, email, phone_number, gender, dob, address,
           password, password_confirmation, store_id,'');
       final message = response['message'];
-      emit(StaffAddLoaded(message: message));
+      final status = response['status'];
+      emit(StaffAddLoaded(message: message,status:status ));
     } catch (e) {
       emit(StaffAddError('Failed to Delete data: $e'));
     }

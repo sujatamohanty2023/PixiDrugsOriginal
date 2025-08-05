@@ -51,7 +51,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     final selectedItems = return_invoice!.items
         .where((item) => item.isSelected == true && item.returnQty > 0)
         .map((item) => ReturnItemModel(
-      productId: item.id,
+      productId: item.id!,
       quantity: item.returnQty,
       rate: item.rate,
       batchNo: item.batch,

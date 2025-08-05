@@ -6,7 +6,7 @@ class ProductCard extends StatefulWidget {
   final InvoiceItem item;
   final ProductCardMode mode;
   final bool editable;
-  final bool showRemoveIcon;
+  final bool saleCart;
   final bool barcodeScan;
   final VoidCallback? onRemove;
   final VoidCallback? onUpdate;
@@ -16,7 +16,7 @@ class ProductCard extends StatefulWidget {
     required this.item,
     this.mode = ProductCardMode.search,
     this.editable = false,
-    this.showRemoveIcon = false,
+    this.saleCart = false,
     this.barcodeScan = false,
     this.onRemove,
     this.onUpdate,
@@ -63,7 +63,7 @@ class _ProductCardState extends State<ProductCard> {
               padding: const EdgeInsets.all(8.0),
               child: Stack(
                 children: [
-                  if (widget.showRemoveIcon && isCartMode)
+                  if (widget.editable && isCartMode)
                     _buildRemoveIcon(context, cartCubit),
                   Row(
                     children: [
@@ -109,7 +109,7 @@ class _ProductCardState extends State<ProductCard> {
       children: [
         MyTextfield.textStyle_w600(item.product, 18, Colors.black),
         MyTextfield.textStyle_w200('Batch No.${item.batch}', 12, AppColors.kPrimary),
-        MyTextfield.textStyle_w200(item.composition, 12, Colors.grey[600]!),
+        MyTextfield.textStyle_w200(item.composition??'', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
         MyTextfield.textStyle_w600("${AppString.Rupees}${item.mrp}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
@@ -127,11 +127,11 @@ class _ProductCardState extends State<ProductCard> {
                   onChanged: (val) {
                     final discount = double.tryParse(val) ?? 0.0;
                     item.discount = discount.toString();
-                    if (isEditable) {
+                    if (widget.saleCart==false && isEditable) {
                       widget.onUpdate?.call();
                     } else {
                       cartCubit.updateItemDiscount(
-                        item.id,
+                        item.id!,
                         discount,
                         type: widget.barcodeScan ? CartType.barcode : CartType.main,
                         discountType: item.discountType,
@@ -160,9 +160,7 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = widget.barcodeScan
-                  ? state.barcodeCartItems.firstWhere((e) => e.id == item.id)
-                  : state.cartItems.firstWhere((e) => e.id == item.id);
+              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == item.id);
             } catch (e) {
               cartItem = null;
             }
@@ -190,7 +188,7 @@ class _ProductCardState extends State<ProductCard> {
                     type: 0,
                     icon: Icons.remove,
                     onTap: () {
-                      if (isEditable) {
+                      if (widget.saleCart==false && isEditable) {
                         if (item.qty <= 1) {
                           widget.onRemove?.call();
                         } else {
@@ -201,15 +199,11 @@ class _ProductCardState extends State<ProductCard> {
                         widget.onUpdate?.call();
                       } else {
                         if (quantity <= 1) {
-                          cartCubit.removeFromCart(item.id,
-                              type: widget.barcodeScan
-                                  ? CartType.barcode
-                                  : CartType.main);
+                          cartCubit.removeFromCart(item.id!,
+                              type: CartType.barcode);
                         } else {
-                          cartCubit.decrementQuantity(item.id,
-                              type: widget.barcodeScan
-                                  ? CartType.barcode
-                                  : CartType.main);
+                          cartCubit.decrementQuantity(item.id!,
+                              type: CartType.barcode);
                         }
                       }
                     },
@@ -221,16 +215,14 @@ class _ProductCardState extends State<ProductCard> {
                     type: 1,
                     icon: Icons.add,
                     onTap: () {
-                      if (isEditable) {
+                      if (widget.saleCart==false && isEditable) {
                         setState(() {
                           item.qty++;
                         });
                         widget.onUpdate?.call();
                       } else {
-                        cartCubit.incrementQuantity(item.id,
-                            type: widget.barcodeScan
-                                ? CartType.barcode
-                                : CartType.main);
+                        cartCubit.incrementQuantity(item.id!,
+                            type: CartType.barcode);
                       }
                     },
                   ),
@@ -245,17 +237,11 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildQuantityDisplay() {
     return Builder(
       builder: (context) {
-        return widget.editable?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
+        return widget.saleCart==false && widget.editable?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
             :BlocBuilder<CartCubit, CartState>(
           builder: (context, state) {
-            final quantity = widget.barcodeScan
-                ? state.barcodeCartItems.firstWhere(
-                  (e) => e.id == item.id,
-              orElse: () => item,
-            ).qty
-                : state.cartItems.firstWhere(
-                  (e) => e.id == item.id,
-              orElse: () => item,
+            final quantity = state.barcodeCartItems.firstWhere(
+                  (e) => e.id == item.id
             ).qty;
 
             return MyTextfield.textStyle_w600(quantity.toString(), 18, Colors.black87);
@@ -337,7 +323,7 @@ class _ProductCardState extends State<ProductCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       MyTextfield.textStyle_w600(item.product, 16, Colors.black),
-                      MyTextfield.textStyle_w200(item.composition, 12, Colors.grey[600]!, maxLines: 2),
+                      MyTextfield.textStyle_w200(item.composition??'', 12, Colors.grey[600]!, maxLines: 2),
                     ],
                   ),
                 ),
@@ -349,9 +335,9 @@ class _ProductCardState extends State<ProductCard> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      if (!widget.editable) {
-                        cartCubit.removeFromCart(item.id,
-                            type: widget.barcodeScan ? CartType.barcode : CartType.main);
+                      if (widget.saleCart) {
+                        cartCubit.removeFromCart(item.id!,
+                            type: CartType.barcode);
                       } else {
                         widget.onRemove?.call();
                         widget.onUpdate?.call();

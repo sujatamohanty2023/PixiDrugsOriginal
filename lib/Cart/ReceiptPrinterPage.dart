@@ -220,11 +220,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.disconnect();
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Success: $res')));
-      AppRoutes.navigateTo(context, HomePage());
-      context.read<CartCubit>().clearCart(type: CartType.barcode);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Failed: $res.Please Check your IP Address.')));
     }
+    AppRoutes.navigateTo(context, HomePage());
+    context.read<CartCubit>().clearCart(type: CartType.barcode);
   }
 
 
