@@ -315,7 +315,7 @@ class InvoiceItem {
     parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
     final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']);
     final discountValue =
-    parseNumberFromString(normalized['disc'] ??normalized['Disc'] ?? normalized['dis'] ?? normalized['discount']);
+    parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis'] ?? normalized['discount']);
 
     final qtyRaw = normalized['quantity'] ?? normalized['qty'] ?? '0';
     final qty = parseQty(qtyRaw);
@@ -351,7 +351,9 @@ class InvoiceItem {
       qty: qty,
       qty_free: qtyFree,
       gst: gstValue.toStringAsFixed(2),
-      total: parseTotal(normalized),
+      total: parseNullString(normalized['TOTAL']?? normalized['total']?? normalized['Amount']?? normalized['amount']
+          ?? normalized['Net Amount']?? normalized['net amount'])??'',
+      //total:parseTotal(normalized),
       invoice_purchase_id: parseId(normalized['invoice_purchase_id'])??0,
     );
   }

@@ -15,11 +15,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  final List<String> bannerList = [
-    'assets/images/banner1.jpeg',
-    'assets/images/banner2.jpeg',
-    'assets/images/banner3.jpeg',
-  ];
+  final List<String> bannerList = [];
 
   PageController _pageController = PageController();
   int _currentPage = 0;
@@ -32,6 +28,7 @@ class _HomeTabState extends State<HomeTab> {
   @override
   void initState() {
     super.initState();
+    _GetBanner();
     _GetProfileCall();
     _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
       if (_currentPage < bannerList.length - 1) {
@@ -45,6 +42,23 @@ class _HomeTabState extends State<HomeTab> {
         duration: Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
+    });
+  }
+  void _GetBanner() async {
+    context.read<ApiCubit>().fetchBanner();
+    context.read<ApiCubit>().stream.listen((state) {
+      if (state is BannerLoaded) {
+        setState(() {
+          bannerList.clear();
+          for (int i = 0; i < state.banner.length; i++) {
+            bannerList.add(state.banner[i].photo);
+          }
+        });
+      } else if (state is BannerError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${state.error}')),
+        );
+      }
     });
   }
   void _GetProfileCall() async {
@@ -167,7 +181,7 @@ class _HomeTabState extends State<HomeTab> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
-                            image: AssetImage(bannerList[index]),
+                            image: NetworkImage('http://pixidrugs.com/${bannerList[index]}'),
                             fit: BoxFit.cover,
                           ),
                         ),

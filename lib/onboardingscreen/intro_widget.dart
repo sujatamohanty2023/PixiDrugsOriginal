@@ -97,7 +97,7 @@ class IntroWidget extends StatelessWidget {
                   child:MyElevatedButton(
                     onPressed: () async {
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('onboarding_completed', true);
+                      await prefs.setBool('onBoardComplete', true);
                       Navigator.pushNamed(context, '/login');
                     },
                     custom_design: false,

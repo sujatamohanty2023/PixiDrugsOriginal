@@ -37,6 +37,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   InvoiceItem? product;
   Invoice? invoice;
 
+  bool _isLoading = true;
+
   final _accessKey = 'AKIAZOZQGAKUA3XO3NB7';
   final _secretKey = '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';
   final _region = 'us-east-1';
@@ -47,6 +49,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     _initialize();
   }
   Future<void> _initialize() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       Invoice? loadedInvoice;
 
@@ -79,6 +84,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to read invoice data')),
       );
+    }finally {
+      setState(() {
+        _isLoading = false; // End loading
+      });
     }
   }
   Future<Invoice> InvoiceRead()async{
@@ -276,7 +285,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           decoration: const BoxDecoration(
             gradient: AppColors.myGradient,
           ),
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.kPrimary,)) // Show loader
+            :SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,7 +452,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         ),
       ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Row(
+        floatingActionButton:_isLoading
+            ? null // Hide buttons while loading
+            :  Row(
           children: [
             if (currentIndex > 0)
               Expanded(
