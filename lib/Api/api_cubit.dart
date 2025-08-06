@@ -125,7 +125,8 @@ class ApiCubit extends Cubit<ApiState> {
       emit(InvoiceAddLoading());
       final response = await apiRepository.post_Invoice(invoice);
       final message = response['message'];
-      emit(InvoiceAddLoaded(message: message));
+      final status = response['status'];
+      emit(InvoiceAddLoaded(message: message,status: status));
     } catch (e) {
       emit(InvoiceAddError('Failed to fetch data: $e'));
     }
@@ -136,7 +137,8 @@ class ApiCubit extends Cubit<ApiState> {
       emit(InvoiceEditLoading());
       final response = await apiRepository.edit_Invoice(invoice);
       final message = response['message'];
-      emit(InvoiceEditLoaded(message: message));
+      final status = response['status'];
+      emit(InvoiceEditLoaded(message: message,status: status));
     } catch (e) {
       emit(InvoiceEditError('Failed to edit data: $e'));
     }

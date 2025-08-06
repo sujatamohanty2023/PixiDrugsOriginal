@@ -15,6 +15,7 @@ class InvoiceSummaryPage extends StatefulWidget {
 
 class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   late Invoice invoice;
+  String? netAmount='';
 
   @override
   void initState() {
@@ -26,24 +27,45 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     });
   }
   void handleApiState(BuildContext context, ApiState state) {
-    if (state is InvoiceAddLoaded || state is InvoiceEditLoaded) {
+    if (state is InvoiceAddLoaded) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state is InvoiceAddLoaded ? state.message : (state as InvoiceEditLoaded).message)),
+        SnackBar(content: Text(state.message)),
+      );
+
+        // Navigate to the listing page after a short delay
+        Future.delayed(Duration(milliseconds: 500), () {
+          if(state.status =='success') {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) =>
+                  ListScreen(type: ListType.invoice)),
+                  (route) => false,
+            );
+          }
+        });
+    }else if (state is InvoiceEditLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(state.message)),
       );
 
       // Navigate to the listing page after a short delay
       Future.delayed(Duration(milliseconds: 500), () {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => ListScreen(type:state is InvoiceAddLoaded || state is InvoiceEditLoaded ?ListType.invoice:ListType.sale)),
-              (route) => false,
-        );
+        if(state.status=='success') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) =>
+                ListScreen(type: ListType.invoice )),
+                (route) => false,
+          );
+        }
       });
-    } else if (state is InvoiceAddError || state is InvoiceEditError) {
+    }  else if (state is InvoiceAddError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          state is InvoiceAddError ? state.error : (state as InvoiceEditError).error,
-        )),
+        SnackBar(content: Text( state.error)),
+      );
+    }else if ( state is InvoiceEditError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(state.error)),
       );
     }
   }
@@ -127,7 +149,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
 
   Widget _buildProductCard(InvoiceItem product, int index) {
-    final productName = product.product?.isNotEmpty == true ? product.product! : 'Product ${index + 1}';
+    final productName = product.product.isNotEmpty == true ? product.product! : 'Product ${index + 1}';
 
     final fields = {
       'HSN ': product.hsn,
@@ -202,7 +224,8 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   @override
   Widget build(BuildContext context) {
     final items = invoice.items;
-
+    netAmount=calculateNetAmount(items);
+    print('netAmount$netAmount');
     return Scaffold(
       appBar: AppUtils.BaseAppBar(
         context: context,
@@ -267,7 +290,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     MyTextfield.textStyle_w600("Amount: ", AppUtils.size_18, AppColors.kBlackColor800),
-                    MyTextfield.textStyle_w800(calculateNetAmount(invoice.items), AppUtils.size_18, AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(netAmount??'', AppUtils.size_18, AppColors.kPrimary),
                   ],
                 ),
               ),
@@ -320,8 +343,8 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
 
   InvoiceItem applyDiscountPercent(InvoiceItem item) {
-    final mrp = double.tryParse(item.mrp ?? '') ?? 0.0;
-    final rate = double.tryParse(item.rate ?? '') ?? 0.0;
+    final mrp = double.tryParse(item.mrp.replaceAll(',', ''))??0;
+    final rate = double.tryParse(item.rate .replaceAll(',', ''))??0;
     if (mrp == 0 || rate == 0) return item;
     final discountPercent = ((mrp - rate) / mrp) * 100;
     return item.copyWith(discount: discountPercent.toStringAsFixed(2));
@@ -330,7 +353,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   String calculateNetAmount(List<InvoiceItem> items) {
     double sum = 0.0;
     for (var item in items) {
-      final total = double.tryParse(item.total) ?? 0.0;
+      final total = double.tryParse(item.total.replaceAll(',', '')) ?? 0.0;
       sum += total;
     }
     return sum.toStringAsFixed(2);
@@ -338,8 +361,8 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
 
   Future<void> AddInvoiceApiCall() async {
     String? userId = await SessionManager.getUserId();
-    final updatedItems = invoice.items.map(applyDiscountPercent).toList();
-    final netAmount = calculateNetAmount(updatedItems);
+    //final updatedItems = invoice.items.map(applyDiscountPercent).toList();
+    final updatedItems = invoice.items;
     final formattedDate = formatDate(invoice.invoiceDate);
 
     final newInvoice = invoice.copyWith(

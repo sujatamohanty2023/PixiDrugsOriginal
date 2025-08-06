@@ -200,7 +200,7 @@ PreferredSizeWidget customAppBar(BuildContext context,
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  flag==2 || flag==3?
+                  flag==2 || flag==3|| flag==4?
                   GestureDetector(
                     onTap: (){
                       Navigator.pop(context);

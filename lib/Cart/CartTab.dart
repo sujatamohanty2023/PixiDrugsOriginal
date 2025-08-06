@@ -38,8 +38,6 @@ class _CartTabState extends State<CartTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: cartAppBar(context),
-
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
           if (state is BarcodeScanLoaded && state.source=='scan') {
@@ -58,7 +56,12 @@ class _CartTabState extends State<CartTab> {
             );
           }
         },
-        child: _buildCartContent(context),
+        child: Column(
+          children: [
+            cartAppBar(context),  // Moved here
+            Expanded(child: _buildCartContent(context)),
+          ],
+        ),
       ),
     );
   }
@@ -147,49 +150,81 @@ class _CartTabState extends State<CartTab> {
     final textRecognizer = TextRecognizer();
     final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
-    String? batchNumber;
+    final List<String> allLines = [];
 
     for (TextBlock block in recognizedText.blocks) {
-      for (var line in block.lines) {
-        print('Recognized line: ${line.text}');
+      for (TextLine line in block.lines) {
+        final lineText = line.text.trim();
+        allLines.add(lineText);
+        print('Recognized line: $lineText');
+      }
+    }
 
-        final pattern = RegExp(
-          r'\b(?:b[\.\s]*no[\.\s]*)[:\s]*([A-Z0-9\-]+)',
-          caseSensitive: false,
-        );
+    String? batchNumber;
 
-        final match = pattern.firstMatch(line.text);
-        if (match != null) {
-          batchNumber = match.group(1);
-          print("Matched batch number: $batchNumber");
+    final labelPattern = RegExp(r'\b(?:b[\.\s]*no[\.\s]*|batch(?:\s+no[\.\s]*)?)[:\s]*([A-Za-z0-9\-\/]*)', caseSensitive: false);
+    final valuePattern = RegExp(r'^[A-Za-z0-9\-\/]{4,}$');
+
+    for (int i = 0; i < allLines.length; i++) {
+      final line = allLines[i];
+
+      final labelMatch = labelPattern.firstMatch(line);
+      if (labelMatch != null) {
+        // Case 1: batch number is in same line
+        final sameLineValue = labelMatch.group(1);
+        if (sameLineValue != null && sameLineValue.trim().isNotEmpty) {
+          batchNumber = sameLineValue.trim();
+          print("Batch number found on same line: $batchNumber");
           break;
         }
+
+        // Case 2: scan next few lines for batch number
+        for (int j = i + 1; j <= i + 5 && j < allLines.length; j++) {
+          final nextLine = allLines[j].trim();
+          if (valuePattern.hasMatch(nextLine)) {
+            batchNumber = nextLine;
+            print("Batch number found in next lines: $batchNumber");
+            break;
+          }
+        }
       }
+
       if (batchNumber != null) break;
     }
 
     await textRecognizer.close();
 
     if (batchNumber != null && batchNumber.isNotEmpty) {
-      setState(() {
-        extractedBatchNumber = batchNumber!;
-      });
-
-      print("Calling API with batch: $extractedBatchNumber");
-
-      context.read<ApiCubit>().BarcodeScan(
-        code: extractedBatchNumber,
-        storeId: userId,
-        source: 'scan',
-      );
+      _showManualEntryBottomSheet(batchNumber);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Batch number not found')),
       );
+      _showManualEntryBottomSheet('');
     }
   }
 
-  PreferredSizeWidget cartAppBar(BuildContext context) {
+  void _showManualEntryBottomSheet(String batchNumber) {
+    showDialog(
+      context: context,
+      builder: (_) => EditValueDialog(
+          title: 'Batch No.',
+          initialValue:batchNumber,
+          onSave: (value) {
+            setState(() {
+              extractedBatchNumber = value;
+            });
+            context.read<ApiCubit>().BarcodeScan(
+              code: extractedBatchNumber,
+              storeId: userId,
+              source: 'scan',
+            );
+          },
+      ),
+    );
+  }
+
+  Widget cartAppBar(BuildContext context) {
     return PreferredSize(
       preferredSize: const Size.fromHeight(85),
       child: Container(
@@ -220,7 +255,7 @@ class _CartTabState extends State<CartTab> {
                   ),
                 ),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 10),
             ],
           ),
         ),

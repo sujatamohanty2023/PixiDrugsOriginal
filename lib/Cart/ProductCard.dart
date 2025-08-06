@@ -63,7 +63,7 @@ class _ProductCardState extends State<ProductCard> {
               padding: const EdgeInsets.all(8.0),
               child: Stack(
                 children: [
-                  if (widget.editable && isCartMode)
+                  if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
                   Row(
                     children: [
@@ -72,7 +72,7 @@ class _ProductCardState extends State<ProductCard> {
                       Expanded(child: _buildProductDetails(context, cartCubit, isCartMode, isEditable)),
                     ],
                   ),
-                  _buildQuantityControls(context, cartCubit, isCartMode, isEditable),
+                  _buildQuantityControls(context, cartCubit, isCartMode),
                 ],
               ),
             ),
@@ -148,7 +148,7 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildQuantityControls(BuildContext context, CartCubit cartCubit, bool isCartMode, bool isEditable) {
+  Widget _buildQuantityControls(BuildContext context, CartCubit cartCubit, bool isCartMode) {
     final isSearchMode = widget.mode == ProductCardMode.search;
 
     return Positioned(
@@ -188,7 +188,7 @@ class _ProductCardState extends State<ProductCard> {
                     type: 0,
                     icon: Icons.remove,
                     onTap: () {
-                      if (widget.saleCart==false && isEditable) {
+                      if (widget.saleCart==false && widget.editable) {
                         if (item.qty <= 1) {
                           widget.onRemove?.call();
                         } else {
@@ -215,7 +215,7 @@ class _ProductCardState extends State<ProductCard> {
                     type: 1,
                     icon: Icons.add,
                     onTap: () {
-                      if (widget.saleCart==false && isEditable) {
+                      if (widget.saleCart==false && widget.editable) {
                         setState(() {
                           item.qty++;
                         });
@@ -237,7 +237,7 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildQuantityDisplay() {
     return Builder(
       builder: (context) {
-        return widget.saleCart==false && widget.editable?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
+        return widget.mode==ProductCardMode.cart && !widget.saleCart?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
             :BlocBuilder<CartCubit, CartState>(
           builder: (context, state) {
             final quantity = state.barcodeCartItems.firstWhere(

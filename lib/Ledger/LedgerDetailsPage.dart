@@ -83,7 +83,6 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                     ),
                     Container(
                       height: 40,
-                      width: 140,
                       child: MyElevatedButton(
                         onPressed: () => _AddPaymentPressed(widget.ledger!),
                         backgroundColor: AppColors.kPrimaryDark,

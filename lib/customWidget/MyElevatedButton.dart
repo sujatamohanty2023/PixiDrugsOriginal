@@ -23,7 +23,7 @@ class MyElevatedButton extends StatelessWidget {
           : AppStyles.elevatedButton_style(color: backgroundColor),
       child: MyTextfield.textStyle_w800(
           buttonText,
-          custom_design ? 18 : 20,
+          custom_design ? 16 : 20,
           titleColor),
     );
   }

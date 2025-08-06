@@ -111,7 +111,8 @@ class InvoiceEditLoading extends ApiState {}
 
 class InvoiceEditLoaded extends ApiState {
   final String message;
-  InvoiceEditLoaded({required this.message});
+  final String status;
+  InvoiceEditLoaded({required this.message,required this.status});
 }
 
 class InvoiceEditError extends ApiState {
@@ -135,7 +136,8 @@ class InvoiceAddLoading extends ApiState {}
 
 class InvoiceAddLoaded extends ApiState {
   final String message;
-  InvoiceAddLoaded({required this.message});
+  final String status;
+  InvoiceAddLoaded({required this.message,required this.status});
 }
 
 class InvoiceAddError extends ApiState {

@@ -201,7 +201,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     mrpController.text = product?.mrp.toString() ?? '';
     discController.text = product?.discount.toString() ?? '';
     taxableController.text =product?.taxable.toString() ?? '';
-    totalController.text = product?.total.toString() ?? '0.0';
+    totalController.text = product?.total.replaceAll(',', '') ?? '0.0';
   }
   void _clearControllers() {
     batchNoController.clear();
@@ -313,25 +313,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  MyTextfield.textStyle_w600(
-                                    product!.product!.isNotEmpty?product!.product!:'Product $currentIndex',
-                                    AppUtils.size_18,
-                                    Colors.black,
+                                  Flexible(
+                                    child: Text(
+                                      product!.product.isNotEmpty ? product!.product : 'Product $currentIndex',
+                                      style: MyTextfield.textStyle(AppUtils.size_16, AppColors.kPrimary, FontWeight.w600),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 6),
                                   GestureDetector(
                                     onTap: () {
                                       showEditDialog(
                                         context: context,
                                         title: "Edit Product Name",
-                                        initialValue:  product?.product ??
-                                            '',
+                                        initialValue: product?.product ?? '',
                                         onSave: (value) {
                                           setState(() {
-                                            productNameController.text=value;
+                                            productNameController.text = value;
+                                            product?.product = value;
                                           });
                                         },
                                       );
@@ -382,7 +385,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                 /// Fields Layout
                 Row(
                   children: [
-                    Expanded(child:_formField("Batch No",batchNoController,keyboardType: TextInputType.number)),
+                    Expanded(child:_formField("Batch No",batchNoController,keyboardType: TextInputType.text)),
                     const SizedBox(width: 12),
                     Expanded(child: _formField("Expiry Date", expDateController,keyboardType: TextInputType.datetime)),
                   ],
@@ -499,7 +502,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                         product?.mrp = mrpController.text;
                         product?.taxable = taxableController.text;
                         product?.discount = discController.text;
-                        product?.total = totalController.text;
+                        product?.total = totalController.text.replaceAll(',', '');
                       }
 
                       setState(() {
