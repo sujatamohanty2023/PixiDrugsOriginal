@@ -162,7 +162,10 @@ class _CartTabState extends State<CartTab> {
 
     String? batchNumber;
 
-    final labelPattern = RegExp(r'\b(?:b[\.\s]*no[\.\s]*|batch(?:\s+no[\.\s]*)?)[:\s]*([A-Za-z0-9\-\/]*)', caseSensitive: false);
+    final labelPattern = RegExp(
+      r'\b(?:b[\.\s]*no[\.\s]*|batch(?:\s+no[\.\s]*)?)[:\s]*([A-Za-z0-9\-\/]{4,})?',
+      caseSensitive: false,
+    );
     final valuePattern = RegExp(r'^[A-Za-z0-9\-\/]{4,}$');
 
     for (int i = 0; i < allLines.length; i++) {
@@ -170,7 +173,7 @@ class _CartTabState extends State<CartTab> {
 
       final labelMatch = labelPattern.firstMatch(line);
       if (labelMatch != null) {
-        // Case 1: batch number is in same line
+        // Case 1: Value is on the same line
         final sameLineValue = labelMatch.group(1);
         if (sameLineValue != null && sameLineValue.trim().isNotEmpty) {
           batchNumber = sameLineValue.trim();
@@ -178,9 +181,9 @@ class _CartTabState extends State<CartTab> {
           break;
         }
 
-        // Case 2: scan next few lines for batch number
-        for (int j = i + 1; j <= i + 5 && j < allLines.length; j++) {
-          final nextLine = allLines[j].trim();
+        // Case 2: Look ahead in the next 1–3 lines
+        for (int j = 1; j <= 10 && (i + j) < allLines.length; j++) {
+          final nextLine = allLines[i + j].trim();
           if (valuePattern.hasMatch(nextLine)) {
             batchNumber = nextLine;
             print("Batch number found in next lines: $batchNumber");
@@ -203,6 +206,7 @@ class _CartTabState extends State<CartTab> {
       _showManualEntryBottomSheet('');
     }
   }
+
 
   void _showManualEntryBottomSheet(String batchNumber) {
     showDialog(

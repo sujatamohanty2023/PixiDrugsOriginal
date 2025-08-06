@@ -309,8 +309,7 @@ class InvoiceItem {
 
     final gstValue = parseCombinedGst(rawGstString);
 
-    final mrpValue = parseNumberFromString(normalized['mrp']??
-        normalized['mrp'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
+    final mrpValue = parseNumberFromString(normalized['mrp'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
     final rateValue =
     parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
     final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']);
