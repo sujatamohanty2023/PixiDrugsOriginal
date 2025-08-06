@@ -27,15 +27,15 @@ class UserModel {
   final int id;
   final String name;
   final String email;
-  final String? emailVerifiedAt;
+  final String emailVerifiedAt;
   final String photo;
-  final String? profilePicture;
+  final String profilePicture;
   final String role;
-  final String? provider;
-  final String? providerId;
+  final String provider;
+  final String providerId;
   final String status;
-  final String? rememberToken;
-  final String? fcmToken;
+  final String rememberToken;
+  final String fcmToken;
   final String dob;
   final String gander;
   final int parentId;
@@ -47,15 +47,15 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
-    this.emailVerifiedAt,
+    required this.emailVerifiedAt,
     required this.photo,
-    this.profilePicture,
+    required this.profilePicture,
     required this.role,
-    this.provider,
-    this.providerId,
+    required this.provider,
+    required this.providerId,
     required this.status,
-    this.rememberToken,
-    this.fcmToken,
+    required this.rememberToken,
+    required this.fcmToken,
     required this.dob,
     required this.gander,
     required this.parentId,
@@ -66,24 +66,26 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      emailVerifiedAt: json['email_verified_at'],
-      photo: json['photo'],
-      profilePicture: json['profile_picture'],
-      role: json['role'],
-      provider: json['provider'],
-      providerId: json['provider_id'],
-      status: json['status'],
-      rememberToken: json['remember_token'],
-      fcmToken: json['fcm_token'],
-      dob: json['dob'],
-      gander: json['gander'],
-      parentId: json['parent_id'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      phoneNumber: json['phone_number'],
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      emailVerifiedAt: json['email_verified_at']?.toString() ?? '',
+      photo: json['photo']?.toString() ?? '',
+      profilePicture: json['profile_picture']?.toString() ?? '',
+      role: json['role'] ?? '',
+      provider: json['provider']?.toString() ?? '',
+      providerId: json['provider_id']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      rememberToken: json['remember_token']?.toString() ?? '',
+      fcmToken: json['fcm_token']?.toString() ?? '',
+      dob: json['dob']?.toString() ?? '',
+      // ✅ Default if null
+      gander: json['gander']?.toString() ?? '',
+      // ✅ Default if null
+      parentId: json['parent_id'] ?? 0,
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString() ?? '',
+      phoneNumber: json['phone_number']?.toString() ?? '',
     );
   }
 }

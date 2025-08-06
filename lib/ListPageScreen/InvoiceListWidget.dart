@@ -161,7 +161,7 @@ class InvoiceListWidget extends StatelessWidget {
                             icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                           ),
                           SizedBox(height: screenWidth * 0.015),
-                          Container(
+                          /*Container(
                             padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
                             decoration: BoxDecoration(
                               //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
@@ -178,7 +178,7 @@ class InvoiceListWidget extends StatelessWidget {
                                 fontSize: screenWidth * 0.03,
                               ),
                             ),
-                          ),
+                          ),*/
                         ],
                       ),
                     ],

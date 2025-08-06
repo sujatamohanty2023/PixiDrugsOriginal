@@ -314,7 +314,7 @@ class InvoiceItem {
     parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
     final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']);
     final discountValue =
-    parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis'] ?? normalized['discount']);
+    parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['discount']);
 
     final qtyRaw = normalized['quantity'] ?? normalized['qty'] ?? '0';
     final qty = parseQty(qtyRaw);

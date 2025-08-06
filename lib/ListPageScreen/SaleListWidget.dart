@@ -96,10 +96,13 @@ class SaleListWidget extends StatelessWidget {
                   children: [
                     MyTextfield.textStyle_w800(sale.customer.name,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
+                    sale.customer.phone.isNotEmpty && sale.customer.phone!='no number'?
+                    MyTextfield.textStyle_w400('Mob: ${sale.customer.phone}',screenWidth * 0.035,Colors.green.shade700):
+                    MyTextfield.textStyle_w400('Email: ${sale.customer.email}',screenWidth * 0.035,Colors.deepOrange.shade700),
                     MyTextfield.textStyle_w400('Bill No. #${sale.invoiceNo!}',screenWidth * 0.035,Colors.grey.shade700),
                     MyTextfield.textStyle_w400('Dt.${sale.date!}',screenWidth * 0.035,Colors.grey.shade700),
                     SizedBox(height: screenWidth * 0.01),
-                    MyTextfield.textStyle_w600("₹${sale.totalAmount.toStringAsFixed(2)}",screenWidth * 0.049,Colors.green),
+                    MyTextfield.textStyle_w600("₹${sale.totalAmount}",screenWidth * 0.049,Colors.green),
                   ],
                 ),
               ),
@@ -127,6 +130,7 @@ class SaleListWidget extends StatelessWidget {
                               MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kBlackColor800),
                             ],
                           )),
+                      if(sale.customer.phone.isNotEmpty && sale.customer.phone!='no number')
                       PopupMenuItem(value: 'share',
                           child:Row(
                             children: [

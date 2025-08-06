@@ -164,8 +164,8 @@ class _ListScreenState extends State<ListScreen>
     CommonConfirmationDialog.show<String>(
       context: context,
       id: id,
-      title: 'Delete ${widget.type} Record?',
-      content: 'Are you sure you want to delete this ${widget.type} record?',
+      title: 'Delete ${widget.type.name} Record?',
+      content: 'Are you sure you want to delete this ${widget.type.name} record?',
       onConfirmed: (_) => _deleteRecord(id),
     );
   }
@@ -238,6 +238,7 @@ class _ListScreenState extends State<ListScreen>
             onEditPressed: (inv) =>
                 AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)));
       case ListType.sale:
+        print('SaleList${saleList.length}');
         return SaleListWidget(
           sales: saleList,
           isLoading: isLoading,
@@ -570,7 +571,13 @@ class _ListScreenState extends State<ListScreen>
       final file = File('${dir.path}/receipt_${saleItem.invoiceNo}.pdf');
       await file.writeAsBytes(await pdf.save());
 
-      _sharePdfViaWhatsApp(saleItem,file.path);
+      if(saleItem.customer.phone.isNotEmpty && saleItem.customer.phone!='no number') {
+          _sharePdfViaWhatsApp(saleItem,file.path);
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid Mobile No.')),
+        );
+      }
     }
   Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath1) async {
     await shareFileToWhatsApp(

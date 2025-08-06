@@ -19,7 +19,7 @@ class SaleModel {
     return SaleModel(
       invoiceNo: json['invoice_no'],
       date: json['date'],
-      totalAmount: (json['total_amount'] as num).toDouble(),
+      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       profit: (json['profit'] as num).toDouble(),
       customer: Customer.fromJson(json['customer']),
       items: (json['items'] as List).map((e) => SaleItem.fromJson(e)).toList(),
@@ -31,7 +31,7 @@ class SaleModel {
     return SaleModel(
       invoiceNo: json['billing_id'] ?? 0,
       date: '${DateTime.now()}', // Default, as date is not present
-      totalAmount: (json['total_amount'] as num).toDouble(),
+      totalAmount: json['total_amount'],
       profit: 0.0, // Not in the response, default to 0.0
       customer: Customer.fromJson(json['customer']),
       items: (json['items'] as List).map((item) {
@@ -90,7 +90,7 @@ class SaleItem {
 
   factory SaleItem.fromJson(Map<String, dynamic> json) {
     return SaleItem(
-      productId: json['product_id'],
+      productId: int.tryParse(json['product_id']?.toString() ?? '0') ?? 0,
       productName: json['product_name'],
       price: (json['price'] as num).toDouble(),
       quantity: json['quantity'],

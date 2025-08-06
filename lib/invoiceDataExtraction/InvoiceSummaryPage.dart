@@ -121,7 +121,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MyTextfield.textStyle_w600(key, AppUtils.size_14, AppColors.kBlackColor800),
+          MyTextfield.textStyle_w400(key, AppUtils.size_14, AppColors.kGreyColor700),
           widget.details==false?MyTextfield.textStyle_w600('*', AppUtils.size_14, Colors.red):SizedBox(),
           const SizedBox(width: 20),
           Expanded(
@@ -129,10 +129,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: MyTextfield.textStyle_w300(
+                  child: MyTextfield.textStyle_w600(
                     value,
                     AppUtils.size_14,
-                    AppColors.kGreyColor700,
+                    AppColors.kBlackColor800,
                   ),
                 ),
                 widget.details==true?SizedBox():
@@ -186,7 +186,39 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MyTextfield.textStyle_w600("🧴 $productName", AppUtils.size_18, AppColors.kPrimary),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              MyTextfield.textStyle_w600("🧴 $productName", AppUtils.size_18, AppColors.kPrimary),
+              if (widget.details == false)
+                GestureDetector(
+                  onTap: () async {
+                    // 🔥 Navigate to AddPurchaseBill with current invoice and index
+                    final updatedInvoice = await Navigator.push<Invoice>(
+                        context,
+                        MaterialPageRoute(
+                        builder: (_) => AddPurchaseBill(
+                      invoice: invoice.copyWith(items: List.from(invoice.items)), // Pass mutable copy
+                    ),
+                    settings: RouteSettings(arguments: {'edit_product_index': index}),
+                    ),
+                    );
+
+                    // ✅ If we get updated invoice back, update state
+                    if (updatedInvoice != null) {
+                      setState(() {
+                        invoice = updatedInvoice;
+                        netAmount = calculateNetAmount(invoice.items);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Product updated successfully")),
+                      );
+                    }
+                  },
+                  child: Icon(Icons.edit, color: AppColors.kPrimary, size: 18),
+                ),
+            ],
+          ),
           const SizedBox(height: 5),
           Wrap(
             spacing: 5,

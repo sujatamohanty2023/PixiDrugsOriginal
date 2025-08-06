@@ -38,6 +38,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   Invoice? invoice;
 
   bool _isLoading = true;
+  int? editIndex;
 
   final _accessKey = 'AKIAZOZQGAKUA3XO3NB7';
   final _secretKey = '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';
@@ -46,7 +47,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   @override
   void initState() {
     super.initState();
-    _initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initialize();
+    });
   }
   Future<void> _initialize() async {
     setState(() {
@@ -55,11 +58,16 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     try {
       Invoice? loadedInvoice;
 
-      if (widget.path.isEmpty) {
+      // Check if we are in edit mode
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      editIndex = args?['edit_product_index'] as int?;
+
+      if (widget.path.isEmpty && widget.invoice1 != null) {
         loadedInvoice = widget.invoice1;
-      } else {
+      } else if (widget.path.isNotEmpty) {
         loadedInvoice = await InvoiceRead();
-        print("📄 Invoice : ${loadedInvoice.toJson()}");
+      } else {
+        loadedInvoice = widget.invoice1 ?? Invoice(items: [InvoiceItem()]);
       }
 
       setState(() {
@@ -73,21 +81,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           final sanitizedTotal = double.tryParse(item.total.replaceAll(',', '') ?? '') ?? 0;
           total += sanitizedTotal.round();
         }
-        if (productList.isNotEmpty) {
-          currentIndex = 0;
+        if (editIndex != null && editIndex! >= 0 && editIndex! < productList.length) {
+          currentIndex = editIndex!;
           product = productList[currentIndex];
-          _populateControllers();
+        } else {
+          currentIndex = 0;
+          product = productList.isNotEmpty ? productList[0] : InvoiceItem();
         }
+        _populateControllers();
       });
     } catch (e) {
       print("❌ Failed to load invoice: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to read invoice data')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to read invoice data')),
+        );
+      }
     }finally {
-      setState(() {
-        _isLoading = false; // End loading
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // End loading
+        });
+      }
     }
   }
   Future<Invoice> InvoiceRead()async{
@@ -313,16 +328,13 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
+                              Row(
                                 children: [
-                                  Flexible(
-                                    child: Text(
-                                      product!.product.isNotEmpty ? product!.product : 'Product $currentIndex',
-                                      style: MyTextfield.textStyle(AppUtils.size_16, AppColors.kPrimary, FontWeight.w600),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  Text(
+                                    product!.product.isNotEmpty ? product!.product : 'Product $currentIndex',
+                                    style: MyTextfield.textStyle(AppUtils.size_16, AppColors.kPrimary, FontWeight.w600),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(width: 6),
                                   GestureDetector(
@@ -460,7 +472,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             :  Row(
           children: [
             if (currentIndex > 0)
-              Expanded(
+              editIndex != null?SizedBox():Expanded(
                 child:
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -520,19 +532,24 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                             taxableController.text.isNotEmpty &&
                             totalController.text.isNotEmpty) {
                           _saveCurrentProductData();
-
-                          if (currentIndex == totalProducts - 1) {
-                            final updatedJson = invoice!.copyWith(
-                                items: productList).toJson();
-                            print("Updated Invoice JSON: $updatedJson");
-                            final updatedInvoice = invoice!.copyWith(
-                                items: productList);
-                            AppRoutes.navigateTo(context,
-                                InvoiceSummaryPage(invoice: updatedInvoice,edit:widget.path.isEmpty));
-                          } else {
-                            currentIndex++;
-                            product = productList[currentIndex];
-                            _populateControllers();
+                          if (editIndex != null) {
+                            final updatedInvoice = invoice!.copyWith(items: productList);
+                            Navigator.pop(context, updatedInvoice);
+                          }else {
+                            if (currentIndex == totalProducts - 1) {
+                              final updatedJson = invoice!.copyWith(
+                                  items: productList).toJson();
+                              print("Updated Invoice JSON: $updatedJson");
+                              final updatedInvoice = invoice!.copyWith(
+                                  items: productList);
+                              AppRoutes.navigateTo(context,
+                                  InvoiceSummaryPage(invoice: updatedInvoice,
+                                      edit: widget.path.isEmpty));
+                            } else {
+                              currentIndex++;
+                              product = productList[currentIndex];
+                              _populateControllers();
+                            }
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -543,7 +560,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                       });
 
                   },
-                  label: MyTextfield.textStyle_w600(currentIndex == totalProducts - 1 ? "Confirm" : "Next", AppUtils.size_18, AppColors.kWhiteColor),
+                  label: MyTextfield.textStyle_w600( editIndex != null ? "Save" :(currentIndex == totalProducts - 1? "Confirm" : "Next"), AppUtils.size_18, AppColors.kWhiteColor),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: AppColors.kPrimary,

@@ -2,6 +2,7 @@
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../SaleList/sale_model.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
@@ -329,9 +330,28 @@ class ApiRepository {
       );
       print('API URL➡️ Request URL: ${response.requestOptions.uri}');
       print('API URL: $response');
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['bills'] != null) {
+        final List<dynamic> data = response.data['bills'];
+        final List<SaleModel> list = [];
+
+        for (int i = 0; i < data.length; i++) {
+          final item = data[i];
+          try {
+            final model = SaleModel.fromJson(item);
+            list.add(model);
+          } catch (e, stack) {
+            print('❌ API URL: Error parsing item at index $i');
+            print('❌ API URL: Raw item: $item');
+            print('❌ API URL:Error: $e');
+            // Optional: print(stack);  // Uncomment for full stack trace
+          }
+        }
+
+        print('✅ API URL:Parsed ${list.length} items out of ${data.length}');
         return response.data;
+
       } else {
+        print('❌ bills key not found or status not 200');
         throw Exception('Failed to fetch Sale List');
       }
     } catch (e) {
