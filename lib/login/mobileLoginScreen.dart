@@ -15,45 +15,8 @@ class MobileLoginScreen extends StatefulWidget {
 class _MobileLoginScreenState extends State<MobileLoginScreen> {
   final TextEditingController phoneController = TextEditingController();
   String errorMessage = '';
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? verificationId;
+  bool _isLoading = false;
   User? user;
-
-  Future<void> sendOTP() async {
-    final phoneNumber = '+91${phoneController.text.trim()}';
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await _auth.signInWithCredential(credential);
-        print("Automatically signed in");
-        verificationId = credential.verificationId;
-        AppRoutes.navigateTo(
-            context, OtpVerificationScreen(phoneNumber:phoneController.text, verificationId:verificationId!));
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        print("Verification failed: ${e.message}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-              MyTextfield.textStyle_w300('Verification failed: ${e.message}', 16, Colors.white)),
-        );
-      },
-      codeSent: (String verId, int? resendToken) {
-        setState(() {
-          verificationId = verId;
-          AppRoutes.navigateTo(
-              context, OtpVerificationScreen(phoneNumber:phoneController.text,verificationId: verificationId!));
-        });
-        print("OTP Sent");
-      },
-      codeAutoRetrievalTimeout: (String verId) {
-        print("Auto retrieval timeout");
-      },
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -143,15 +106,24 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
 
                     /// 🔘 Continue Button
                     SizedBox(
-                        height: 48,
-                        width: double.infinity,
-                        child:MyElevatedButton(
-                          onPressed: () {
-                            sendOTP();
-                          },
-                          custom_design: false,
-                          buttonText: AppString.continueText,
-                        )
+                      height: 48,
+                      width: double.infinity,
+                      child: MyElevatedButton(
+                        onPressed: () {
+                          if(phoneController.text.isNotEmpty) {
+                            loginApiCall(phoneController.text);
+                          }else{
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                  MyTextfield.textStyle_w300('Please Enter Mobile Number', 16, Colors.white)),
+                            );
+                          }
+                        },
+                        custom_design: false,
+                        buttonText: AppString.continueText,
+                        isLoading: _isLoading,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
@@ -222,14 +194,18 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       setState(() {
         user = userCredential.user;
       });
-      await loginApiCall(user);
+      await loginApiCall(user!.email!);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Sign-in failed: $e")),
       );
     }
   }
-  Future<void> loginApiCall(User? user) async {
+  Future<void> loginApiCall(String text) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     String? fcm_token = await FCMService.getFCMToken();
 
     if (fcm_token == null) {
@@ -238,27 +214,88 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       );
       return;
     }
-    print('API URL: ${user!.email}\n$fcm_token');
-    context.read<ApiCubit>().login(text: user.email!, fcm_token: fcm_token);
+    context.read<ApiCubit>().login(text: text, fcm_token: fcm_token);
 
     context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {
+        setState(() {
+          _isLoading = false;
+        });
+
         if(state.loginResponse.success && state.loginResponse.user?.status=='active'){
-          _saveRole(state.loginResponse);
+          if(text.contains('@')) {
+            _saveRole(state.loginResponse);
+          }else{
+            AppRoutes.navigateTo(
+                context, OtpVerificationScreen(phoneNumber:'+91${phoneController.text.trim()}', loginResponse: state.loginResponse));
+          }
         }else{
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Failed.Please contact our support team')),
-          );
-          AppRoutes.navigateTo(
-              context, Webviewscreen(tittle: 'Contact Us'));
+          showLoginFailedDialog(context);
         }
       } else if (state is LoginError) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(state.error)),
         );
       }
     });
   }
+  Future<void> showLoginFailedDialog(BuildContext context) async {
+    bool _navigatedToContact = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Login Failed',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Please contact our support team for assistance.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (_navigatedToContact) return;
+                _navigatedToContact = true;
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => Webviewscreen(tittle: 'Contact Us'),
+                  ),
+                );
+              },
+              child: const Text(
+                'Contact',
+                style: TextStyle(
+                  color: Colors.blue, // Primary accent color
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _saveRole(LoginResponse loginResponse) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(loginResponse.message)),

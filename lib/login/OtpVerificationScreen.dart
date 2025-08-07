@@ -5,9 +5,9 @@ import '../Profile/WebviewScreen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
-  final String verificationId;
+  final LoginResponse loginResponse;
 
-  const OtpVerificationScreen({super.key, required this.phoneNumber,required this.verificationId});
+  const OtpVerificationScreen({super.key, required this.phoneNumber,required this.loginResponse});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -19,14 +19,48 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
   final FocusNode _focusNode = FocusNode();
   int _resendSeconds = 30;
   late final Timer _timer;
-  late String _currentVerificationId;
+  String? verificationId='';
+  bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? otp;
+
   @override
   void initState() {
     super.initState();
-    _currentVerificationId = widget.verificationId;
+    sendOTP();
     _startResendTimer();
   }
 
+  Future<void> sendOTP() async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: widget.phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential);
+        print("Automatically signed in");
+        setState(() {
+          verificationId = credential.verificationId;
+        });
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        print("Verification failed: ${e.message}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+              MyTextfield.textStyle_w300('Verification failed: ${e.message}', 16, Colors.white)),
+        );
+      },
+      codeSent: (String verId, int? resendToken) {
+        setState(() {
+          verificationId = verId;
+        });
+        print("OTP Sent");
+      },
+      codeAutoRetrievalTimeout: (String verId) {
+        print("Auto retrieval timeout");
+      },
+    );
+  }
   void _startResendTimer() {
     _resendSeconds = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -37,20 +71,24 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
       }
     });
   }
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? otp;
 
   Future<void> firebaseCheck() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final credential = PhoneAuthProvider.credential(
-        verificationId: _currentVerificationId,
+        verificationId: verificationId??'',
         smsCode: otp!,
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
       print("User signed in: ${userCredential.user?.uid}");
-      await loginApiCall();
+      await _saveRole();
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       print("OTP Verification Failed: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("OTP Verification Failed $otp")),
@@ -68,42 +106,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
       );
     }
   }
-
-  Future<void> loginApiCall() async {
-    String? fcm_token = await FCMService.getFCMToken();
-
-    if (fcm_token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to get FCM token")),
-      );
-      return;
-    }
-    print('API URL: ${widget.phoneNumber}\n$fcm_token');
-    context.read<ApiCubit>().login(text: widget.phoneNumber, fcm_token: fcm_token);
-
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is LoginLoaded) {
-        if(state.loginResponse.success && state.loginResponse.user?.status=='active'){
-          _saveRole(state.loginResponse);
-        }else{
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Failed.Please contact our support team')),
-          );
-          AppRoutes.navigateTo(
-              context, Webviewscreen(tittle: 'Contact Us'));
-        }
-      } else if (state is LoginError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.error)),
-        );
-      }
+  Future<void> _saveRole() async {
+    setState(() {
+      _isLoading = false;
     });
-  }
-  Future<void> _saveRole(LoginResponse loginResponse) async {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(loginResponse.message)),
+      SnackBar(content: Text(widget.loginResponse.message)),
     );
-    await SessionManager.saveLoginResponse(loginResponse);
+    await SessionManager.saveLoginResponse(widget.loginResponse);
     Navigator.pop(context);
     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
   }
@@ -115,9 +125,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
       verificationFailed: (FirebaseAuthException e) {
         print('Verification failed: ${e.message}');
       },
-      codeSent: (String verificationId, int? resendToken) {
+      codeSent: (String verificationId1, int? resendToken) {
         setState(() {
-          _currentVerificationId = verificationId; // ✅ update it here
+          verificationId = verificationId1; // ✅ update it here
           _resendSeconds = 30;
           _startResendTimer();
         });
@@ -134,6 +144,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
     for (var controller in _otpControllers) {
       controller.dispose();
     }
+    _focusNode.dispose();
     _timer.cancel();
     super.dispose();
   }
@@ -245,6 +256,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
                         onPressed:_verifyOTP,
                         custom_design: false,
                         buttonText: AppString.verify_continue,
+                        isLoading: _isLoading,
                       )
                   ),
                   const SizedBox(height: 24),
