@@ -17,6 +17,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
   String errorMessage = '';
   bool _isLoading = false;
   User? user;
+  StreamSubscription? _loginSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -201,6 +202,12 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       );
     }
   }
+
+  @override
+  void dispose() {
+    _loginSubscription?.cancel();
+    super.dispose();
+  }
   Future<void> loginApiCall(String text) async {
     setState(() {
       _isLoading = true;
@@ -216,7 +223,9 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
     }
     context.read<ApiCubit>().login(text: text, fcm_token: fcm_token);
 
-    context.read<ApiCubit>().stream.listen((state) {
+    await _loginSubscription?.cancel();
+
+    _loginSubscription = context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {
         setState(() {
           _isLoading = false;
@@ -250,44 +259,31 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            'Login Failed',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: const Text(
-            'Please contact our support team for assistance.',
-            style: TextStyle(fontSize: 16),
-          ),
+          title: MyTextfield.textStyle_w600("Login Failed", 25, AppColors.kPrimary),
+          content: MyTextfield.textStyle_w300("Please contact our support team for assistance.", 16, AppColors.kBlackColor800),
           actions: [
             TextButton(
-              onPressed: () {
-                if (_navigatedToContact) return;
-                _navigatedToContact = true;
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => Webviewscreen(tittle: 'Contact Us'),
-                  ),
-                );
-              },
-              child: const Text(
-                'Contact',
-                style: TextStyle(
-                  color: Colors.blue, // Primary accent color
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+              child: MyTextfield.textStyle_w800('Cancel', 18, AppColors.kRedColor),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color:AppColors.kPrimary,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.kPrimaryDark, width: 1),
+              ),
+              child: TextButton(
+                onPressed: (){
+                  if (_navigatedToContact) return;
+                  _navigatedToContact = true;
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => Webviewscreen(tittle: 'Contact Us'),
+                    ),
+                  );
+                },
+                child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
               ),
             ),
           ],

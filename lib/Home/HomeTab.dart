@@ -8,8 +8,8 @@ import '../BarcodeScan/barcode_screen_page.dart';
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
-
-  const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
+  UserProfileResponse? userModel;
+  HomeTab({Key? key, required this.onGoToCart,this.userModel}) : super(key: key);
   @override
   _HomeTabState createState() => _HomeTabState();
 }
@@ -28,8 +28,10 @@ class _HomeTabState extends State<HomeTab> {
   @override
   void initState() {
     super.initState();
+    name=widget.userModel?.user.name;
+    email=widget.userModel?.user.email;
+    image=widget.userModel?.user.profilePicture;
     _GetBanner();
-    _GetProfileCall();
     _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
       if (_currentPage < bannerList.length - 1) {
         _currentPage++;
@@ -55,29 +57,6 @@ class _HomeTabState extends State<HomeTab> {
           }
         });
       } else if (state is BannerError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
-      }
-    });
-  }
-  void _GetProfileCall() async {
-    String? userId = await SessionManager.getUserId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId);
-    } else {
-      setState(() {
-
-      });
-    }
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is UserProfileLoaded) {
-        setState(() {
-          name = state.userModel.user.name;
-          email = state.userModel.user.email;
-          image = state.userModel.user.profilePicture;
-        });
-      } else if (state is UserProfileError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed: ${state.error}')),
         );
