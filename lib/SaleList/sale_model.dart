@@ -19,8 +19,8 @@ class SaleModel {
     return SaleModel(
       invoiceNo: json['invoice_no'],
       date: json['date'],
-      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
-      profit: (json['profit'] as num).toDouble(),
+      totalAmount: (json['total_amount'])?.toDouble() ?? 0.0,
+      profit: (json['profit']).toDouble(),
       customer: Customer.fromJson(json['customer']),
       items: (json['items'] as List).map((e) => SaleItem.fromJson(e)).toList(),
     );
@@ -31,24 +31,23 @@ class SaleModel {
     return SaleModel(
       invoiceNo: json['billing_id'] ?? 0,
       date: '${DateTime.now()}', // Default, as date is not present
-      totalAmount: json['total_amount'],
+      totalAmount:(json['total_amount'])?.toDouble() ?? 0.0,
       profit: 0.0, // Not in the response, default to 0.0
       customer: Customer.fromJson(json['customer']),
       items: (json['items'] as List).map((item) {
         return SaleItem(
-          productId: int.tryParse(item['product_id'].toString()) ?? 0,
+          productId: int.tryParse(item['product_id']) ?? 0,
           productName: item['product_name'] ?? '',
-          price: double.tryParse(item['price'].toString()) ?? 0.0,
-          quantity: int.tryParse(item['quantity'].toString()) ?? 0,
-          mrp: double.tryParse(item['mrp'].toString()) ?? 0.0,
-          discount: double.tryParse(item['discount'].toString()) ?? 0.0,
+          price: double.tryParse(item['price']) ?? 0.0,
+          quantity: int.tryParse(item['quantity']) ?? 0,
+          mrp: double.tryParse(item['mrp']) ?? 0.0,
+          discount: double.tryParse(item['discount']) ?? 0.0,
           itemProfit: 0.0, // Optional: calculate as mrp - price
         );
       }).toList(),
     );
   }
 }
-
 class Customer {
   final int id;
   final String name;
@@ -92,11 +91,11 @@ class SaleItem {
     return SaleItem(
       productId: int.tryParse(json['product_id']?.toString() ?? '0') ?? 0,
       productName: json['product_name'],
-      price: (json['price'] as num).toDouble(),
+      price: (json['price']).toDouble(),
       quantity: json['quantity'],
-      mrp: (json['mrp'] as num).toDouble(),
-      discount: (json['discount'] as num).toDouble(),
-      itemProfit: (json['item_profit'] as num).toDouble(),
+      mrp: (json['mrp']).toDouble(),
+      discount: (json['discount'] ).toDouble(),
+      itemProfit: (json['item_profit']).toDouble(),
     );
   }
 }

@@ -5,11 +5,12 @@ import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../BarcodeScan/barcode_screen_page.dart';
+import '../Profile/WebviewScreen.dart';
+import '../login/mobileLoginScreen.dart';
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
-  UserProfileResponse? userModel;
-  HomeTab({Key? key, required this.onGoToCart,this.userModel}) : super(key: key);
+  HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
   @override
   _HomeTabState createState() => _HomeTabState();
 }
@@ -24,13 +25,12 @@ class _HomeTabState extends State<HomeTab> {
   String? name = 'Guest';
   String? email = '';
   String? image = '';
+  StreamSubscription? _profileSubscription;
 
   @override
   void initState() {
     super.initState();
-    name=widget.userModel?.user.name;
-    email=widget.userModel?.user.email;
-    image=widget.userModel?.user.profilePicture;
+    _GetProfileCall();
     _GetBanner();
     _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
       if (_currentPage < bannerList.length - 1) {
@@ -44,6 +44,28 @@ class _HomeTabState extends State<HomeTab> {
         duration: Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
+    });
+  }
+  void _GetProfileCall() async {
+    String? userId = await SessionManager.getUserId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId);
+    }
+
+    await _profileSubscription?.cancel();
+
+    _profileSubscription = context.read<ApiCubit>().stream.listen((state) {
+      if (state is UserProfileLoaded) {
+        setState(() {
+          name=state.userModel.user.name;
+          email=state.userModel.user.email;
+          image=state.userModel.user.profilePicture;
+        });
+      } else if (state is UserProfileError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${state.error}')),
+        );
+      }
     });
   }
   void _GetBanner() async {
@@ -67,6 +89,7 @@ class _HomeTabState extends State<HomeTab> {
   void dispose() {
     _timer?.cancel();
     _pageController.dispose();
+    _profileSubscription?.cancel();
     super.dispose();
   }
   Future<void> _onNotificationTap() async {

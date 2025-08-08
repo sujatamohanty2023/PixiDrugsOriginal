@@ -16,8 +16,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedPos = 0;
-  UserProfileResponse? userModel;
-  StreamSubscription? _profileSubscription;
 
   void switchToTab(int index) {
     setState(() {
@@ -28,10 +26,7 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        if (userModel == null) {
-          return Center(child: CircularProgressIndicator(color: AppColors.kPrimary,));
-        }
-        return HomeTab(onGoToCart: () => switchToTab(2),userModel:userModel);
+        return HomeTab(onGoToCart: () => switchToTab(2));
       case 1:
         return ListScreen(type:ListType.ledger);
       case 2:
@@ -47,87 +42,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _GetProfileCall();
-  }
-  @override
-  void dispose() {
-    _profileSubscription?.cancel();
-    super.dispose();
-  }
 
-  void _GetProfileCall() async {
-    String? userId = await SessionManager.getUserId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId);
-    }
-
-    await _profileSubscription?.cancel();
-
-    _profileSubscription = context.read<ApiCubit>().stream.listen((state) {
-      if (state is UserProfileLoaded) {
-        setState(() {
-         userModel = state.userModel;
-        });
-        if(state.userModel.user.status !='active'){
-          showLoginFailedDialog(context);
-        }
-      } else if (state is UserProfileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
-      }
-    });
-  }
-  void _logoutFun() async {
-    await SessionManager.clearSession();
-    // await FCMService.clearFCMToken();
-    setState(() {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => MobileLoginScreen()),
-            (route) => false,
-      );
-    });
-  }
-  Future<void> showLoginFailedDialog(BuildContext context) async {
-    bool _navigatedToContact = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: MyTextfield.textStyle_w600("Session Failed", 25, AppColors.kPrimary),
-          content: MyTextfield.textStyle_w300("Please contact our support team for assistance.Or Try login again", 16, AppColors.kBlackColor800),
-          actions: [
-            TextButton(
-              onPressed: () =>_logoutFun,
-              child: MyTextfield.textStyle_w800('Login Again', 18, AppColors.kRedColor),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color:AppColors.kPrimary,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.kPrimaryDark, width: 1),
-              ),
-              child: TextButton(
-                onPressed: (){
-                  if (_navigatedToContact) return;
-                  _navigatedToContact = true;
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => Webviewscreen(tittle: 'Contact Us'),
-                    ),
-                  );
-                },
-                child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
   @override
   Widget build(BuildContext context) {
