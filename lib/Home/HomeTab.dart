@@ -46,6 +46,61 @@ class _HomeTabState extends State<HomeTab> {
       );
     });
   }
+  void _logoutFun() async {
+    await SessionManager.clearSession();
+    // await FCMService.clearFCMToken();
+    setState(() {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MobileLoginScreen()),
+            (route) => false,
+      );
+    });
+  }
+  Future<void> showLoginFailedDialog(BuildContext context) async {
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // This disables tap outside
+      builder: (context) {
+        return WillPopScope(
+          onWillPop: () async => false, // This disables back button
+          child: AlertDialog(
+            title: MyTextfield.textStyle_w600("Session Failed", 25, AppColors.kPrimary),
+            content: MyTextfield.textStyle_w300(
+              "Please contact our support team for assistance. Or try logging in again.",
+              16,
+              AppColors.kBlackColor800,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => _logoutFun(),
+                child: MyTextfield.textStyle_w800('Login Again', 18, AppColors.kRedColor),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.kPrimary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.kPrimaryDark, width: 1),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => Webviewscreen(tittle: 'Contact Us'),
+                      ),
+                    );
+                  },
+                  child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _GetProfileCall() async {
     String? userId = await SessionManager.getUserId();
     if (userId != null) {
@@ -61,6 +116,9 @@ class _HomeTabState extends State<HomeTab> {
           email=state.userModel.user.email;
           image=state.userModel.user.profilePicture;
         });
+        if(state.userModel.user.status !='active'){
+          showLoginFailedDialog(context);
+        }
       } else if (state is UserProfileError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed: ${state.error}')),
@@ -370,7 +428,8 @@ class _HomeTabState extends State<HomeTab> {
         positiveButton:'Yes, Start New',
         onConfirmed: (int) async{
           context.read<CartCubit>().clearCart(type: CartType.barcode);
-          _scanBarcode();
+          //_scanBarcode();
+          widget.onGoToCart();
         });
   }
   Future<void> _scanBarcode() async {

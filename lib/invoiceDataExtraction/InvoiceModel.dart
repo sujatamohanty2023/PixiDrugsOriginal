@@ -230,12 +230,12 @@ class InvoiceItem {
   }
 
     static int? parseId(String? id) {
-      if (id == null || id.trim().isEmpty) return null;
+      if (id == null || id.trim().isEmpty) return 0;
       return int.tryParse(id);
     }
-    static String? parseNullString(String? composition) {
-      if (composition == null || composition.trim().isEmpty) return null;
-      return composition;
+    static String? parseNullString(String? text) {
+      if (text == null || text.trim().isEmpty) return '';
+      return text;
     }
 
   /// Parse last valid double number from messy string input (handles commas, newlines)
@@ -274,16 +274,7 @@ class InvoiceItem {
 
   /// Parse total amount as string, try multiple possible keys
   static String parseTotal(Map<String, String> normalized) {
-    List<String> keys = [
-      'total',
-      'amount',
-      'net amount',
-      'netamt.',
-      'net amt.',
-      'line_total',
-      'net amt',
-      'net amount'
-    ];
+    List<String> keys = ['TOTAL','total','Amount','amount','Net Amount','net amount','netamt.','net amt.','line_total','net amt',];
     for (var key in keys) {
       if (normalized.containsKey(key)) {
         final val = normalized[key];
@@ -350,9 +341,8 @@ class InvoiceItem {
       qty: qty,
       qty_free: qtyFree,
       gst: gstValue.toStringAsFixed(2),
-      total: parseNullString(normalized['TOTAL']?? normalized['total']?? normalized['Amount']?? normalized['amount']
-          ?? normalized['Net Amount']?? normalized['net amount'])??'',
       //total:parseTotal(normalized),
+      total:normalized['TOTAL'] ?? normalized['total'] ?? normalized['netAmount'] ?? '',
       invoice_purchase_id: parseId(normalized['invoice_purchase_id'])??0,
     );
   }

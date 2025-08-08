@@ -14,19 +14,26 @@ class InvoiceSummaryPage extends StatefulWidget {
 }
 
 class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
-  late Invoice invoice;
+  late Invoice invoice1;
   String? netAmount='';
-
+  StreamSubscription? _subscription;
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
   @override
   void initState() {
     super.initState();
-    invoice = widget.invoice;
+    invoice1 = widget.invoice;
+    print('netAmount${invoice1.items.toString()}');
 
-    context.read<ApiCubit>().stream.listen((state) {
-      handleApiState(context, state);
+    _subscription = context.read<ApiCubit>().stream.listen((state) {
+      if (!mounted) return;
+      handleApiState(state);
     });
   }
-  void handleApiState(BuildContext context, ApiState state) {
+  void handleApiState(ApiState state) {
     if (state is InvoiceAddLoaded) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(state.message)),
@@ -69,24 +76,17 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       );
     }
   }
-
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void _navigateToEditPage() async {
     final updatedInvoice = await Navigator.push<Invoice>(
       context,
       MaterialPageRoute(
-        builder: (_) => AddPurchaseBill(invoice: invoice),
+        builder: (_) => AddPurchaseBill(invoice: invoice1),
       ),
     );
 
     if (updatedInvoice != null) {
       setState(() {
-        invoice = updatedInvoice;
+        invoice1 = updatedInvoice;
       });
     }
   }
@@ -149,7 +149,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
 
   Widget _buildProductCard(InvoiceItem product, int index) {
-    final productName = product.product.isNotEmpty == true ? product.product! : 'Product ${index + 1}';
+    final productName = product.product.isNotEmpty == true ? product.product : 'Product ${index + 1}';
 
     final fields = {
       'HSN ': product.hsn,
@@ -198,7 +198,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                         context,
                         MaterialPageRoute(
                         builder: (_) => AddPurchaseBill(
-                      invoice: invoice.copyWith(items: List.from(invoice.items)), // Pass mutable copy
+                      invoice: invoice1.copyWith(items: List.from(invoice1.items)), // Pass mutable copy
                     ),
                     settings: RouteSettings(arguments: {'edit_product_index': index}),
                     ),
@@ -207,8 +207,8 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                     // ✅ If we get updated invoice back, update state
                     if (updatedInvoice != null) {
                       setState(() {
-                        invoice = updatedInvoice;
-                        netAmount = calculateNetAmount(invoice.items);
+                        invoice1 = updatedInvoice;
+                        netAmount = calculateNetAmount(invoice1.items);
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Product updated successfully")),
@@ -255,9 +255,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final items = invoice.items;
+    final items = invoice1.items;
     netAmount=calculateNetAmount(items);
     print('netAmount$netAmount');
+    print('netAmount${items.toString()}');
     return Scaffold(
       appBar: AppUtils.BaseAppBar(
         context: context,
@@ -279,34 +280,34 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSectionTitle("📋 Invoice Details"),
-              _buildKeyValueTile("Invoice ID", invoice.invoiceId ?? '', onEdit: () => showEditDialog("Invoice Id", invoice.invoiceId!, (val) {
+              _buildKeyValueTile("Invoice ID", invoice1.invoiceId ?? '', onEdit: () => showEditDialog("Invoice Id", invoice1.invoiceId!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(invoiceId: val);
+                  invoice1 = invoice1.copyWith(invoiceId: val);
                 });
               })),
-              _buildKeyValueTile("Invoice Date", invoice.invoiceDate ?? '', onEdit: () => showEditDialog("Invoice Date", invoice.invoiceDate!, (val) {
+              _buildKeyValueTile("Invoice Date", invoice1.invoiceDate ?? '', onEdit: () => showEditDialog("Invoice Date", invoice1.invoiceDate!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(invoiceDate: val);
+                  invoice1 = invoice1.copyWith(invoiceDate: val);
                 });
               })),
-              _buildKeyValueTile("Seller Name", invoice.sellerName ?? '', onEdit: () => showEditDialog("Seller Name", invoice.sellerName!, (val) {
+              _buildKeyValueTile("Seller Name", invoice1.sellerName ?? '', onEdit: () => showEditDialog("Seller Name", invoice1.sellerName!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(sellerName: val);
+                  invoice1 = invoice1.copyWith(sellerName: val);
                 });
               })),
-              _buildKeyValueTile("Seller GSTIN", invoice.sellerGstin ?? '', onEdit: () => showEditDialog("Seller GSTIN", invoice.sellerGstin!, (val) {
+              _buildKeyValueTile("Seller GSTIN", invoice1.sellerGstin ?? '', onEdit: () => showEditDialog("Seller GSTIN", invoice1.sellerGstin!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(sellerGstin: val);
+                  invoice1 = invoice1.copyWith(sellerGstin: val);
                 });
               })),
-              _buildKeyValueTile("Seller Address", invoice.sellerAddress ?? '', onEdit: () => showEditDialog("Seller Address", invoice.sellerAddress!, (val) {
+              _buildKeyValueTile("Seller Address", invoice1.sellerAddress ?? '', onEdit: () => showEditDialog("Seller Address", invoice1.sellerAddress!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(sellerAddress: val);
+                  invoice1 = invoice1.copyWith(sellerAddress: val);
                 });
               })),
-              _buildKeyValueTile("Seller Phone", invoice.sellerPhone ?? '', onEdit: () => showEditDialog("Seller Phone", invoice.sellerPhone!, (val) {
+              _buildKeyValueTile("Seller Phone", invoice1.sellerPhone ?? '', onEdit: () => showEditDialog("Seller Phone", invoice1.sellerPhone!, (val) {
                 setState(() {
-                  invoice = invoice.copyWith(sellerPhone: val);
+                  invoice1 = invoice1.copyWith(sellerPhone: val);
                 });
               })),
               if (items.isNotEmpty) _buildSectionTitle("📦 Product Details (${items.length})"),
@@ -338,7 +339,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         margin: const EdgeInsets.symmetric(horizontal: 10),
         child: MyElevatedButton(
           onPressed: () {
-            if (isInvoiceValid(invoice)) {
+            if (isInvoiceValid(invoice1)) {
               AddInvoiceApiCall();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -394,10 +395,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   Future<void> AddInvoiceApiCall() async {
     String? userId = await SessionManager.getUserId();
     //final updatedItems = invoice.items.map(applyDiscountPercent).toList();
-    final updatedItems = invoice.items;
-    final formattedDate = formatDate(invoice.invoiceDate);
+    final updatedItems = invoice1.items;
+    final formattedDate = formatDate(invoice1.invoiceDate);
 
-    final newInvoice = invoice.copyWith(
+    final newInvoice = invoice1.copyWith(
       items: updatedItems,
       netAmount: netAmount,
       invoiceDate: formattedDate,

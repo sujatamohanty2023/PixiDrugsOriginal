@@ -226,6 +226,7 @@ class _ListScreenState extends State<ListScreen>
   Widget _buildListBody(bool isLoading) {
     switch (widget.type) {
       case ListType.invoice:
+        print('netAmount${invoiceList.first.items.toString()}');
         return InvoiceListWidget(
             invoices: invoiceList,
             isLoading: isLoading,
