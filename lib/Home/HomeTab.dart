@@ -120,9 +120,7 @@ class _HomeTabState extends State<HomeTab> {
           showLoginFailedDialog(context);
         }
       } else if (state is UserProfileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
+       AppUtils.showSnackBar(context,'Failed: ${state.error}');
       }
     });
   }
@@ -133,13 +131,11 @@ class _HomeTabState extends State<HomeTab> {
         setState(() {
           bannerList.clear();
           for (int i = 0; i < state.banner.length; i++) {
-            bannerList.add(state.banner[i].photo);
+            bannerList.add(state.banner[i].photo??'');
           }
         });
       } else if (state is BannerError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
+       AppUtils.showSnackBar(context,'Failed: ${state.error}');
       }
     });
   }
@@ -151,9 +147,7 @@ class _HomeTabState extends State<HomeTab> {
     super.dispose();
   }
   Future<void> _onNotificationTap() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Notification tapped")),
-    );
+    AppUtils.showSnackBar(context,"Notification tapped");
   }
   PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onNotificationTap) {
     return PreferredSize(
@@ -436,8 +430,7 @@ class _HomeTabState extends State<HomeTab> {
     try {
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
-      );
+        MaterialPageRoute(builder: (context) => BarcodeScannerPage()));
       if (result.isNotEmpty) {
         final userId = await SessionManager.getUserId() ??'';
         context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
@@ -445,9 +438,7 @@ class _HomeTabState extends State<HomeTab> {
       }
 
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to scan barcode')),
-      );
+      AppUtils.showSnackBar(context,'Failed to scan barcode');
     }
   }
   Widget _buildTaskCard({

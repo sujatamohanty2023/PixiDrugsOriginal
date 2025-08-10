@@ -5,17 +5,18 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../SaleList/sale_model.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import 'ApiUtil/api_exception.dart';
 
-class ApiRepository {
+class ApiRepositoryOld {
   final Dio dio;
 
-  ApiRepository({Dio? dio}) : dio = dio ?? Dio();
+  ApiRepositoryOld({Dio? dio}) : dio = dio ?? Dio();
 
   Future<Map<String, dynamic>> loginUser(
       String text, String fcm_token) async {
     bool isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
-      throw Exception('No internet connection');
+      ApiException('No internet connection');
     }
 
     try {
@@ -28,10 +29,16 @@ class ApiRepository {
       if (response.statusCode == 200) {
         return response.data;
       } else {
-        throw Exception('Failed to load posts');
+        throw ApiException(
+          response.data['message'] ?? 'Failed to login',
+          statusCode: response.statusCode,
+          data: response.data,
+        );
       }
+    }  on DioError catch (dioError) {
+      throw handleDioError(dioError);
     } catch (e) {
-      throw Exception('Failed to load posts: $e');
+      throw ApiException('Unexpected error: $e');
     }
   }
   Future<Map<String, dynamic>> fetchBanner() async {

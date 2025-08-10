@@ -51,9 +51,7 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
     String note = _noteController.text.trim();
 
     if (title.isEmpty || amount.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill Title and Amount")),
-      );
+      AppUtils.showSnackBar(context,"Please fill Title and Amount");
       return;
     }
     final userId = await SessionManager.getUserId() ?? '';
@@ -85,42 +83,26 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
             setState(() {
               if(state.success) {
                 Navigator.pop(context); // Use caution here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Successfully Add Expense')),
-                );
+                AppUtils.showSnackBar(context,'Successfully Add Expense');
               }else{
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Failed to add Expense')),
-                );
+              AppUtils.showSnackBar(context,'Failed to add Expense');
               }
             });
           } else if (state is ExpenseAddError) {
             Navigator.pop(context); // Use caution here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to add: ${state.error}')),
-            );
+            AppUtils.showSnackBar(context,'Failed to add: ${state.error}');
           }else if (state is ExpenseEditLoaded) {
             setState(() {
               if(state.success) {
                 Navigator.pop(context); // Use caution here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Successfully Updated')),
-                );
+                AppUtils.showSnackBar(context,'Successfully Updated');
               }else{
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Failed to Update')),
-                );
+          AppUtils.showSnackBar(context,'Failed to Update');
               }
             });
           } else if (state is ExpenseEditError) {
             Navigator.pop(context); // Use caution here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to update api : ${state.error}')),
-            );
+            AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
           }
         },
         child: Container(

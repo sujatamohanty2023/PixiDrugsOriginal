@@ -1,4 +1,6 @@
 
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class CustomerReturnsResponse {
   int id;
   int billingId;
@@ -28,17 +30,19 @@ class CustomerReturnsResponse {
 
   factory CustomerReturnsResponse.fromJson(Map<String, dynamic> json) {
     return CustomerReturnsResponse(
-      id: json['id'],
-      billingId: json['billing_id'],
-      customerId: json['customer_id'],
-      storeId: json['store_id'],
-      returnDate: json['return_date'],
-      totalAmount: json['total_amount'],
-      reason: json['reason'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      customer: Customer.fromJson(json['customer']),
-      items: (json['items'] as List).map((e) => Item.fromJson(e)).toList(),
+      id: ApiParserUtils.parseInt(json['id']),
+      billingId: ApiParserUtils.parseInt(json['billing_id']),
+      customerId: ApiParserUtils.parseInt(json['customer_id']),
+      storeId: ApiParserUtils.parseInt(json['store_id']),
+      returnDate: ApiParserUtils.parseString(json['return_date']),
+      totalAmount: ApiParserUtils.parseString(json['total_amount']),
+      reason: ApiParserUtils.parseString(json['reason']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
+      updatedAt: ApiParserUtils.parseString(json['updated_at']),
+      customer: Customer.fromJson(json['customer'] ?? {}),
+      items: (json['items'] as List? ?? [])
+          .map((e) => Item.fromJson(e))
+          .toList(),
     );
   }
 
@@ -70,8 +74,8 @@ class Customer {
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'],
-      name: json['name'],
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
     );
   }
 
@@ -109,17 +113,17 @@ class Item {
 
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      id: json['id'],
-      customerReturnId: json['customer_return_id'],
-      productId: json['product_id'],
-      quantity: json['quantity'],
-      price: json['price'],
-      gst: json['gst'],
-      discount: json['discount'],
-      totalAmount: json['total_amount'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      product: Product.fromJson(json['product']),
+      id: ApiParserUtils.parseInt(json['id']),
+      customerReturnId: ApiParserUtils.parseInt(json['customer_return_id']),
+      productId: ApiParserUtils.parseInt(json['product_id']),
+      quantity: ApiParserUtils.parseInt(json['quantity']),
+      price: ApiParserUtils.parseString(json['price']),
+      gst: ApiParserUtils.parseString(json['gst']),
+      discount: ApiParserUtils.parseString(json['discount']),
+      totalAmount: ApiParserUtils.parseString(json['total_amount']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
+      updatedAt: ApiParserUtils.parseString(json['updated_at']),
+      product: Product.fromJson(json['product'] ?? {}),
     );
   }
 
@@ -151,8 +155,8 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      productName: json['product_name'],
+      id: ApiParserUtils.parseInt(json['id']),
+      productName: ApiParserUtils.parseString(json['product_name']),
     );
   }
 
@@ -177,9 +181,9 @@ class Link {
 
   factory Link.fromJson(Map<String, dynamic> json) {
     return Link(
-      url: json['url'],
-      label: json['label'],
-      active: json['active'],
+      url: ApiParserUtils.parseString(json['url']),
+      label: ApiParserUtils.parseString(json['label']),
+      active: json['active'] == true || json['active'] == 1 || json['active'] == 'true',
     );
   }
 

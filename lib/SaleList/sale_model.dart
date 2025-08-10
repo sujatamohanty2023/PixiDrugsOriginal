@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class SaleModel {
   final int invoiceNo;
   final String date;
@@ -17,33 +19,33 @@ class SaleModel {
 
   factory SaleModel.fromJson(Map<String, dynamic> json) {
     return SaleModel(
-      invoiceNo: json['invoice_no'],
-      date: json['date'],
-      totalAmount: (json['total_amount'])?.toDouble() ?? 0.0,
-      profit: (json['profit']).toDouble(),
+      invoiceNo: ApiParserUtils.parseInt(json['invoice_no']),
+      date: ApiParserUtils.parseString(json['date']),
+      totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
+      profit: ApiParserUtils.parseDouble(json['profit']),
       customer: Customer.fromJson(json['customer']),
-      items: (json['items'] as List).map((e) => SaleItem.fromJson(e)).toList(),
+      items: ApiParserUtils.parseList(json['items'], (e) => SaleItem.fromJson(e)),
     );
   }
 
   // ✅ Use this when your API returns "billing_id", etc.
   static SaleModel fromBillingResponse(Map<String, dynamic> json) {
     return SaleModel(
-      invoiceNo: json['billing_id'] ?? 0,
-      date: '${DateTime.now()}', // Default, as date is not present
-      totalAmount:(json['total_amount'])?.toDouble() ?? 0.0,
-      profit: 0.0, // Not in the response, default to 0.0
-      customer: Customer.fromJson(json['customer']),
-      items: (json['items'] as List).map((item) {
-        return SaleItem(
-          productId: int.tryParse(item['product_id']) ?? 0,
-          productName: item['product_name'] ?? '',
-          price: double.tryParse(item['price']) ?? 0.0,
-          quantity: int.tryParse(item['quantity']) ?? 0,
-          mrp: double.tryParse(item['mrp']) ?? 0.0,
-          discount: double.tryParse(item['discount']) ?? 0.0,
-          itemProfit: 0.0, // Optional: calculate as mrp - price
-        );
+    invoiceNo: ApiParserUtils.parseInt(json['billing_id']),
+    date: DateTime.now().toString(),
+    totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
+    profit: 0.0,
+    customer: Customer.fromJson(json['customer']),
+    items: ApiParserUtils.parseList(json['items'], (item) {
+    return SaleItem(
+    productId: ApiParserUtils.parseInt(item['product_id']),
+    productName: ApiParserUtils.parseString(item['product_name']),
+    price: ApiParserUtils.parseDouble(item['price']),
+    quantity: ApiParserUtils.parseInt(item['quantity']),
+    mrp: ApiParserUtils.parseDouble(item['mrp']),
+    discount: ApiParserUtils.parseDouble(item['discount']),
+    itemProfit: 0.0,
+    );
       }).toList(),
     );
   }
@@ -59,11 +61,11 @@ class Customer {
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'],
-      name: json['name'],
-      email: json['email']??'',
-      phone: json['phone'],
-      address: json['address'],
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      email: ApiParserUtils.parseString(json['email']),
+      phone: ApiParserUtils.parseString(json['phone']),
+      address: ApiParserUtils.parseString(json['address']),
     );
   }
 }
@@ -89,13 +91,13 @@ class SaleItem {
 
   factory SaleItem.fromJson(Map<String, dynamic> json) {
     return SaleItem(
-      productId: int.tryParse(json['product_id']?.toString() ?? '0') ?? 0,
-      productName: json['product_name'],
-      price: (json['price']).toDouble(),
-      quantity: json['quantity'],
-      mrp: (json['mrp']).toDouble(),
-      discount: (json['discount'] ).toDouble(),
-      itemProfit: (json['item_profit']).toDouble(),
+      productId: ApiParserUtils.parseInt(json['product_id']),
+      productName: ApiParserUtils.parseString(json['product_name']),
+      price: ApiParserUtils.parseDouble(json['price']),
+      quantity: ApiParserUtils.parseInt(json['quantity']),
+      mrp: ApiParserUtils.parseDouble(json['mrp']),
+      discount: ApiParserUtils.parseDouble(json['discount']),
+      itemProfit: ApiParserUtils.parseDouble(json['item_profit']),
     );
   }
 }

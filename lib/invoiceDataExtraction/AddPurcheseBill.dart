@@ -93,9 +93,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     } catch (e) {
       print("❌ Failed to load invoice: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to read invoice data')),
-        );
+       AppUtils.showSnackBar(context,'Failed to read invoice data');
       }
     }finally {
       if (mounted) {
@@ -255,9 +253,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         }
         product = productList[currentIndex];
         _populateControllers();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("product deleted successfully")),
-        );
+       AppUtils.showSnackBar(context,"product deleted successfully");
       }
     });
   }
@@ -552,10 +548,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                             }
                           }
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(
-                                'Please enter all required fields.')),
-                          );
+                          AppUtils.showSnackBar(context,'Please enter all required fields.');
                         }
                       });
 

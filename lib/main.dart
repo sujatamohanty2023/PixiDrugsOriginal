@@ -6,8 +6,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/FCMService.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnScreen.dart';
-
-import 'PaymentScreen.dart';
+import 'Api/api_repository.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 @pragma('vm:entry-point')
@@ -69,18 +68,15 @@ class _MyAppState extends State<MyApp> {
           if (settings.name == '/stockList') {
             final flag = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => ProductListPage(flag: int.parse(flag.toString())),
-            );
+              builder: (_) => ProductListPage(flag: int.parse(flag.toString())));
           }else if (settings.name == '/purchaseReturn') {
             final value = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString()),
-            );
+              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString()));
           }else if (settings.name == '/saleReturn') {
             final value = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString())),
-            );
+              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString())));
           }
           return null;
         },

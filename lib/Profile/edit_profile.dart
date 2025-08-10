@@ -48,9 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _imageFile = imageUrl;
         });
       } else if (state is UserProfileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
+       AppUtils.showSnackBar(context,'Failed: ${state.error}');
       }
     });
   }
@@ -80,9 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
     if (_urlList.isNotEmpty) {
       print(_UploadUrl);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("✅ Upload successful!")),
-      );
+      AppUtils.showSnackBar(context,"✅ Upload successful!");
       _saveProfileData(_UploadUrl);
     }
   }
@@ -100,14 +96,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profile_picture: profile_url);
     context.read<ApiCubit>().stream.listen((state) {
       if (state is EditProfileLoaded) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message)),
-        );
+       AppUtils.showSnackBar(context,state.message);
         Navigator.pop(context);
       } else if (state is EditProfileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${state.error}')),
-        );
+       AppUtils.showSnackBar(context,'Failed: ${state.error}');
       }
     });
   }

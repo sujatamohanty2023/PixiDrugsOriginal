@@ -11,6 +11,7 @@ import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../Staff/StaffModel.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import 'api_repository.dart';
 
 class ApiCubit extends Cubit<ApiState> {
   final ApiRepository apiRepository;
@@ -27,7 +28,7 @@ class ApiCubit extends Cubit<ApiState> {
       final loginModel = LoginResponse.fromJson(response);
       emit(LoginLoaded(loginResponse: loginModel));
     } catch (e) {
-      emit(LoginError('Failed to load login response: $e'));
+      emit(LoginError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ class ApiCubit extends Cubit<ApiState> {
           banner.map((json) => BannerModel.fromJson(json)).toList();
       emit(BannerLoaded(banner: bannerModel));
     } catch (e) {
-      emit(BannerError('Failed to load doctors: $e'));
+      emit(BannerError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -52,7 +53,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = UserProfileResponse.fromJson(response);
       emit(UserProfileLoaded(userModel: model));
     } catch (e) {
-      emit(UserProfileError('Failed to load user profile: $e'));
+      emit(UserProfileError('Error: $e'));
     }
   }
 
@@ -74,7 +75,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = UserProfile.fromJson(data);
       emit(EditProfileLoaded(userModel: model, message: message));
     } catch (e) {
-      emit(EditProfileError('Failed to edit user profile: $e'));
+      emit(EditProfileError('Error: $e'));
     }
   }
 
@@ -90,7 +91,7 @@ class ApiCubit extends Cubit<ApiState> {
 
       emit(UpdateFCMTokenLoaded(message: data));
     } catch (e) {
-      emit(UpdateFCMTokenError('Failed to Add Records: $e'));
+      emit(UpdateFCMTokenError('Error: $e'));
     }
   }
 
@@ -99,11 +100,15 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(BarcodeScanLoading());
       final response = await apiRepository.barcodeScan(code,storeId);
+      if (response['status'] == 'not_found') {
+        emit(BarcodeScanError(response['message'] ?? 'No product found.'));
+        return;
+      }
       final data = response['data'] as List;
       final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(BarcodeScanLoaded(list: list,source: source));
     } catch (e) {
-      emit(BarcodeScanError('Failed to fetch data: $e'));
+      emit(BarcodeScanError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -116,7 +121,7 @@ class ApiCubit extends Cubit<ApiState> {
 
       emit(OrderPlaceLoaded(message: message,saleModel: saleModel));
     } catch (e) {
-      emit(OrderPlaceError('Failed to checkout: $e'));
+      emit(OrderPlaceError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -128,7 +133,7 @@ class ApiCubit extends Cubit<ApiState> {
       final status = response['status'];
       emit(InvoiceAddLoaded(message: message,status: status));
     } catch (e) {
-      emit(InvoiceAddError('Failed to fetch data: $e'));
+      emit(InvoiceAddError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -140,7 +145,7 @@ class ApiCubit extends Cubit<ApiState> {
       final status = response['status'];
       emit(InvoiceEditLoaded(message: message,status: status));
     } catch (e) {
-      emit(InvoiceEditError('Failed to edit data: $e'));
+      emit(InvoiceEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -151,7 +156,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(InvoiceDeleteLoaded(message: message));
     } catch (e) {
-      emit(InvoiceDeleteError('Failed to Delete data: $e'));
+      emit(InvoiceDeleteError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -163,7 +168,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => Invoice.fromJson(json)).toList();
       emit(InvoiceListLoaded(invoiceList: list));
     } catch (e) {
-      emit(InvoiceListError('Failed to load invoice: $e'));
+      emit(InvoiceListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -174,7 +179,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(StockListLoaded(stockList: list));
     } catch (e) {
-      emit(StockListError('Failed to load invoice: $e'));
+      emit(StockListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -185,7 +190,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(ExpiredStockListLoaded(stockList: list));
     } catch (e) {
-      emit(ExpiredStockListError('Failed to load invoice: $e'));
+      emit(ExpiredStockListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -196,7 +201,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(ExpireSoonStockListLoaded(stockList: list));
     } catch (e) {
-      emit(ExpireSoonStockListError('Failed to load invoice: $e'));
+      emit(ExpireSoonStockListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -208,7 +213,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => SaleModel.fromJson(json)).toList();
       emit(SaleListLoaded(saleList: list));
     } catch (e) {
-      emit(SaleListError('Failed to load sale: $e'));
+      emit(SaleListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -221,7 +226,7 @@ class ApiCubit extends Cubit<ApiState> {
 
       emit(SaleEditLoaded(message: data, billing_id: billing_id));
     } catch (e) {
-      emit(SaleEditError('Failed to checkout: $e'));
+      emit(SaleEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -232,7 +237,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(SaleDeleteLoaded(message: message));
     } catch (e) {
-      emit(SaleDeleteError('Failed to Delete data: $e'));
+      emit(SaleDeleteError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -244,7 +249,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => LedgerModel.fromJson(json)).toList();
       emit(LedgerListLoaded(leadgerList: list));
     } catch (e) {
-      emit(LedgerListError('Failed to load ledger: $e'));
+      emit(LedgerListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -255,7 +260,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(StorePaymentLoaded(message: message));
     } catch (e) {
-      emit(StorePaymentError('Failed to Store data: $e'));
+      emit(StorePaymentError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -266,7 +271,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(UpdatePaymentLoaded(message: message));
     } catch (e) {
-      emit(UpdatePaymentError('Failed to Update data: $e'));
+      emit(UpdatePaymentError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -277,7 +282,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(DeletePaymentLoaded(message: message));
     } catch (e) {
-      emit(DeletePaymentError('Failed to Delete data: $e'));
+      emit(DeletePaymentError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -288,7 +293,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(StockReturnAddLoaded(success: success));
     } catch (e) {
-      emit(StockReturnAddError('Failed to fetch data: $e'));
+      emit(StockReturnAddError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -299,7 +304,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(StockReturnEditLoaded(success: success));
     } catch (e) {
-      emit(StockReturnEditError('Failed to edit data: $e'));
+      emit(StockReturnEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -310,7 +315,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(StockReturnDeleteLoaded(success: success));
     } catch (e) {
-      emit(StockReturnDeleteError('Failed to Delete data: $e'));
+      emit(StockReturnDeleteError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -322,7 +327,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
       emit(StockReturnListLoaded(returnList: list));
     } catch (e) {
-      emit(StockReturnListError('Failed to load returnList: $e'));
+      emit(StockReturnListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -333,7 +338,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = Invoice.fromJson_StockReturn(response);
       emit(GetInvoiceDetailLoaded(invoiceModel: model));
     } catch (e) {
-      emit(GetInvoiceDetailError('Failed to load invoice: $e'));
+      emit(GetInvoiceDetailError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -344,7 +349,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = Billing.fromJson(response);
       emit(GetSaleBillDetailLoaded(billingModel: model));
     } catch (e) {
-      emit(GetSaleBillDetailError('Failed to load invoice: $e'));
+      emit(GetSaleBillDetailError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -355,7 +360,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(SaleReturnAddLoaded(success: success));
     } catch (e) {
-      emit(SaleReturnAddError('Failed to fetch data: $e'));
+      emit(SaleReturnAddError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -366,7 +371,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(SaleReturnEditLoaded(success: success));
     } catch (e) {
-      emit(SaleReturnEditError('Failed to edit data: $e'));
+      emit(SaleReturnEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -378,29 +383,31 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => CustomerReturnsResponse.fromJson(json)).toList();
       emit(SaleReturnListLoaded(billList: list));
     } catch (e) {
-      emit(SaleReturnListError('Failed to load returnList: $e'));
+      emit(SaleReturnListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
   Future<void> ExpenseAdd({required String store_id,required String title,required String amount,required String expanse_date,required String note}) async {
     try {
       emit(ExpenseAddLoading());
-      final response = await apiRepository.Expense('',store_id,title,amount,expanse_date,note,'store');
+      final response = await apiRepository.Expense(storeId: store_id,title: title,amount: amount,
+          expanseDate: expanse_date,note: note,apiName: 'store');
       final success = response['status'];
       emit(ExpenseAddLoaded(success: success));
     } catch (e) {
-      emit(ExpenseAddError('Failed to add data: $e'));
+      emit(ExpenseAddError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
   Future<void> ExpenseEdit({required String id,required String store_id,required String title,required String amount,required String expanse_date,required String note}) async {
     try {
       emit(ExpenseEditLoading());
-      final response = await apiRepository.Expense(id,store_id,title,amount,expanse_date,note,'update');
+      final response = await apiRepository.Expense(id: id,storeId: store_id,title: title,amount: amount,
+          expanseDate: expanse_date,note: note,apiName: 'update');
       final success = response['status'];
       emit(ExpenseEditLoaded(success: success));
     } catch (e) {
-      emit(ExpenseEditError('Failed to edit data: $e'));
+      emit(ExpenseEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -412,7 +419,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => ExpenseResponse.fromJson(json)).toList();
       emit(ExpenseListLoaded(list: list));
     } catch (e) {
-      emit(ExpenseListError('Failed to load data: $e'));
+      emit(ExpenseListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -424,7 +431,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => StaffModel.fromJson(json)).toList();
       emit(StaffListLoaded(staffList: list));
     } catch (e) {
-      emit(StaffListError('Failed to load Staff: $e'));
+      emit(StaffListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -442,13 +449,14 @@ class ApiCubit extends Cubit<ApiState> {
     required String status,}) async {
     try {
       emit(StaffEditLoading());
-      final response = await apiRepository.Staff(id, name, email, phone_number, gender, dob, address,
-                        password, password_confirmation, store_id, status,);
+      final response = await apiRepository.Staff(id: id,name:  name,email:  email,
+        phoneNumber: phone_number,gender:  gender, dob: dob, address: address, password: password,
+        passwordConfirmation: password_confirmation, storeId: store_id, status: status,);
       final data = response['message'];
       final status1 = response['status'];
       emit(StaffEditLoaded(message: data,status:status1));
     } catch (e) {
-      emit(StaffEditError('Failed to Staff: $e'));
+      emit(StaffEditError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -464,13 +472,14 @@ class ApiCubit extends Cubit<ApiState> {
     required String store_id,}) async {
     try {
       emit(StaffAddLoading());
-      final response = await apiRepository.Staff('',name, email, phone_number, gender, dob, address,
-          password, password_confirmation, store_id,'');
+      final response = await apiRepository.Staff(name:  name,email:  email,
+        phoneNumber: phone_number,gender:  gender, dob: dob, address: address, password: password,
+        passwordConfirmation: password_confirmation, storeId: store_id);
       final message = response['message'];
       final status = response['status'];
       emit(StaffAddLoaded(message: message,status:status ));
     } catch (e) {
-      emit(StaffAddError('Failed to Delete data: $e'));
+      emit(StaffAddError('Error: $e'));
     }
   }
 }

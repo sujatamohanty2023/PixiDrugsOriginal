@@ -121,23 +121,15 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
               isLoading = false;
             });
             Navigator.pop(context); // Use caution here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to load data: ${state.error}')),
-            );
+            AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
           }else if (state is SaleReturnAddLoaded) {
             setState(() {
               isLoading = false;
               if(state.success) {
                 Navigator.pop(context); // Use caution here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Successfully retrun')),
-                );
+                AppUtils.showSnackBar(context,'Successfully retrun');
               }else{
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Failed to add SaleReturn')),
-                );
+          AppUtils.showSnackBar(context,'Failed to add SaleReturn');
               }
             });
           } else if (state is SaleReturnAddError) {
@@ -145,23 +137,15 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
               isLoading = false;
             });
             Navigator.pop(context); // Use caution here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to load data: ${state.error}')),
-            );
+            AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
           }else if (state is SaleReturnEditLoaded) {
             setState(() {
               isLoading = false;
               if(state.success) {
                 Navigator.pop(context); // Use caution here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Successfully Updated')),
-                );
+                AppUtils.showSnackBar(context,'Successfully Updated');
               }else{
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Failed to update')),
-                );
+                AppUtils.showSnackBar(context,'Failed to update');
               }
             });
           } else if (state is SaleReturnEditError) {
@@ -169,9 +153,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
               isLoading = false;
             });
             Navigator.pop(context); // Use caution here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to update api: ${state.error}')),
-            );
+            AppUtils.showSnackBar(context,'Failed to update api: ${state.error}');
           }
         },
         child: Container(
@@ -238,7 +220,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                       ),
                     ),
                     child: returnBill == null
-                        ? Center(child: CircularProgressIndicator())
+                        ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
                         :  SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class LedgerModel {
   final int partyId;
   final String sellerName;
@@ -21,17 +23,14 @@ class LedgerModel {
 
   factory LedgerModel.fromJson(Map<String, dynamic> json) {
     return LedgerModel(
-      partyId: json['party_id'] ?? 0,
-      sellerName: json['seller_name'] ?? '',
-      gstNo: json['gst_no'] ?? '',
-      phone: json['phone'] ?? '',
-      totalCredit: json['total_credit'] ?? '0.00',
-      totalDebit: json['total_debit'] ?? '0.00',
-      dueAmount: json['due_amount'] ?? '0.00',
-      history: (json['history'] as List<dynamic>?)
-          ?.map((item) => History.fromJson(item))
-          .toList() ??
-          [],
+      partyId: ApiParserUtils.parseInt(json['party_id']),
+      sellerName: ApiParserUtils.parseString(json['seller_name']),
+      gstNo: ApiParserUtils.parseString(json['gst_no']),
+      phone: ApiParserUtils.parseString(json['phone']),
+      totalCredit: ApiParserUtils.parseString(json['total_credit'], defaultValue: '0.00'),
+      totalDebit: ApiParserUtils.parseString(json['total_debit'], defaultValue: '0.00'),
+      dueAmount: ApiParserUtils.parseString(json['due_amount'], defaultValue: '0.00'),
+      history: ApiParserUtils.parseList(json['history'], (e) => History.fromJson(e)),
     );
   }
 }
@@ -61,15 +60,15 @@ class History {
 
   factory History.fromJson(Map<String, dynamic> json) {
     return History(
-      id: json['id'],
-      partyId: json['party_id'],
-      invoiceNo: json['invoice_no'] ?? '',
-      paymentType: json['payment_type'] ?? '',
-      paymentReference: json['payment_reference'] ?? '-',
-      paymentReason: json['payment_reason'] ?? '',
-      amount: json['amount'] ?? '0.00',
-      paymentDate: json['payment_date'] ?? '',
-      createdAt: json['created_at'] ?? '',
+      id: ApiParserUtils.parseInt(json['id']),
+      partyId: ApiParserUtils.parseInt(json['party_id']),
+      invoiceNo: ApiParserUtils.parseString(json['invoice_no']),
+      paymentType: ApiParserUtils.parseString(json['payment_type']),
+      paymentReference: ApiParserUtils.parseString(json['payment_reference'], defaultValue: '-'),
+      paymentReason: ApiParserUtils.parseString(json['payment_reason']),
+      amount: ApiParserUtils.parseString(json['amount'], defaultValue: '0.00'),
+      paymentDate: ApiParserUtils.parseString(json['payment_date']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
     );
   }
 }

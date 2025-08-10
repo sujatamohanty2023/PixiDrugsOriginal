@@ -54,7 +54,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
           printerIp = value;
         });
       }else{
-        _manualScan();
+        //_manualScan();
       }
     });
   }
@@ -219,9 +219,9 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.cut();
       printer.disconnect();
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Success: $res')));
+      AppUtils.showSnackBar(context,'Print Success: $res');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print Failed: $res.Please Check your IP Address.')));
+      AppUtils.showSnackBar(context,'Print Failed: $res.Please Check your IP Address.');
     }
     AppRoutes.navigateTo(context, HomePage());
     context.read<CartCubit>().clearCart(type: CartType.barcode);
@@ -346,9 +346,22 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
               right: 16,
               top: 10,
             ),
-            child: MyElevatedButton(
-              buttonText: 'Print Receipt',
-              onPressed: () => _printBill(context),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                MyElevatedButton(
+                  buttonText: 'Cancel',
+                  backgroundColor: AppColors.kRedColor,
+                  onPressed: () {
+                    AppRoutes.navigateTo(context, HomePage());
+                    context.read<CartCubit>().clearCart(type: CartType.barcode);
+                  },
+                ),
+                MyElevatedButton(
+                  buttonText: 'Print Receipt',
+                  onPressed: () => _printBill(context),
+                ),
+              ],
             ),
           ),
         ],

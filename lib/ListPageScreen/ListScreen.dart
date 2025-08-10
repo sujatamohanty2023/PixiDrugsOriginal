@@ -150,13 +150,9 @@ class _ListScreenState extends State<ListScreen>
         default:
           break;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Record deleted successfully")),
-      );
+      AppUtils.showSnackBar(context,"Record deleted successfully");
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to delete record: $e")),
-      );
+      AppUtils.showSnackBar(context,"Failed to delete record: $e");
     }
   }
 
@@ -226,7 +222,6 @@ class _ListScreenState extends State<ListScreen>
   Widget _buildListBody(bool isLoading) {
     switch (widget.type) {
       case ListType.invoice:
-        print('netAmount${invoiceList.first.items.toString()}');
         return InvoiceListWidget(
             invoices: invoiceList,
             isLoading: isLoading,
@@ -575,9 +570,7 @@ class _ListScreenState extends State<ListScreen>
       if(saleItem.customer.phone.isNotEmpty && saleItem.customer.phone!='no number') {
           _sharePdfViaWhatsApp(saleItem,file.path);
       }else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid Mobile No.')),
-        );
+        AppUtils.showSnackBar(context,'Invalid Mobile No.');
       }
     }
   Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath1) async {

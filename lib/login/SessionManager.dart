@@ -13,7 +13,7 @@ class SessionManager {
     int? id=0;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, response.accessToken??'');
-    await prefs.setString(_roleKey, response.user!.role);
+    await prefs.setString(_roleKey, response.user?.role ?? 'guest');
     if(response.user!.role=='staff'){
       id=response.user!.parentId;
     }else if(response.user!.role=='owner'){

@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class Payment {
   final int? id;
   final int userId;
@@ -23,15 +25,15 @@ class Payment {
 
   factory Payment.fromJson(Map<String, dynamic> json) {
     return Payment(
-      id: json['id'], // Optional field
-      userId: json['user_id'],
-      sellerId: json['seller_id'],
-      invoiceNo: json['invoice_no'],
-      amount: (json['amount'] as num).toDouble(),
-      paymentDate: (json['payment_date']),
-      paymentType: json['payment_type'],
-      paymentReference: json['payment_reference'],
-      paymentReason: json['payment_reason'],
+      id:ApiParserUtils.parseInt(json['id']), // Optional field
+      userId: ApiParserUtils.parseInt(json['user_id']),
+      sellerId: ApiParserUtils.parseInt(json['seller_id']),
+      invoiceNo: ApiParserUtils.parseString(json['invoice_no']),
+      amount: ApiParserUtils.parseDouble(json['amount']),
+      paymentDate:  ApiParserUtils.parseString(json['payment_date']),
+      paymentType:  ApiParserUtils.parseString(json['payment_type']),
+      paymentReference:  ApiParserUtils.parseString(json['payment_reference']),
+      paymentReason:  ApiParserUtils.parseString(json['payment_reason']),
     );
   }
 
@@ -52,5 +54,19 @@ class Payment {
     }
 
     return data;
+  }
+  @override
+  String toString() {
+    return 'Payment('
+        'id: $id, '
+        'userId: $userId, '
+        'sellerId: $sellerId, '
+        'invoiceNo: $invoiceNo, '
+        'amount: $amount, '
+        'paymentDate: $paymentDate, '
+        'paymentType: $paymentType, '
+        'paymentReference: $paymentReference, '
+        'paymentReason: $paymentReason'
+        ')';
   }
 }

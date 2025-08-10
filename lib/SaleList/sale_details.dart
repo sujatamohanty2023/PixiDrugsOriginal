@@ -75,17 +75,10 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
       listener: (context, state) {
         if (state is SaleEditLoaded) {
           Navigator.pop(context); // Dismiss loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          AppUtils.showSnackBar(context,state.message);
         } else if (state is SaleEditError) {
           Navigator.pop(context); // Dismiss loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to Update Sale: ${state.error}')),
-          );
+          AppUtils.showSnackBar(context,'Failed to Update Sale: ${state.error}');
         }
       },
       child: Scaffold(
@@ -211,9 +204,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
 
 
       if (cartItems.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Your cart is empty')),
-        );
+        AppUtils.showSnackBar(context,'Your cart is empty');
         return;
       }
 

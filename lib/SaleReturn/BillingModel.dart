@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class Billing {
   final int billingId;
   final String billingDate;
@@ -20,15 +22,16 @@ class Billing {
   });
 
   factory Billing.fromJson(Map<String, dynamic> json) {
+    final itemsJson = json['items'] as List? ?? [];
     return Billing(
-      billingId: json['billing_id'],
-      billingDate: json['billing_date'],
-      totalAmount: json['total_amount'],
-      customerId: json['customer_id'],
-      customerName: json['customer_name'],
-      customerMobile: json['customer_mobile'],
-      sellerId: json['seller_id'],
-      items: List<Item>.from(json['items'].map((item) => Item.fromJson(item))),
+      billingId: ApiParserUtils.parseInt(json['billing_id']),
+      billingDate: json['billing_date'] ?? '',
+      totalAmount: json['total_amount']?.toString() ?? '0.00',
+      customerId: ApiParserUtils.parseInt(json['customer_id']),
+      customerName: json['customer_name'] ?? '',
+      customerMobile: json['customer_mobile'] ?? '',
+      sellerId: ApiParserUtils.parseInt(json['seller_id']),
+      items: itemsJson.map((e) => Item.fromJson(e)).toList(),
     );
   }
 
@@ -72,14 +75,14 @@ class Item {
 
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      productId: json['product_id'],
-      productName: json['product_name'],
-      quantity: json['quantity'],
-      price: json['price'],
-      subtotal: json['subtotal'],
-      discount: json['discount'],
-      gst: json['gst'],
-      total: json['total'],
+      productId: ApiParserUtils.parseInt(json['product_id']),
+      productName: json['product_name'] ?? '',
+      quantity: ApiParserUtils.parseInt(json['quantity']),
+      price: json['price']?.toString() ?? '0.00',
+      subtotal: json['subtotal']?.toString() ?? '0.00',
+      discount: json['discount']?.toString() ?? '0.00',
+      gst: json['gst']?.toString() ?? '0.00',
+      total: json['total']?.toString() ?? '0.00',
     );
   }
 

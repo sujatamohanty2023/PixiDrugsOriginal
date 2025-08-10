@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class UserProfileResponse {
   final String message;
   final UserProfile user;
@@ -65,24 +67,24 @@ class UserProfile {
   // Factory method to create a UserProfileModel from a JSON map
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      photo: json['photo'] ?? '',
-      phoneNumber: json['phone_number'] ?? '',
-      profilePicture: json['profile_picture'] ?? '',
-      provider: json['provider'] ?? '',
-      providerId: json['provider_id'] ?? '',
-      status: json['status'] ?? '',
-      rememberToken: json['remember_token'] ?? '',
-      gender: json['gander'] ?? '',
-      dob: json['dob'] ?? '',
-      ownerName: json['owner_name'] ?? '',
-      address: json['address'] ?? '',
-      gstin: json['gstin'] ?? '',
-      license: json['license'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
+      id: ApiParserUtils.parseString(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      email: ApiParserUtils.parseString(json['email']),
+      photo: ApiParserUtils.parseString(json['photo']),
+      phoneNumber: ApiParserUtils.parseString(json['phone_number']),
+      profilePicture: ApiParserUtils.parseString(json['profile_picture']),
+      provider: ApiParserUtils.parseString(json['provider']),
+      providerId: ApiParserUtils.parseString(json['provider_id']),
+      status: ApiParserUtils.parseString(json['status']),
+      rememberToken: ApiParserUtils.parseString(json['remember_token']),
+      gender: ApiParserUtils.parseString(json['gander']), // ✅ fixed
+      dob: ApiParserUtils.parseString(json['dob']),
+      ownerName: ApiParserUtils.parseString(json['owner_name']),
+      address: ApiParserUtils.parseString(json['address']),
+      gstin: ApiParserUtils.parseString(json['gstin']),
+      license: ApiParserUtils.parseString(json['license']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
+      updatedAt: ApiParserUtils.parseString(json['updated_at']),
     );
   }
 

@@ -114,11 +114,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                           if(phoneController.text.isNotEmpty) {
                             loginApiCall(phoneController.text);
                           }else{
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                  MyTextfield.textStyle_w300('Please Enter Mobile Number', 16, Colors.white)),
-                            );
+                            AppUtils.showSnackBar(context,'Please Enter Mobile Number');
                           }
                         },
                         custom_design: false,
@@ -176,9 +172,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       }
 
       if (googleUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Sign-in cancelled")),
-        );
+        AppUtils.showSnackBar(context,"Sign-in cancelled");
         return;
       }
 
@@ -197,9 +191,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       });
       await loginApiCall(user!.email!);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Sign-in failed: $e")),
-      );
+      AppUtils.showSnackBar(context,"Sign-in failed: $e");
     }
   }
 
@@ -216,9 +208,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
     String? fcm_token = await FCMService.getFCMToken();
 
     if (fcm_token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to get FCM token")),
-      );
+      AppUtils.showSnackBar(context,"Failed to get FCM token");
       return;
     }
     context.read<ApiCubit>().login(text: text, fcm_token: fcm_token);
@@ -245,9 +235,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.error)),
-        );
+       AppUtils.showSnackBar(context,state.error);
       }
     });
   }
@@ -293,9 +281,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
   }
 
   Future<void> _saveRole(LoginResponse loginResponse) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(loginResponse.message)),
-    );
+    AppUtils.showSnackBar(context,loginResponse.message);
     await SessionManager.saveLoginResponse(loginResponse);
     Navigator.pop(context);
     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);

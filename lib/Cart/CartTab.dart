@@ -46,14 +46,10 @@ class _CartTabState extends State<CartTab> {
               final cartCubit = context.read<CartCubit>();
               cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No products found.')),
-              );
+              AppUtils.showSnackBar(context,'No products found.');
             }
           } else if (state is BarcodeScanError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error)),
-            );
+            AppUtils.showSnackBar(context,state.error);
           }
         },
         child: Column(
@@ -137,9 +133,7 @@ class _CartTabState extends State<CartTab> {
         context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to scan barcode')),
-      );
+      AppUtils.showSnackBar(context,'Failed to scan barcode');
     }
   }
   Future<void> scanBatchNumber() async {
@@ -200,9 +194,7 @@ class _CartTabState extends State<CartTab> {
     if (batchNumber != null && batchNumber.isNotEmpty) {
       _showManualEntryBottomSheet(batchNumber);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Batch number not found')),
-      );
+      AppUtils.showSnackBar(context,'Batch number not found');
       _showManualEntryBottomSheet('');
     }
   }

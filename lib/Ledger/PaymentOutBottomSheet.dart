@@ -54,15 +54,21 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
    return BlocListener<ApiCubit, ApiState>(
       listener: (context, state) {
         if (state is StorePaymentLoaded) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          AppUtils.showSnackBar(context,state.message);
           Navigator.pop(context); // Close bottom sheet or current page
           if (Navigator.canPop(context)) {
             Navigator.pop(context); // Close underlying page only if possible
           }
         } else if (state is StorePaymentError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed: ${state.error}')),
-          );
+          AppUtils.showSnackBar(context,state.error);
+        }else if (state is UpdatePaymentLoaded) {
+          AppUtils.showSnackBar(context,state.message);
+          Navigator.pop(context); // Close bottom sheet or current page
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context); // Close underlying page only if possible
+          }
+        }else if (state is UpdatePaymentError) {
+          AppUtils.showSnackBar(context,state.error);
         }
       },
       child:Container(
@@ -373,7 +379,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
   }
   void SubmitCall() async {
     if (_invoice_noController.text.isEmpty || _dateController.text.isEmpty || double.tryParse(paidController.text) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all required fields.")));
+      AppUtils.showSnackBar(context,"Please fill all required fields.");
       return;
     }
 

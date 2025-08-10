@@ -125,6 +125,11 @@ class InvoiceListWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           PopupMenuButton<String>(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16), // Rounded shape
+                            ),
+                            color: AppColors.kWhiteColor, // so gradient shows
+                            elevation: 10,
                             onSelected: (value) {
                               if (value == 'edit') {
                                 onEditPressed(invoice);
@@ -136,9 +141,9 @@ class InvoiceListWidget extends StatelessWidget {
                               PopupMenuItem(value: 'edit',
                                   child:Row(
                                     children: [
-                                      Icon(Icons.edit, color: Colors.black),
+                                      SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
                                       SizedBox(width: 8),
-                                      MyTextfield.textStyle_w600('Edit', 13, Colors.black),
+                                      MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
                                     ],
                                   )),
                               if(role=='owner')
@@ -153,7 +158,7 @@ class InvoiceListWidget extends StatelessWidget {
                                         color: AppColors.kRedColor,
                                       ),
                                       SizedBox(width: 8),
-                                      MyTextfield.textStyle_w600('Delete', 13, Colors.black),
+                                      MyTextfield.textStyle_w600('Delete', 13,AppColors.kRedColor),
                                     ],
                                   )
                               ),

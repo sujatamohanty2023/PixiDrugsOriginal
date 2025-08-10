@@ -110,6 +110,11 @@ class SaleListWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   PopupMenuButton<String>(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16), // Rounded shape
+                    ),
+                    color: AppColors.kWhiteColor, // so gradient shows
+                    elevation: 10,
                     onSelected: (value) {
                       if (value == 'print') {
                         onPrintPressed(sale);
@@ -125,26 +130,26 @@ class SaleListWidget extends StatelessWidget {
                       PopupMenuItem(value: 'print',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kBlackColor800),
+                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kPrimary),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kBlackColor800),
+                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kPrimary),
                             ],
                           )),
                       if(sale.customer.phone.isNotEmpty && sale.customer.phone!='no number')
                       PopupMenuItem(value: 'share',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kBlackColor800),
+                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kPrimary),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Share', 13, AppColors.kBlackColor800),
+                              MyTextfield.textStyle_w600('Share', 13, AppColors.kPrimary),
                             ],
                           )),
                       PopupMenuItem(value: 'edit',
                           child:Row(
                             children: [
-                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kBlackColor800),
+                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
                               SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kBlackColor800),
+                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
                             ],
                           )),
                       if(role=='owner')

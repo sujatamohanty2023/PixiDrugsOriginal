@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class PurchaseReturnModel {
   final int? id;
   final int? storeId;
@@ -25,31 +27,33 @@ class PurchaseReturnModel {
 
   factory PurchaseReturnModel.fromJson(Map<String, dynamic> json) {
     return PurchaseReturnModel(
-      id: json['id'],
-      storeId: json['store_id'],
-      invoicePurchaseId: json['invoice_purchase_id'],
-      sellerId: json['seller_id'],
-      invoiceNo: json['invoice_no'],
-      returnDate: json['return_date'],
-      reason: json['reason'] ?? '',
-      totalAmount: json['total_amount'].toString(),
-      sellerName: json['seller_name']??'-------',
-      items: (json['items'] as List).map((e) => ReturnItemModel.fromJson(e)).toList(),
+      id:ApiParserUtils.parseInt(json['id']),
+      storeId: ApiParserUtils.parseInt(json['store_id']),
+      invoicePurchaseId: ApiParserUtils.parseInt(json['invoice_purchase_id']),
+      sellerId: ApiParserUtils.parseInt(json['seller_id']),
+      invoiceNo: ApiParserUtils.parseString(json['invoice_no']),
+      returnDate: ApiParserUtils.parseString(json['return_date']),
+      reason: ApiParserUtils.parseString(json['reason']),
+      totalAmount: ApiParserUtils.parseString(json['total_amount']),
+      sellerName: ApiParserUtils.parseString(json['seller_name'], defaultValue: '-------'),
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((e) => ReturnItemModel.fromJson(e))
+          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
     final data = {
-      if (storeId != null) 'store_id': storeId,
-      if (invoicePurchaseId != null) 'invoice_purchase_id': invoicePurchaseId,
-      if (sellerId != null) 'seller_id': sellerId,
-      if (invoiceNo != null) 'invoice_no': invoiceNo,
+      if (storeId != null && id!=0) 'store_id': storeId,
+      if (invoicePurchaseId != null && invoicePurchaseId!=0) 'invoice_purchase_id': invoicePurchaseId,
+      if (sellerId != null && sellerId!=0) 'seller_id': sellerId,
+      if (invoiceNo != null && invoiceNo !='') 'invoice_no': invoiceNo,
       'return_date': returnDate,
       'reason': reason,
       'total_amount': totalAmount,
       'items': items.map((e) => e.toJson()).toList(),
     };
-    if (id != null) data['id'] = id;
+    if (id != null && id!=0) data['id'] = id;
     return data;
   }
 }
@@ -80,16 +84,16 @@ class ReturnItemModel {
 
   factory ReturnItemModel.fromJson(Map<String, dynamic> json) {
     return ReturnItemModel(
-      id: json['id'],
-      productId: json['product_id'],
-      productName: json['product_name'],
-      batchNo: json['batch_no'],
-      expiry: json['expiry'],
-      quantity: json['quantity'],
-      rate: json['rate'].toString(),
-      gstPercent: json['gst_percent'].toString(),
-      discountPercent: json['discount_percent'].toString(),
-      totalAmount: json['total_amount'].toString(),
+      id: ApiParserUtils.parseInt(json['id']),
+      productId: ApiParserUtils.parseInt(json['product_id']),
+      productName: ApiParserUtils.parseString(json['product_name']),
+      batchNo: ApiParserUtils.parseString(json['batch_no']),
+      expiry: ApiParserUtils.parseString(json['expiry']),
+      quantity: ApiParserUtils.parseInt(json['quantity']),
+      rate: ApiParserUtils.parseString(json['rate']),
+      gstPercent: ApiParserUtils.parseString(json['gst_percent']),
+      discountPercent: ApiParserUtils.parseString(json['discount_percent']),
+      totalAmount: ApiParserUtils.parseString(json['total_amount']),
     );
   }
 
@@ -104,7 +108,7 @@ class ReturnItemModel {
       'discount_percent': discountPercent,
       'total_amount': totalAmount,
     };
-    if (id != null) data['id'] = id!;
+    if (id != null && id !=0) data['id'] = id!;
     if (productName != null) data['product_name'] = productName!;
     return data;
   }

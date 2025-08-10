@@ -50,18 +50,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       listener: (context, state) {
         if (state is OrderPlaceLoaded) {
           Navigator.pop(context); // Dismiss loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          AppUtils.showSnackBar(context,state.message);
           print("${state.saleModel}");
           if (state.message == "Bill submitted successfully.") {
             SuccessOrderPlaceCall(state.saleModel);
           }
         } else if (state is OrderPlaceError) {
           Navigator.pop(context); // Dismiss loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to CheckOut: ${state.error}')),
-          );
+          AppUtils.showSnackBar(context,'Failed to CheckOut: ${state.error}');
         }
       },
       child: BlocBuilder<CartCubit, CartState>(
@@ -176,9 +172,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
 
     if (cartState is CartLoaded) {
       if (cartState.barcodeCartItems.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Your cart is empty')),
-        );
+        AppUtils.showSnackBar(context,'Your cart is empty');
         return;
       }
 
@@ -194,9 +188,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       _showLoadingDialog(); // Show loading
       context.read<ApiCubit>().placeOrder(orderPlaceModel: model);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unexpected error occurred')),
-      );
+      AppUtils.showSnackBar(context,'Unexpected error occurred');
     }
   }
 

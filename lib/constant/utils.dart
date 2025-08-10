@@ -59,12 +59,23 @@ class AppUtils {
   }
 
   static void showSnackBar(BuildContext context, String message) {
+    var errorField=message.toLowerCase().contains('error')||message.toLowerCase().contains('failed') ||
+    message.toLowerCase().contains('please')|| message.toLowerCase().contains('no product founds');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: MyTextfield.textStyle_w800(
-            message, size_16, AppColors.kBlackColor800),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.black87,
+        content: MyTextfield.textStyle_w600(message, AppUtils.size_16,AppColors.kWhiteColor),
+        backgroundColor: errorField? AppColors.error:AppColors.success, // Background color
+        behavior: SnackBarBehavior.floating, // Floating style
+       /* margin: EdgeInsets.only(
+          top: 20,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).size.height - 120, // Push to top
+        ),*/
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

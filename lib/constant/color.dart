@@ -14,6 +14,8 @@ class AppColors {
   static const kRedLightColor = Color(0xffF7E4D9);
   static const kGreyColor700 = Color(0xFFC4C4C4);
   static const kGreyColor800 = Color(0xFFAAAAAA);
+  static const error = Color(0xff980505);
+  static const success = Color(0xff0c9f07);
 
   static const myGradient = LinearGradient(
       begin: Alignment.topCenter,

@@ -45,9 +45,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (passwordController.text != confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Passwords do not match!")),
-        );
+        AppUtils.showSnackBar(context,"Passwords do not match!");
         return;
       }
       String name = nameController.text.trim();
@@ -60,9 +58,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
 
       if (name.isEmpty || email.isEmpty || mobile.isEmpty || dob1.isEmpty ||
           address.isEmpty||password.isEmpty||password_confirm.isEmpty || selectedGender==null ||status==null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please fill required field")),
-        );
+        AppUtils.showSnackBar(context,"Please fill required field");
         return;
       }
       print('API $name,\n$email,\n$mobile,\n$dob1,\n$address,\n$password,\n$password_confirm,\n$selectedGender,\n$status');
@@ -128,31 +124,21 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         body: BlocListener<ApiCubit, ApiState>(
           listener: (context, state) {
             if (state is StaffAddLoaded) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(state.message)),
-              );
+              AppUtils.showSnackBar(context,state.message);
               if(state.status=='success') {
                 Navigator.pop(context);
               }
             } else if (state is StaffAddError) {
               Navigator.pop(context); // Use caution here
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to add: ${state.error}')),
-              );
+              AppUtils.showSnackBar(context,'Error:${state.error}');
             }else if (state is StaffEditLoaded) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(state.message)),
-              );
+              AppUtils.showSnackBar(context,state.message);
               if(state.status=='success') {
                 Navigator.pop(context);
               }
             } else if (state is StaffEditError) {
               Navigator.pop(context); // Use caution here
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to update api : ${state.error}')),
-              );
+              AppUtils.showSnackBar(context,'Error:${state.error}');
             }
           },
           child: Container(

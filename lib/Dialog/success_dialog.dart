@@ -67,6 +67,7 @@ class _SuccessDialogState extends State<SuccessDialog> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
       backgroundColor: AppColors.kWhiteColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(50)),

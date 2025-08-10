@@ -44,11 +44,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
       },
       verificationFailed: (FirebaseAuthException e) {
         print("Verification failed: ${e.message}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-              MyTextfield.textStyle_w300('Verification failed: ${e.message}', 16, Colors.white)),
-        );
+        AppUtils.showSnackBar(context,'Verification failed: ${e.message}');
       },
       codeSent: (String verId, int? resendToken) {
         setState(() {
@@ -90,9 +86,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
         _isLoading = false;
       });
       print("OTP Verification Failed: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("OTP Verification Failed $otp")),
-      );
+      AppUtils.showSnackBar(context,"OTP Verification Failed $otp");
     }
   }
 
@@ -101,18 +95,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
     if (otp?.length == 6) {
       firebaseCheck();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit OTP')),
-      );
+      AppUtils.showSnackBar(context,'Please enter a valid 6-digit OTP');
     }
   }
   Future<void> _saveRole() async {
     setState(() {
       _isLoading = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(widget.loginResponse.message)),
-    );
+    AppUtils.showSnackBar(context,widget.loginResponse.message);
     await SessionManager.saveLoginResponse(widget.loginResponse);
     Navigator.pop(context);
     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -131,9 +121,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
           _resendSeconds = 30;
           _startResendTimer();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("OTP Resent")),
-        );
+        AppUtils.showSnackBar(context,"OTP Resent");
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );

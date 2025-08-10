@@ -38,9 +38,7 @@ class ConnectivityService {
 
     // Only show the SnackBar if context is valid and in the widget tree
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      AppUtils.showSnackBar(context,message);
     }
   }
 

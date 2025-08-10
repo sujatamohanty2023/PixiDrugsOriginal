@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class StaffModel {
   final int id;
   final String name;
@@ -27,17 +29,17 @@ class StaffModel {
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
     return StaffModel(
-      id: json['id']??'',
-      name: json['name']??'',
-      email: json['email']??'',
-      phoneNumber: json['phone_number']??'',
-      gander: json['gander']??'',
-      dob: json['dob']??'',
-      parentId: json['parent_id']??'',
-      status: json['status']??'',
-      address: json['address']??'',
-      gstin: json['gstin']??'',
-      license: json['license']??'',
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      email: ApiParserUtils.parseString(json['email']),
+      phoneNumber: ApiParserUtils.parseString(json['phone_number']),
+      gander: ApiParserUtils.parseString(json['gander']),
+      dob: ApiParserUtils.parseString(json['dob']),
+      parentId: ApiParserUtils.parseInt(json['parent_id']),
+      status: ApiParserUtils.parseString(json['status']),
+      address: ApiParserUtils.parseString(json['address']),
+      gstin: ApiParserUtils.parseString(json['gstin']),
+      license: ApiParserUtils.parseString(json['license']),
     );
   }
 

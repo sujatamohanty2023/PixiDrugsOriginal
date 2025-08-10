@@ -2,6 +2,8 @@ import 'package:intl/intl.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../constant/all.dart';
+
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;
   final bool? edit;
@@ -35,9 +37,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
   void handleApiState(ApiState state) {
     if (state is InvoiceAddLoaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
-      );
+      AppUtils.showSnackBar(context,state.message);
 
         // Navigate to the listing page after a short delay
         Future.delayed(Duration(milliseconds: 500), () {
@@ -51,9 +51,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
           }
         });
     }else if (state is InvoiceEditLoaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
-      );
+      AppUtils.showSnackBar(context,state.message);
 
       // Navigate to the listing page after a short delay
       Future.delayed(Duration(milliseconds: 500), () {
@@ -67,13 +65,9 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         }
       });
     }  else if (state is InvoiceAddError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text( state.error)),
-      );
+      AppUtils.showSnackBar(context, state.error);
     }else if ( state is InvoiceEditError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error)),
-      );
+      AppUtils.showSnackBar(context,state.error);
     }
   }
   void _navigateToEditPage() async {
@@ -210,9 +204,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                         invoice1 = updatedInvoice;
                         netAmount = calculateNetAmount(invoice1.items);
                       });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Product updated successfully")),
-                      );
+                      AppUtils.showSnackBar(context,"Product updated successfully");
                     }
                   },
                   child: Icon(Icons.edit, color: AppColors.kPrimary, size: 18),
@@ -342,9 +334,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
             if (isInvoiceValid(invoice1)) {
               AddInvoiceApiCall();
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Please enter all required fields.')),
-              );
+              AppUtils.showSnackBar(context,'Please enter all required fields.');
             }
           },
           buttonText: widget.edit! ? "Update Invoice" : "Add Invoice",

@@ -44,13 +44,7 @@ void showImageBottomSheet(
 
                   if (_fileList.length + pickedFiles.length > pick_Size) {
                     // Show an alert if the total exceeds the pickSize limit
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'You can only select up to $pick_Size images.'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
+                    AppUtils.showSnackBar(context,'You can only select up to $pick_Size images.');
                   } else {
                     List<File> files =
                         pickedFiles.map((xfile) => File(xfile.path)).toList();
@@ -59,12 +53,7 @@ void showImageBottomSheet(
                   }
                 } catch (e) {
                   // Handle any potential errors with image picking
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to pick images: $e'),
-                      duration: Duration(seconds: 3),
-                    ),
-                  );
+                  AppUtils.showSnackBar(context,'Failed to pick images: $e');
                 }
                 Navigator.pop(context);
               },
@@ -87,12 +76,7 @@ void showImageBottomSheet(
                     }
                   } catch (e) {
                     // Handle any potential errors with PDF picking
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to pick PDF: $e'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
+                    AppUtils.showSnackBar(context,'Failed to pick PDF: $e');
                   }
                   Navigator.pop(context);
                 },

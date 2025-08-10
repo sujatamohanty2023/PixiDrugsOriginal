@@ -57,9 +57,7 @@ class ProfileScreen extends StatefulWidget {
             image = state.userModel.user.profilePicture;
           });
         } else if (state is UserProfileError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed: ${state.error}')),
-          );
+          AppUtils.showSnackBar(context,'Failed: ${state.error}');
         }
       });
     }

@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class ExpenseResponse {
   final int id;
   final int storeId;
@@ -21,14 +23,14 @@ class ExpenseResponse {
 
   factory ExpenseResponse.fromJson(Map<String, dynamic> json) {
     return ExpenseResponse(
-      id: json['id'],
-      storeId: json['store_id'],
-      title: json['title'],
-      amount: json['amount'],
-      type: json['type'],
-      expanseDate: json['expanse_date'],
-      note: json['note'],
-      createdAt: json['created_at'],
+      id: ApiParserUtils.parseInt(json['id']),
+      storeId: ApiParserUtils.parseInt(json['store_id']),
+      title: ApiParserUtils.parseString(json['title']),
+      amount: ApiParserUtils.parseString(json['amount']),
+      type: ApiParserUtils.parseString(json['type']),
+      expanseDate: ApiParserUtils.parseString(json['expanse_date']),
+      note: ApiParserUtils.parseString(json['note']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
     );
   }
 

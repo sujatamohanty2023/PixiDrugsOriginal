@@ -1,3 +1,5 @@
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class LoginResponse {
   final bool success;
   final String message;
@@ -24,13 +26,13 @@ class LoginResponse {
   }
 }
 class UserModel {
-  final int id;
+  final int? id;
   final String name;
   final String email;
   final String emailVerifiedAt;
   final String photo;
   final String profilePicture;
-  final String role;
+  final String? role;
   final String provider;
   final String providerId;
   final String status;
@@ -38,7 +40,7 @@ class UserModel {
   final String fcmToken;
   final String dob;
   final String gander;
-  final int parentId;
+  final int? parentId;
   final String createdAt;
   final String updatedAt;
   final String phoneNumber;
@@ -66,26 +68,24 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      emailVerifiedAt: json['email_verified_at']?.toString() ?? '',
-      photo: json['photo']?.toString() ?? '',
-      profilePicture: json['profile_picture']?.toString() ?? '',
-      role: json['role'] ?? '',
-      provider: json['provider']?.toString() ?? '',
-      providerId: json['provider_id']?.toString() ?? '',
-      status: json['status']?.toString() ?? '',
-      rememberToken: json['remember_token']?.toString() ?? '',
-      fcmToken: json['fcm_token']?.toString() ?? '',
-      dob: json['dob']?.toString() ?? '',
-      // ✅ Default if null
-      gander: json['gander']?.toString() ?? '',
-      // ✅ Default if null
-      parentId: json['parent_id'] ?? 0,
-      createdAt: json['created_at']?.toString() ?? '',
-      updatedAt: json['updated_at']?.toString() ?? '',
-      phoneNumber: json['phone_number']?.toString() ?? '',
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      email: ApiParserUtils.parseString(json['email']),
+      emailVerifiedAt: ApiParserUtils.parseString(json['email_verified_at']),
+      photo: ApiParserUtils.parseString(json['photo']),
+      profilePicture: ApiParserUtils.parseString(json['profile_picture']),
+      role: ApiParserUtils.parseString(json['role']),
+      provider: ApiParserUtils.parseString(json['provider']),
+      providerId: ApiParserUtils.parseString(json['provider_id']),
+      status: ApiParserUtils.parseString(json['status']),
+      rememberToken: ApiParserUtils.parseString(json['remember_token']),
+      fcmToken: ApiParserUtils.parseString(json['fcm_token']),
+      dob: ApiParserUtils.parseString(json['dob']),
+      gander: ApiParserUtils.parseString(json['gander']), // or gender
+      parentId: ApiParserUtils.parseInt(json['parent_id']),
+      createdAt: ApiParserUtils.parseString(json['created_at']),
+      updatedAt: ApiParserUtils.parseString(json['updated_at']),
+      phoneNumber: ApiParserUtils.parseString(json['phone_number']),
     );
   }
 }

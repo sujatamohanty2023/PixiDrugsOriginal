@@ -35,18 +35,14 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
           if (state is DeletePaymentLoaded) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            AppUtils.showSnackBar(context,state.message);
             setState(() {
               widget.ledger!.history.removeWhere(
                 (ledger) => ledger.id == deleteId,
               );
             });
           } else if (state is DeletePaymentError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Failed: ${state.error}')));
+          AppUtils.showSnackBar(context,'Failed: ${state.error}');
           }
         },
         child: Container(
@@ -439,6 +435,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                     CrossAxisAlignment.end,
                                                 children: [
                                                   PopupMenuButton<String>(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(16), // Rounded shape
+                                                    ),
+                                                    color: AppColors.kWhiteColor, // so gradient shows
+                                                    elevation: 10,
                                                     onSelected: (value) {
                                                       if (value == 'edit') {
                                                         _AddPaymentPressed(
@@ -466,14 +467,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                             value: 'edit',
                                                             child: Row(
                                                               children: [
-                                                                Icon(
-                                                                  Icons.edit,
-                                                                  size: 18,
-                                                                ),
+                                                                SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
                                                                 SizedBox(
                                                                   width: 8,
                                                                 ),
-                                                                Text('Edit'),
+                                                                MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
                                                               ],
                                                             ),
                                                           ),
@@ -482,24 +480,9 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                             value: 'delete',
                                                             child: Row(
                                                               children: [
-                                                                Icon(
-                                                                  Icons.delete,
-                                                                  size: 18,
-                                                                  color:
-                                                                      Colors
-                                                                          .red,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 8,
-                                                                ),
-                                                                Text(
-                                                                  'Delete',
-                                                                  style: TextStyle(
-                                                                    color:
-                                                                        Colors
-                                                                            .red,
-                                                                  ),
-                                                                ),
+                                                                SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
+                                                                SizedBox(width: 8),
+                                                                MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
                                                               ],
                                                             ),
                                                           ),
@@ -797,9 +780,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
       deleteId = int.parse(id);
       await context.read<ApiCubit>().DeletePayment(id: id);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to delete record: $e")));
+      AppUtils.showSnackBar(context,"Failed to delete record: $e");
     }
   }
 

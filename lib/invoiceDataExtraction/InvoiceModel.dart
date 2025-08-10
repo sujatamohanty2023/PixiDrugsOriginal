@@ -1,4 +1,6 @@
 
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 enum DiscountType { flat, percent }
 class Invoice {
   String? invoiceId;
@@ -50,18 +52,19 @@ class Invoice {
     );
   }
   factory Invoice.fromJson(Map<String, dynamic> json) {
-    final itemsJson = json['items'] as List? ?? [];
-    final gstRaw = json['gst_no']?.toString().trim() ?? '';
+    final itemsJson = json['items'] as List<dynamic>? ?? [];
+    final gstRaw = (json['gst_no']?.toString().trim() ?? '');
+
     return Invoice(
-      invoiceId: json['invoice_no']??'',
-      invoiceDate: json['invoice_date']??'',
-      sellerName: json['seller_name']??'',
-      sellerGstin: gstRaw.length > 15 ? gstRaw.substring(0, 15) : gstRaw,
-      sellerAddress: json['address']??'',
-      sellerPhone: json['phone']??'',
-      netAmount: json['net_amount']??'',
-      userId: json['user_id']??'',
-      items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
+    invoiceId: ApiParserUtils.parseString(json['invoice_no']),
+    invoiceDate: ApiParserUtils.parseString(json['invoice_date']),
+    sellerName: ApiParserUtils.parseString(json['seller_name']),
+    sellerGstin: gstRaw.length > 15 ? gstRaw.substring(0, 15) : gstRaw,
+    sellerAddress: ApiParserUtils.parseString(json['address']),
+    sellerPhone: ApiParserUtils.parseString(json['phone']),
+    netAmount: ApiParserUtils.parseString(json['net_amount']),
+    userId: ApiParserUtils.parseString(json['user_id']),
+    items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );
   }
   factory Invoice.fromJson_StockReturn(Map<String, dynamic> json) {
@@ -69,12 +72,12 @@ class Invoice {
     final itemsJson = json['items'] as List? ?? [];
 
     return Invoice(
-      invoiceId: json['invoice_no'] ?? '',
-      invoiceDate: json['invoice_date'] ?? '',
-      sellerName: seller['name'] ?? '--------',
-      sellerAddress: seller['address'] ?? '',
-      sellerPhone: seller['mobile'] ?? '',
-      sellerId: seller['id'].toString() ?? '',
+      invoiceId: ApiParserUtils.parseString(json['invoice_no']),
+      invoiceDate: ApiParserUtils.parseString(json['invoice_date']),
+      sellerName: ApiParserUtils.parseString(seller['name'], defaultValue: 'UnKnown'),
+      sellerAddress: ApiParserUtils.parseString(seller['address']),
+      sellerPhone: ApiParserUtils.parseString(seller['mobile']),
+      sellerId: ApiParserUtils.parseString(seller['id']),
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );
   }
@@ -290,13 +293,13 @@ class InvoiceItem {
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
     final normalized = normalizeJsonKeys(json);
 
-    final rawGstString = normalized['gst'] ??
+    final rawGstString = ApiParserUtils.parseString(normalized['gst'] ??
         normalized['gst_rate'] ??
         normalized['tax'] ??
         normalized['tax_rate'] ??
         normalized['% gst'] ??
-        normalized['%'] ??
-        '';
+        normalized['%']
+    );
 
     final gstValue = parseCombinedGst(rawGstString);
 
@@ -307,43 +310,64 @@ class InvoiceItem {
     final discountValue =
     parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['discount']);
 
-    final qtyRaw = normalized['quantity'] ?? normalized['qty'] ?? '0';
+    final qtyRaw =  ApiParserUtils.parseString(
+      normalized['quantity'] ?? normalized['qty'],defaultValue: '0'
+    );
     final qty = parseQty(qtyRaw);
     final qtyFree = parseQtyFree(qtyRaw);
 
     return InvoiceItem(
       id: parseId(normalized['id']),
-      hsn: normalized['Product_Code']??normalized['hsn_code'] ?? normalized['hsn']?? normalized['HSN'] ?? normalized['Product Code']??'',
-      product: normalized['product name'] ??
+      hsn:  ApiParserUtils.parseString(
+          normalized['Product_Code']??
+          normalized['hsn_code'] ??
+          normalized['hsn']??
+          normalized['HSN'] ??
+          normalized['Product Code']),
+      product:  ApiParserUtils.parseString(
+          normalized['product name'] ??
           normalized['product Name'] ??
           normalized['product_name']??
           normalized['item'] ??
           normalized['description'] ??
           normalized['product'] ??
           normalized['drugname'] ??
-          normalized['name'] ??
-          '',
+          normalized['name'] ),
       composition: parseNullString(normalized['composition']),
-      packing: normalized['pack'] ?? normalized['package'] ?? normalized['packing'] ?? '',
-      batch:normalized['Batch No']?? normalized['batch no'] ??normalized['batch_no'] ?? normalized['batch'] ?? normalized['batch number'] ?? '',
+      packing: ApiParserUtils.parseString(
+          normalized['pack'] ??
+          normalized['package'] ??
+          normalized['packing']),
+      batch:ApiParserUtils.parseString(
+          normalized['Batch No']??
+          normalized['batch no'] ??
+          normalized['batch_no'] ??
+          normalized['batch'] ??
+          normalized['batch number'] ),
       mrp: mrpValue.toStringAsFixed(2),
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
       discount: discountValue.toString(),
       discountSale: parseNullString(normalized['discountSale']),
-      expiry: normalized['expiry date'] ??
+      expiry:  ApiParserUtils.parseString(
+          normalized['expiry date'] ??
           normalized['expiry'] ??
           normalized['exp'] ??
           normalized['exp.'] ??
           normalized['ex.dt'] ??
-          normalized['Ex.Dt'] ??
-          '',
+          normalized['Ex.Dt']),
       qty: qty,
-      qty_free: qtyFree,
+      qty_free: ApiParserUtils.parseInt(
+          normalized['qty_free'] ??
+          normalized['free_qty'] ??
+          normalized['free']??qtyFree),
       gst: gstValue.toStringAsFixed(2),
       //total:parseTotal(normalized),
-      total:normalized['TOTAL'] ?? normalized['total'] ?? normalized['netAmount'] ?? '',
-      invoice_purchase_id: parseId(normalized['invoice_purchase_id'])??0,
+      total:ApiParserUtils.parseString(
+          normalized['TOTAL'] ??
+          normalized['total'] ??
+          normalized['netAmount'] ),
+      invoice_purchase_id: ApiParserUtils.parseInt(normalized['invoice_purchase_id']),
     );
   }
 
