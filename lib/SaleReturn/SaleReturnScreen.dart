@@ -42,14 +42,14 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
     setState(() {
       isLoading = true;
     });
-    final userId = await SessionManager.getUserId() ??'';
+    final userId = await SessionManager.getParentingId() ??'';
     context.read<ApiCubit>().GetSaleBillDetail(bill_id: widget.billNo.toString(),store_id: userId);
   }
   Future<void> ReturnApiCall() async {
     setState(() {
       isLoading = true;
     });
-    final userId = await SessionManager.getUserId() ?? '';
+    final userId = await SessionManager.getParentingId() ?? '';
     final selectedItems = returnBill!.items
         .where((item) => item.isSelected == true && item.returnQty > 0)
         .map((item) => ReturnedItem(

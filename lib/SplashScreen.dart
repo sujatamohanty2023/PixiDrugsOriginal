@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3)); // Simulates splash delay
     final prefs = await SharedPreferences.getInstance();
     final showOnboarding = prefs.getBool('onBoardComplete') ?? false;
-    final userId = await SessionManager.getUserId() ??'';
+    final userId = await SessionManager.getParentingId() ??'';
     if (!showOnboarding) {
       Navigator.pushReplacement(
         context,

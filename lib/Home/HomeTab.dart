@@ -26,11 +26,11 @@ class _HomeTabState extends State<HomeTab> {
   String? email = '';
   String? image = '';
   StreamSubscription? _profileSubscription;
-
   @override
   void initState() {
     super.initState();
     _GetProfileCall();
+    _GetStaffStatusCheck();
     _GetBanner();
     _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
       if (_currentPage < bannerList.length - 1) {
@@ -102,7 +102,8 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void _GetProfileCall() async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
+    String? role = await SessionManager.getRole();
     if (userId != null) {
       context.read<ApiCubit>().GetUserData(userId: userId);
     }
@@ -116,11 +117,35 @@ class _HomeTabState extends State<HomeTab> {
           email=state.userModel.user.email;
           image=state.userModel.user.profilePicture;
         });
-        if(state.userModel.user.status !='active'){
+        if(role=='owner' && state.userModel.user.status !='active'){
           showLoginFailedDialog(context);
         }
       } else if (state is UserProfileError) {
        AppUtils.showSnackBar(context,'Failed: ${state.error}');
+      }
+    });
+  }
+  void _GetStaffStatusCheck() async {
+    String? userId = await SessionManager.getUserId();
+    String? role = await SessionManager.getRole();
+    if (role=='staff' && userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId);
+    }
+
+    await _profileSubscription?.cancel();
+
+    _profileSubscription = context.read<ApiCubit>().stream.listen((state) {
+      if (state is UserProfileLoaded) {
+        setState(() {
+          name=state.userModel.user.name;
+          email=state.userModel.user.email;
+          image=state.userModel.user.profilePicture;
+        });
+        if(role=='staff' && state.userModel.user.status !='active'){
+          showLoginFailedDialog(context);
+        }
+      } else if (state is UserProfileError) {
+        AppUtils.showSnackBar(context,'Failed: ${state.error}');
       }
     });
   }
@@ -376,36 +401,40 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _UploadInvoice() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 1,ManualAdd: true);
+    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 5,ManualAdd: true);
   }
   Future<void> _setSelectedImage(List<File> file) async {
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: file[0].path,
-      compressFormat: ImageCompressFormat.jpg,
-      compressQuality: 90,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: AppColors.kPrimary,
-          toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: AppColors.kPrimary,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9,
-          ],
-        ),
-      ],
-    );
+    List<String> croppedFileList =[];
+    for(var item in file) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: item.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: AppColors.kPrimary,
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: AppColors.kPrimary,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9,
+            ],
+          ),
+        ],
+      );
+      croppedFileList.add(croppedFile!.path);
+    }
 
-    if (croppedFile != null) {
+    if (croppedFileList.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPurchaseBill(path: croppedFile.path),
+          builder: (context) => AddPurchaseBill(paths:croppedFileList),
         ),
       );
     }
@@ -432,7 +461,7 @@ class _HomeTabState extends State<HomeTab> {
         context,
         MaterialPageRoute(builder: (context) => BarcodeScannerPage()));
       if (result.isNotEmpty) {
-        final userId = await SessionManager.getUserId() ??'';
+        final userId = await SessionManager.getParentingId() ??'';
         context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
         widget.onGoToCart();
       }

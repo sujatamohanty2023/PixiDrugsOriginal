@@ -33,7 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Load the saved profile data from SharedPreferences
   void _loadProfileData() async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
     context.read<ApiCubit>().GetUserData(userId: userId!);
     context.read<ApiCubit>().stream.listen((state) {
       if (state is UserProfileLoaded) {
@@ -85,7 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Save profile data to SharedPreferences
   void _saveProfileData(String profile_url) async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
     context.read<ApiCubit>().updateUserData(
         user_id: userId!,
         name: nameController.text.isEmpty ? '' : nameController.text,

@@ -383,7 +383,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       return;
     }
 
-    final userId = await SessionManager.getUserId() ?? '';
+    final userId = await SessionManager.getParentingId() ?? '';
     var payment1 = Payment(
       id: widget.edit!?widget.ledger!.history[widget.index!].id:null,
       userId: int.parse(userId),

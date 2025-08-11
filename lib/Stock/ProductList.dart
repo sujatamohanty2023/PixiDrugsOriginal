@@ -31,7 +31,7 @@ class _ProductListPageState extends State<ProductListPage> {
     setState(() {
       isLoading = true;
     });
-    String? userId=await SessionManager.getUserId();
+    String? userId=await SessionManager.getParentingId();
     if(widget.flag==1) {
       context.read<ApiCubit>().fetchStockList(user_id: userId!);
     }else if(widget.flag==2) {
@@ -49,7 +49,7 @@ class _ProductListPageState extends State<ProductListPage> {
       final query = _searchController.text.trim();
 
       if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
-        String? userId = await SessionManager.getUserId();
+        String? userId = await SessionManager.getParentingId();
         context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual');
       } else {
         // Local filtering if not in search mode (flag != 4)

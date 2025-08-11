@@ -37,7 +37,7 @@ class ProfileScreen extends StatefulWidget {
     }
 
     void _GetProfileCall() async {
-      String? userId = await SessionManager.getUserId();
+      String? userId = await SessionManager.getParentingId();
       role=await SessionManager.getRole();
       if (userId != null) {
         context.read<ApiCubit>().GetUserData(userId: userId);

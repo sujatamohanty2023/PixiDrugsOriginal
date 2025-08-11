@@ -7,9 +7,10 @@ import '../constant/all.dart';
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;
   final bool? edit;
+  final bool manualAdd;
   final bool? details;
 
-  InvoiceSummaryPage({super.key, required this.invoice, this.edit = false,this.details = false});
+  InvoiceSummaryPage({super.key, required this.invoice, this.edit = false,this.manualAdd = false,this.details = false});
 
   @override
   State<InvoiceSummaryPage> createState() => _InvoiceSummaryPageState();
@@ -383,7 +384,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
 
   Future<void> AddInvoiceApiCall() async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
     //final updatedItems = invoice.items.map(applyDiscountPercent).toList();
     final updatedItems = invoice1.items;
     final formattedDate = formatDate(invoice1.invoiceDate);
@@ -397,10 +398,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
 
     print("📄 Invoice: ${newInvoice.toJson()}");
 
-    if (widget.edit == true) {
-      context.read<ApiCubit>().InvoiceEdit(invoice: newInvoice);
-    } else {
+    if (widget.edit == false || widget.manualAdd) {
       context.read<ApiCubit>().InvoiceAdd(invoice: newInvoice);
+    } else {
+      context.read<ApiCubit>().InvoiceEdit(invoice: newInvoice);
     }
   }
 

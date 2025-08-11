@@ -3,6 +3,7 @@ import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/Staff/StaffModel.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 import 'package:flutter/services.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -90,7 +91,7 @@ class _ListScreenState extends State<ListScreen>
   }
 
   Future<void> _fetchRecord() async {
-    final userId = await SessionManager.getUserId();
+    final userId = await SessionManager.getParentingId();
     if (userId == null) return;
     switch (widget.type) {
       case ListType.invoice:
@@ -118,7 +119,7 @@ class _ListScreenState extends State<ListScreen>
   }
 
   Future<void> _onAddInvoicePressed() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 1);
+    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 5,ManualAdd: true);
   }
   Future<void> _onAddExpense() async {
     AppRoutes.navigateTo(context, Addexpensescreen());
@@ -127,15 +128,41 @@ class _ListScreenState extends State<ListScreen>
     AppRoutes.navigateTo(context, AddStaffScreen(add:true));
   }
 
-  void _setSelectedImage(List<File> files) {
-    Future.delayed(const Duration(milliseconds: 100), () {
+  Future<void> _setSelectedImage(List<File> file) async {
+    List<String> croppedFileList =[];
+    for(var item in file) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: item.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: AppColors.kPrimary,
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: AppColors.kPrimary,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9,
+            ],
+          ),
+        ],
+      );
+      croppedFileList.add(croppedFile!.path);
+    }
+
+    if (croppedFileList.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPurchaseBill(path: files[0].path),
+          builder: (context) => AddPurchaseBill(paths:croppedFileList),
         ),
       );
-    });
+    }
   }
   void _deleteRecord(String id) async {
     try {

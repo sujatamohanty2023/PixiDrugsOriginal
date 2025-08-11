@@ -34,7 +34,7 @@ class FCMService {
   }
 
   Future<void> updateTokenToServer(BuildContext context, String token) async {
-    String? user_id = await SessionManager.getUserId();
+    String? user_id = await SessionManager.getParentingId();
 
     if (user_id != null) {
       context.read<ApiCubit>().updateFCMtoken(user_id: user_id, fcm_token: token);

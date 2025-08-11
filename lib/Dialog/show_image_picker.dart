@@ -2,7 +2,7 @@ import 'package:PixiDrugs/constant/all.dart'; // Import your constants
 
 void showImageBottomSheet(
     BuildContext context, Function(List<File>) onFileSelected,
-    {int pick_Size = 3, bool pdf = false,bool ManualAdd=false}) {
+    {int pick_Size = 5, bool pdf = false,bool ManualAdd=false}) {
   final picker = ImagePicker();
   List<File> _fileList = [];
 
@@ -23,7 +23,7 @@ void showImageBottomSheet(
               onTap: () async {
                 Navigator.pop(context); // Close bottom sheet first
                 Future.delayed(Duration(milliseconds: 200), () {
-                  AppRoutes.navigateTo(context, AddPurchaseBill());
+                  AppRoutes.navigateTo(context, AddPurchaseBill(manualAdd:true));
                 });
               },
             ),

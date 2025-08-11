@@ -200,7 +200,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     );
   }
   Future<void> _UpdateApiCall() async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
 
 
       if (cartItems.isEmpty) {

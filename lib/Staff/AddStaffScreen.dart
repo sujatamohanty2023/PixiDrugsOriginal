@@ -62,7 +62,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         return;
       }
       print('API $name,\n$email,\n$mobile,\n$dob1,\n$address,\n$password,\n$password_confirm,\n$selectedGender,\n$status');
-      final userId = await SessionManager.getUserId() ?? '';
+      final userId = await SessionManager.getParentingId() ?? '';
       if (edit && widget.staff != null) {
         context.read<ApiCubit>().StaffEdit(id: widget.staff!.id.toString(),
           store_id: userId,

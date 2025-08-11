@@ -167,7 +167,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
   }
 
   Future<void> _paymentPageCall() async {
-    String? userId = await SessionManager.getUserId();
+    String? userId = await SessionManager.getParentingId();
     final cartState = context.read<CartCubit>().state;
 
     if (cartState is CartLoaded) {

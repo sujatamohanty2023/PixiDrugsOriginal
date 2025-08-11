@@ -62,7 +62,8 @@ class AppUtils {
     var isError = message.toLowerCase().contains('error') ||
         message.toLowerCase().contains('failed') ||
         message.toLowerCase().contains('please') ||
-        message.toLowerCase().contains('no product founds');
+        message.toLowerCase().contains('no product founds')||
+        message.toLowerCase().contains('Multiple different invoice IDs found');
 
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(

@@ -5,6 +5,7 @@ class SessionManager {
   static const _accessTokenKey = 'access_token';
   static const _roleKey = 'role';
   static const _userIdKey = 'user_id';
+  static const _parentingIdKey = 'parent_id';
   static const _addressModelKey = 'user_address_model';
   static const _currentLatLngKey = 'saved_latlng';
 
@@ -14,12 +15,13 @@ class SessionManager {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, response.accessToken??'');
     await prefs.setString(_roleKey, response.user?.role ?? 'guest');
+    await prefs.setString(_userIdKey,response.user!.id.toString());
     if(response.user!.role=='staff'){
       id=response.user!.parentId;
     }else if(response.user!.role=='owner'){
       id=response.user!.id;
     }
-    await prefs.setString(_userIdKey,id.toString());
+    await prefs.setString(_parentingIdKey,id.toString());
   }
 
   // Load access token
@@ -34,7 +36,12 @@ class SessionManager {
     return prefs.getString(_roleKey);
   }
 
-  // Load user ID
+  // Load Parenting ID
+  static Future<String?> getParentingId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_parentingIdKey);
+  }
+  // Load Parenting ID
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userIdKey);
@@ -46,6 +53,7 @@ class SessionManager {
     await prefs.remove(_accessTokenKey);
     await prefs.remove(_roleKey);
     await prefs.remove(_userIdKey);
+    await prefs.remove(_parentingIdKey);
     await prefs.remove(_addressModelKey);
   }
 }

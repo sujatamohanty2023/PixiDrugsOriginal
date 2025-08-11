@@ -54,7 +54,7 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
       AppUtils.showSnackBar(context,"Please fill Title and Amount");
       return;
     }
-    final userId = await SessionManager.getUserId() ?? '';
+    final userId = await SessionManager.getParentingId() ?? '';
     if(edit && widget.expenseResponse !=null){
       context.read<ApiCubit>().ExpenseEdit(id:widget.expenseResponse!.id.toString(),
           store_id:userId,

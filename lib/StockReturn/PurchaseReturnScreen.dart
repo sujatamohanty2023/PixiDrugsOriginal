@@ -40,14 +40,14 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     setState(() {
       isLoading = true;
     });
-    final userId = await SessionManager.getUserId() ??'';
+    final userId = await SessionManager.getParentingId() ??'';
     context.read<ApiCubit>().GetInvoiceDetail(invoice_id: widget.invoiceNo,store_id: userId);
   }
   Future<void> ReturnApiCall() async {
     setState(() {
       isLoading = true;
     });
-    final userId = await SessionManager.getUserId() ?? '';
+    final userId = await SessionManager.getParentingId() ?? '';
     final selectedItems = return_invoice!.items
         .where((item) => item.isSelected == true && item.returnQty > 0)
         .map((item) => ReturnItemModel(

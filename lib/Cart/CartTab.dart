@@ -30,7 +30,7 @@ class _CartTabState extends State<CartTab> {
     _loadUserId();
   }
   Future<void> _loadUserId() async {
-    final id = await SessionManager.getUserId();
+    final id = await SessionManager.getParentingId();
     setState(() {
       userId = id ?? '';
     });

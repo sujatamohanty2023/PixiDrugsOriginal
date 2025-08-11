@@ -3,11 +3,13 @@ import 'package:aws_signature_v4/aws_signature_v4.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
 class AddPurchaseBill extends StatefulWidget {
-  final String path;
+  final List<String> paths;
+  final bool manualAdd;
   Invoice? invoice1;
   AddPurchaseBill({
     super.key,
-    this.path = '',
+    this.paths = const [],
+    this.manualAdd = false,
     Invoice? invoice,
   })  : invoice1 = invoice ??  Invoice(items: [InvoiceItem()]);
 
@@ -62,10 +64,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       editIndex = args?['edit_product_index'] as int?;
 
-      if (widget.path.isEmpty && widget.invoice1 != null) {
+      if (widget.paths.isEmpty && widget.invoice1 != null) {
         loadedInvoice = widget.invoice1;
-      } else if (widget.path.isNotEmpty) {
-        loadedInvoice = await InvoiceRead();
+      } else if (widget.paths.isNotEmpty) {
+        loadedInvoice = await _readMultipleInvoices(widget.paths);
       } else {
         loadedInvoice = widget.invoice1 ?? Invoice(items: [InvoiceItem()]);
       }
@@ -103,16 +105,49 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       }
     }
   }
-  Future<Invoice> InvoiceRead()async{
-    final bytes = await fileToBytes(widget.path);
-    final jsonData = await analyzeDocumentWithTextract(bytes);
-    //final String jsonString = await rootBundle.loadString('assets/invoice1.json');
-    //final jsonData = json.decode(jsonString);
-    final parser = AnalyzeExpenseParser(jsonData);
-    final invoiceData = parser.parse();
-    printInvoiceData(invoiceData);
-    return Invoice.fromJson(invoiceData);
+  Future<Invoice> _readMultipleInvoices(List<String> paths) async {
+    final allItems = <InvoiceItem>[];
+    final allInvoices = <Invoice>[];
+    final invoiceIds = <String>{};
+
+    for (String path in paths) {
+      try {
+        final bytes = await fileToBytes(path);
+        final jsonData = await analyzeDocumentWithTextract(bytes);
+        final parser = AnalyzeExpenseParser(jsonData);
+        final invoiceData = parser.parse();
+
+        printInvoiceData(invoiceData);
+
+        final invoice = Invoice.fromJson(invoiceData);
+
+        allInvoices.add(invoice);
+
+        if (invoice.invoiceId != null && invoice.invoiceId!.isNotEmpty) {
+          invoiceIds.add(invoice.invoiceId!);
+        }
+      } catch (e) {
+        print("❌ Error processing $path: $e");
+      }
+    }
+
+    // Check if all invoice IDs are the same
+    if (invoiceIds.length > 1) {
+      print("⚠ Error: Multiple different invoice IDs found: $invoiceIds");
+      AppUtils.showSnackBar(context, 'Multiple different invoice IDs found');
+      // You could throw an exception, return empty, or handle differently
+      return Invoice(items: []);
+    }
+
+    // Merge items from invoices (since all IDs match)
+    for (final inv in allInvoices) {
+      allItems.addAll(inv.items);
+    }
+    final updatedInvoice = allInvoices.first.copyWith(
+        items: allItems);
+    return updatedInvoice;
   }
+
   void printInvoiceData(Map<String, dynamic> invoiceData) {
     invoiceData.forEach((key, value) {
       if (key == 'items' && value is List) {
@@ -540,7 +575,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                                   items: productList);
                               AppRoutes.navigateTo(context,
                                   InvoiceSummaryPage(invoice: updatedInvoice,
-                                      edit: widget.path.isEmpty));
+                                      edit: widget.paths.isEmpty,manualAdd:widget.manualAdd));
                             } else {
                               currentIndex++;
                               product = productList[currentIndex];
