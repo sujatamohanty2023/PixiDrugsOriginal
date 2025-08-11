@@ -2,7 +2,7 @@ import 'package:PixiDrugs/constant/all.dart'; // Import your constants
 
 void showImageBottomSheet(
     BuildContext context, Function(List<File>) onFileSelected,
-    {int pick_Size = 3, bool pdf = false}) {
+    {int pick_Size = 3, bool pdf = false,bool ManualAdd=false}) {
   final picker = ImagePicker();
   List<File> _fileList = [];
 
@@ -15,6 +15,18 @@ void showImageBottomSheet(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             // Take a Photo Option
+            if(ManualAdd)
+            ListTile(
+              leading:
+              Icon(Icons.add, color: AppColors.kPrimary),
+              title: Text('Add Invoice Manually'),
+              onTap: () async {
+                Navigator.pop(context); // Close bottom sheet first
+                Future.delayed(Duration(milliseconds: 200), () {
+                  AppRoutes.navigateTo(context, AddPurchaseBill());
+                });
+              },
+            ),
             ListTile(
               leading:
                   Icon(Icons.camera_alt_outlined, color: AppColors.kPrimary),

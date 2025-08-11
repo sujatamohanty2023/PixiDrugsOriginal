@@ -100,4 +100,9 @@ class SaleItem {
       itemProfit: ApiParserUtils.parseDouble(json['item_profit']),
     );
   }
+  @override
+  String toString() {
+    return 'SaleItem(productId: $productId, productName: $productName, price: $price, '
+        'quantity: $quantity, mrp: $mrp, discount: $discount, itemProfit: $itemProfit)';
+  }
 }

@@ -53,7 +53,7 @@ class _SuccessDialogState extends State<SuccessDialog> {
                 widget.msg, AppUtils.size_14, Colors.black54),
             SizedBox(height: 50),
             MyElevatedButton(
-              onPressed: _onButtonPrintPressed,
+              onPressed: () => _onButtonPrintPressed(context),
               buttonText: AppString.Done,
             ),
             SizedBox(height: 5),
@@ -63,7 +63,7 @@ class _SuccessDialogState extends State<SuccessDialog> {
     );
   }
 
-  void _onButtonPrintPressed() {
+  void _onButtonPrintPressed(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

@@ -59,25 +59,58 @@ class AppUtils {
   }
 
   static void showSnackBar(BuildContext context, String message) {
-    var errorField=message.toLowerCase().contains('error')||message.toLowerCase().contains('failed') ||
-    message.toLowerCase().contains('please')|| message.toLowerCase().contains('no product founds');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: MyTextfield.textStyle_w600(message, AppUtils.size_16,AppColors.kWhiteColor),
-        backgroundColor: errorField? AppColors.error:AppColors.success, // Background color
-        behavior: SnackBarBehavior.floating, // Floating style
-       /* margin: EdgeInsets.only(
-          top: 20,
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.of(context).size.height - 120, // Push to top
-        ),*/
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    var isError = message.toLowerCase().contains('error') ||
+        message.toLowerCase().contains('failed') ||
+        message.toLowerCase().contains('please') ||
+        message.toLowerCase().contains('no product founds');
+
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 16, // Below status bar
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isError ? AppColors.error : AppColors.success,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isError ? Icons.error : Icons.check_circle,
+                  color:Colors.white,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: MyTextfield.textStyle_w600(
+                    message,
+                    AppUtils.size_16,
+                    Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        duration: const Duration(seconds: 2),
       ),
     );
+
+    overlay.insert(overlayEntry);
+
+    // Auto-remove after 2 seconds
+    Future.delayed(const Duration(seconds: 2)).then((_) => overlayEntry.remove());
+
   }
 
   String formatDateForServerInput(String inputDate) {
