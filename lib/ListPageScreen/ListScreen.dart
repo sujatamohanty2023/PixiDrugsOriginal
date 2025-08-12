@@ -119,7 +119,7 @@ class _ListScreenState extends State<ListScreen>
   }
 
   Future<void> _onAddInvoicePressed() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 5,ManualAdd: true);
+    showImageBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5,ManualAdd: true);
   }
   Future<void> _onAddExpense() async {
     AppRoutes.navigateTo(context, Addexpensescreen());
@@ -237,6 +237,8 @@ class _ListScreenState extends State<ListScreen>
                   child: RefreshIndicator(
                     onRefresh: _fetchRecord,
                     child: _buildListBody(isLoading),
+                    color: AppColors.kPrimary,
+                    backgroundColor: AppColors.kPrimaryLight,
                   ),
                 ),
               ],

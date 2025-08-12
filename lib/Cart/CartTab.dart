@@ -95,7 +95,9 @@ class _CartTabState extends State<CartTab> {
   Widget _buildCartContent(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
-        return _buildCartOrEmpty(state.barcodeCartItems);
+        return Container(
+          color: AppColors.kPrimary,
+            child: _buildCartOrEmpty(state.barcodeCartItems));
       },
     );
   }
@@ -109,9 +111,13 @@ class _CartTabState extends State<CartTab> {
   /// Shows a customizable empty cart page
   Widget _buildEmptyPage() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.myGradient,
-      ),
+        decoration: BoxDecoration(
+          gradient: AppColors.myGradient,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(SizeConfig.screenWidth! * 0.07),
+            topRight: Radius.circular(SizeConfig.screenWidth! * 0.07),
+          ),
+        ),
       child: NoItemPage(
         onTap: _scanBarcode,
         image: AppImages.empty_cart,
@@ -224,6 +230,7 @@ class _CartTabState extends State<CartTab> {
     return PreferredSize(
       preferredSize: const Size.fromHeight(85),
       child: Container(
+        width: double.infinity,
         color: AppColors.kPrimary,
         child: SafeArea(
           child: Column(

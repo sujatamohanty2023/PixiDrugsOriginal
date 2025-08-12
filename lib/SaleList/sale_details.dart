@@ -78,7 +78,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
           AppUtils.showSnackBar(context,state.message);
         } else if (state is SaleEditError) {
           Navigator.pop(context); // Dismiss loading
-          AppUtils.showSnackBar(context,'Failed to Update Sale: ${state.error}');
+          AppUtils.showSnackBar(context,'Error: ${state.error}');
         }
       },
       child: Scaffold(
@@ -115,60 +115,63 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                       topRight: Radius.circular(screenWidth * 0.07),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Invoice No: ${widget.sale?.invoiceNo ?? ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      const SizedBox(height: 8),
-                      Text("Date: ${widget.sale?.date ?? ''}"),
-                      const SizedBox(height: 8),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 50.0,),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Invoice No: ${widget.sale?.invoiceNo ?? ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const SizedBox(height: 8),
+                        Text("Date: ${widget.sale?.date ?? ''}"),
+                        const SizedBox(height: 8),
 
-                      /// Address Widget with Edit Option
-                      addressWidget(
-                        name: name,
-                        phone: phone,
-                        address: address,
-                        tap: () async {
-                          await checkUserData(name, phone, address);
-                        },
-                      ),
+                        /// Address Widget with Edit Option
+                        addressWidget(
+                          name: name,
+                          phone: phone,
+                          address: address,
+                          tap: () async {
+                            await checkUserData(name, phone, address);
+                          },
+                        ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                      /// Cart Items
-                      CustomListView<InvoiceItem>(
-                        data: cartItems,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onTap: _onCartItemTap,
-                        itemBuilder: (item) => ProductCard(item: item,
-                          editable:widget.edit!,
-                          mode: ProductCardMode.cart,
-                          onRemove: () {
-                          setState(() {
-                            cartItems.removeWhere((e) => e.id == item.id);
-                          });
-                        },onUpdate: () {
-                          setState(() {
-                            _recalculateTotals(cartItems);
-                          });
-                        },),
-                      ),
+                        /// Cart Items
+                        CustomListView<InvoiceItem>(
+                          data: cartItems,
+                          physics: const NeverScrollableScrollPhysics(),
+                          onTap: _onCartItemTap,
+                          itemBuilder: (item) => ProductCard(item: item,
+                            editable:widget.edit!,
+                            mode: ProductCardMode.cart,
+                            onRemove: () {
+                              setState(() {
+                                cartItems.removeWhere((e) => e.id == item.id);
+                              });
+                            },onUpdate: () {
+                              setState(() {
+                                _recalculateTotals(cartItems);
+                              });
+                            },),
+                        ),
 
-                      const SizedBox(height: 15),
+                        const SizedBox(height: 15),
 
-                      /// Order Summary
-                      PaymentRow(title: "Order Summary", value: "", isBold: true),
-                      Divider(color: AppColors.kPrimary.withOpacity(0.1)),
-                      PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$subtotalPrice"),
-                      PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
-                      Divider(color: AppColors.kPrimary.withOpacity(0.1)),
-                      PaymentRow(
-                        title: "Total",
-                        value: "${AppString.Rupees}${totalPrice.toStringAsFixed(2)}",
-                        isBold: true,
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                        /// Order Summary
+                        PaymentRow(title: "Order Summary", value: "", isBold: true),
+                        Divider(color: AppColors.kPrimary.withOpacity(0.1)),
+                        PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$subtotalPrice"),
+                        PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
+                        Divider(color: AppColors.kPrimary.withOpacity(0.1)),
+                        PaymentRow(
+                          title: "Total",
+                          value: "${AppString.Rupees}${totalPrice.toStringAsFixed(2)}",
+                          isBold: true,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),

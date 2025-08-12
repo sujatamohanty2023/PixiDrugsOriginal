@@ -85,12 +85,21 @@ void showImageBottomSheet(
                       File pdfFile = File(result.files.single.path!);
                       _fileList.add(pdfFile);
                       onFileSelected(_fileList);
+                      // Close the dialog first
+                      Navigator.pop(context);
+
+                      // Then navigate to AddPurchaseBill page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddPurchaseBill(paths: [pdfFile.path]),
+                        ),
+                      );
                     }
                   } catch (e) {
                     // Handle any potential errors with PDF picking
                     AppUtils.showSnackBar(context,'Failed to pick PDF: $e');
                   }
-                  Navigator.pop(context);
                 },
               ),
           ],

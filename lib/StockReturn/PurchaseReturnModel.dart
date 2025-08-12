@@ -56,6 +56,22 @@ class PurchaseReturnModel {
     if (id != null && id!=0) data['id'] = id;
     return data;
   }
+  @override
+  String toString() {
+    return 'PurchaseReturnModel('
+        'id: $id, '
+        'storeId: $storeId, '
+        'invoicePurchaseId: $invoicePurchaseId, '
+        'sellerId: $sellerId, '
+        'invoiceNo: $invoiceNo, '
+        'returnDate: $returnDate, '
+        'reason: $reason, '
+        'totalAmount: $totalAmount, '
+        'sellerName: $sellerName, '
+        'items: $items'
+        ')';
+  }
+
 }
 class ReturnItemModel {
   final int? id;
@@ -112,4 +128,20 @@ class ReturnItemModel {
     if (productName != null) data['product_name'] = productName!;
     return data;
   }
+  @override
+  String toString() {
+    return 'ReturnItemModel('
+        'id: $id, '
+        'productId: $productId, '
+        'productName: $productName, '
+        'batchNo: $batchNo, '
+        'expiry: $expiry, '
+        'quantity: $quantity, '
+        'rate: $rate, '
+        'gstPercent: $gstPercent, '
+        'discountPercent: $discountPercent, '
+        'totalAmount: $totalAmount'
+        ')';
+  }
+
 }

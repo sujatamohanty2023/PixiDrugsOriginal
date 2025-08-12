@@ -104,9 +104,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         padding: const EdgeInsets.only(top: 10),
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(30),
-            topLeft: Radius.circular(30),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(SizeConfig.screenWidth! * 0.07),
+            topRight: Radius.circular(SizeConfig.screenWidth! * 0.07),
           ),
         ),
         child: SingleChildScrollView(
@@ -122,11 +122,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                 physics: const NeverScrollableScrollPhysics(),
                 onTap: _onCartItemTap,
                 itemBuilder: (item) => ProductCard(
+                    key: ValueKey(item.id),
                     item: item,
                     mode: ProductCardMode.cart,
                     barcodeScan: widget.barcodeScan,
                     saleCart:true,
-                    editable: true,
+                    editable: true
                 ),
               ),
               const SizedBox(height: 15),

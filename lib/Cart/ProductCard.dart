@@ -27,14 +27,12 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  late InvoiceItem item;
   late TextEditingController discController;
 
   @override
   void initState() {
     super.initState();
-    item = widget.item;
-    discController = TextEditingController(text: item.discountSale);
+    discController = TextEditingController(text: widget.item.discountSale);
   }
 
   @override
@@ -84,9 +82,9 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Widget _buildProductImage() {
-    String initials = item.product.length >= 2
-        ? item.product.substring(0, 2).toUpperCase()
-        : item.product.toUpperCase();
+    String initials = widget.item.product.length >= 2
+        ? widget.item.product.substring(0, 2).toUpperCase()
+        : widget.item.product.toUpperCase();
     return Container(
       decoration: BoxDecoration(
         color: AppColors.kPrimaryDark,
@@ -107,11 +105,11 @@ class _ProductCardState extends State<ProductCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MyTextfield.textStyle_w600(item.product, 18, Colors.black),
-        MyTextfield.textStyle_w200('Batch No.${item.batch}', 12, AppColors.kPrimary),
-        MyTextfield.textStyle_w200(item.composition??'', 12, Colors.grey[600]!),
+        MyTextfield.textStyle_w600(widget.item.product, 18, Colors.black),
+        MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
+        MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
-        MyTextfield.textStyle_w600("${AppString.Rupees}${item.mrp}", 16, Colors.green),
+        MyTextfield.textStyle_w600("${AppString.Rupees}${widget.item.mrp}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
         if (isCartMode)
           Row(
@@ -126,15 +124,15 @@ class _ProductCardState extends State<ProductCard> {
                   readOnly: !widget.editable,
                   onChanged: (val) {
                     final discount = double.tryParse(val) ?? 0.0;
-                    item.discount = discount.toString();
+                    widget.item.discount = discount.toString();
                     if (widget.saleCart==false && isEditable) {
                       widget.onUpdate?.call();
                     } else {
                       cartCubit.updateItemDiscount(
-                        item.id!,
+                        widget.item.id!,
                         discount,
                         type: widget.barcodeScan ? CartType.barcode : CartType.main,
-                        discountType: item.discountType,
+                        discountType: widget.item.discountType,
                       );
                     }
                   },
@@ -160,7 +158,7 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == item.id);
+              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == widget.item.id);
             } catch (e) {
               cartItem = null;
             }
@@ -170,7 +168,7 @@ class _ProductCardState extends State<ProductCard> {
             if (isSearchMode && quantity == 0) {
               return GestureDetector(
                 onTap: () {
-                  cartCubit.addToCart(item, 1, type: CartType.barcode);
+                  cartCubit.addToCart(widget.item, 1, type: CartType.barcode);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -189,20 +187,20 @@ class _ProductCardState extends State<ProductCard> {
                     icon: Icons.remove,
                     onTap: () {
                       if (widget.saleCart==false && widget.editable) {
-                        if (item.qty <= 1) {
+                        if (widget.item.qty <= 1) {
                           widget.onRemove?.call();
                         } else {
                           setState(() {
-                            item.qty--;
+                            widget.item.qty--;
                           });
                         }
                         widget.onUpdate?.call();
                       } else {
                         if (quantity <= 1) {
-                          cartCubit.removeFromCart(item.id!,
+                          cartCubit.removeFromCart(widget.item.id!,
                               type: CartType.barcode);
                         } else {
-                          cartCubit.decrementQuantity(item.id!,
+                          cartCubit.decrementQuantity(widget.item.id!,
                               type: CartType.barcode);
                         }
                       }
@@ -217,11 +215,11 @@ class _ProductCardState extends State<ProductCard> {
                     onTap: () {
                       if (widget.saleCart==false && widget.editable) {
                         setState(() {
-                          item.qty++;
+                          widget.item.qty++;
                         });
                         widget.onUpdate?.call();
                       } else {
-                        cartCubit.incrementQuantity(item.id!,
+                        cartCubit.incrementQuantity(widget.item.id!,
                             type: CartType.barcode);
                       }
                     },
@@ -237,13 +235,16 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildQuantityDisplay() {
     return Builder(
       builder: (context) {
-        return widget.mode==ProductCardMode.cart && !widget.saleCart?MyTextfield.textStyle_w600(item.qty.toString(), 18, Colors.black87)
+        return widget.mode==ProductCardMode.cart && !widget.saleCart?MyTextfield.textStyle_w600(widget.item.qty.toString(), 18, Colors.black87)
             :BlocBuilder<CartCubit, CartState>(
           builder: (context, state) {
-            final quantity = state.barcodeCartItems.firstWhere(
-                  (e) => e.id == item.id
-            ).qty;
-
+            InvoiceItem? cartItem;
+            try {
+              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == widget.item.id);
+            } catch (e) {
+              cartItem = null;
+            }
+            final quantity = cartItem?.qty??'0';
             return MyTextfield.textStyle_w600(quantity.toString(), 18, Colors.black87);
           },
         );
@@ -282,7 +283,7 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   void _showRemoveBottomSheet(BuildContext context, CartCubit cartCubit) {
-    String initials = item.product.length >= 2 ? item.product.substring(0, 2).toUpperCase() : item.product.toUpperCase();
+    String initials = widget.item.product.length >= 2 ? widget.item.product.substring(0, 2).toUpperCase() : widget.item.product.toUpperCase();
 
     showModalBottomSheet(
       context: context,
@@ -322,8 +323,8 @@ class _ProductCardState extends State<ProductCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      MyTextfield.textStyle_w600(item.product, 16, Colors.black),
-                      MyTextfield.textStyle_w200(item.composition??'', 12, Colors.grey[600]!, maxLines: 2),
+                      MyTextfield.textStyle_w600(widget.item.product, 16, Colors.black),
+                      MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!, maxLines: 2),
                     ],
                   ),
                 ),
@@ -336,7 +337,7 @@ class _ProductCardState extends State<ProductCard> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (widget.saleCart) {
-                        cartCubit.removeFromCart(item.id!,
+                        cartCubit.removeFromCart(widget.item.id!,
                             type: CartType.barcode);
                       } else {
                         widget.onRemove?.call();

@@ -401,7 +401,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _UploadInvoice() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: false, pick_Size: 5,ManualAdd: true);
+    showImageBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5,ManualAdd: true);
   }
   Future<void> _setSelectedImage(List<File> file) async {
     List<String> croppedFileList =[];

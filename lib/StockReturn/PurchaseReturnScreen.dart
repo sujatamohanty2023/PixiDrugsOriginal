@@ -6,7 +6,8 @@ import 'PurchaseReturnModel.dart';
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
   PurchaseReturnModel? returnModel;
-  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel}) : super(key: key);
+  bool? edit;
+  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.edit}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -15,7 +16,7 @@ class PurchaseReturnScreen extends StatefulWidget {
 class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
   String? invoice_No;
   Invoice? return_invoice;
-  bool edit=false;
+  bool editClick=false;
   bool isLoading = true;
   DateTime selectedDate = DateTime.now();
   List<String> returnReasons = [
@@ -51,7 +52,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
     final selectedItems = return_invoice!.items
         .where((item) => item.isSelected == true && item.returnQty > 0)
         .map((item) => ReturnItemModel(
-      productId: item.id!,
+      productId: item.id??0,
       quantity: item.returnQty,
       rate: item.rate,
       batchNo: item.batch,
@@ -67,17 +68,18 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
           (sum, item) => sum + (item.quantity * double.parse(item.rate)),
     );
     var returnModel = PurchaseReturnModel(
-      id: edit && widget.returnModel !=null?widget.returnModel?.id:null,
+      id: editClick && widget.returnModel !=null?widget.returnModel?.id:0,
       storeId:int.parse(userId),
       invoicePurchaseId:return_invoice!.items.first.invoice_purchase_id,
       sellerId:int.parse(return_invoice!.sellerId!),
+      invoiceNo: return_invoice!.invoiceId!,
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount.toString(),
       reason: selectedReason ?? '',
       items:selectedItems,
     );
-    print(returnModel.toString());
-    if(edit && widget.returnModel !=null){
+    print('returnModel=${returnModel.toString()}');
+    if(editClick && widget.returnModel !=null){
       context.read<ApiCubit>().StockReturnEdit(returnModel: returnModel);
     }else {
       context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);
@@ -94,6 +96,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
             setState(() {
               isLoading = false;
               return_invoice = state.invoiceModel;
+              print("returnModel=${return_invoice.toString()}");
 
               if (widget.returnModel != null) {
                 if(widget.returnModel!.reason.isEmpty){
@@ -198,7 +201,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
                           onPressed: ()=>setState(() {
-                            edit = true;
+                            editClick = true;
                           }),
                           tooltip: 'Edit',
                         ),
@@ -320,7 +323,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                             ),
                           ),
 
-                          onChanged: (widget.returnModel == null || edit)
+                          onChanged: ((widget.returnModel != null && editClick)|| widget.edit!)
                               ? (value) {
                             setState(() {
                               selectedReason = value;
@@ -348,7 +351,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                               final item = return_invoice!.items[index];
                               return ReturnProductTile(
                                 product: item,
-                                editable: widget.returnModel == null || edit,
+                                editable: (widget.returnModel == null && editClick)||widget.edit!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
@@ -382,7 +385,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: !edit && widget.returnModel !=null?SizedBox():Row(
+      floatingActionButton: !editClick && widget.returnModel !=null?SizedBox():Row(
         children: [
           Expanded(
             child: Padding(
@@ -391,7 +394,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                 onPressed: () {
                   ReturnApiCall();
                 },
-                label: MyTextfield.textStyle_w600("Confirm", AppUtils.size_18, AppColors.kWhiteColor),
+                label: MyTextfield.textStyle_w600(editClick?"Update":"Confirm", AppUtils.size_18, AppColors.kWhiteColor),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   backgroundColor: AppColors.kPrimary,

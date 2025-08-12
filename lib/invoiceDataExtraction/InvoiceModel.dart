@@ -151,6 +151,7 @@ class InvoiceItem {
     this.returnQty = 0,
     this.invoice_purchase_id = 0,
   });
+
    InvoiceItem copyWith({
      int? id,
      String? hsn,
@@ -289,11 +290,13 @@ class InvoiceItem {
     }
     return '0.00';
   }
-
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
     final normalized = normalizeJsonKeys(json);
 
-    final rawGstString = ApiParserUtils.parseString(normalized['gst'] ??
+    final rawGstString = ApiParserUtils.parseString(
+        normalized['gst'] ??
+        normalized['g.s.t%'] ??
+        normalized['g.s.t %'] ??
         normalized['gst_rate'] ??
         normalized['tax'] ??
         normalized['tax_rate'] ??
@@ -303,15 +306,15 @@ class InvoiceItem {
 
     final gstValue = parseCombinedGst(rawGstString);
 
-    final mrpValue = parseNumberFromString(normalized['mrp'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
+    final mrpValue = parseNumberFromString(normalized['mrp'] ??normalized['m.r.p'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
     final rateValue =
     parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
-    final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']);
+    final taxableValue = parseNumberFromString(normalized['taxable']??normalized['Taxable']??normalized['p.t.r']??normalized['P.T.R']);
     final discountValue =
-    parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['discount']);
+    parseNumberFromString(normalized['disc.'] ??normalized['Disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['dis. %']?? normalized['Dis. %'] ?? normalized['discount']);
 
     final qtyRaw =  ApiParserUtils.parseString(
-      normalized['quantity'] ?? normalized['qty'],defaultValue: '0'
+      normalized['quantity'] ?? normalized['qty']??normalized['qty.'],defaultValue: '0'
     );
     final qty = parseQty(qtyRaw);
     final qtyFree = parseQtyFree(qtyRaw);
@@ -323,7 +326,7 @@ class InvoiceItem {
           normalized['hsn_code'] ??
           normalized['hsn']??
           normalized['HSN'] ??
-          normalized['Product Code']),
+          normalized['Product Code'],defaultValue: '0'),
       product:  ApiParserUtils.parseString(
           normalized['product name'] ??
           normalized['product Name'] ??
@@ -341,6 +344,7 @@ class InvoiceItem {
       batch:ApiParserUtils.parseString(
           normalized['Batch No']??
           normalized['batch no'] ??
+          normalized['batch no.']??
           normalized['batch_no'] ??
           normalized['batch'] ??
           normalized['batch number'] ),
