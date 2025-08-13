@@ -42,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    //AppUtils.showSnackBar(context, 'Width: ${SizeConfig.screenWidth}, Height: ${SizeConfig.screenHeight}');
 
   }
   @override

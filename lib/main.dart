@@ -6,6 +6,8 @@ import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/FCMService.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnScreen.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'Api/api_repository.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
@@ -26,7 +28,16 @@ void main() async {
   await FirebaseAppCheck.instance.activate(
     androidProvider:AndroidProvider.playIntegrity,
   );
-  runApp(const MyApp());
+
+  //runApp(const MyApp());
+
+  //device-preview all screen
+  runApp(
+      DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) => MyApp(), // Wrap your app
+      ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -58,6 +69,9 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (_) => ApiCubit(apiRepository)),
       ],
       child: MaterialApp(
+        useInheritedMediaQuery: true, //device-preview all screen
+        locale: DevicePreview.locale(context),//device-preview all screen
+        builder: DevicePreview.appBuilder,//device-preview all screen
         debugShowCheckedModeBanner: false,
         navigatorObservers: [routeObserver],
         routes: {

@@ -79,7 +79,7 @@ class _IntroScreenState extends State<IntroScreen> {
             }
           ),
           Positioned(
-            top: MediaQuery.of(context).size.height / 1.75,
+            bottom: MediaQuery.of(context).size.height / 1.85,
             right: 0,
             left: 0,
             child: Column(
