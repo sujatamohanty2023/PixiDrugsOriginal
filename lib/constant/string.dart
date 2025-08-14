@@ -7,7 +7,7 @@ class AppString {
   static String continueText="Continue";
   static String get_started="Get Started";
   static String verifyOtp="OTP Verification";
-  static String otpdesc='Enter the 6-digit code we sent to verify your number and continue with secure access to your PixiDrugs account.';
+  static String otpdesc='Enter the 6-digit code we sent to verify your number and continue with secure account.';
   static String verify_continue="Verify & Continue";
 
 

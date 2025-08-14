@@ -1,289 +1,279 @@
-import 'package:PixiDrugs/login/OtpVerificationScreen.dart';
-
-import 'package:PixiDrugs/constant/all.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import 'OtpVerificationScreen.dart';
+import '../constant/all.dart';
 import '../Profile/WebviewScreen.dart';
 import 'FCMService.dart';
 
 class MobileLoginScreen extends StatefulWidget {
-
   @override
   _MobileLoginScreenState createState() => _MobileLoginScreenState();
 }
 
 class _MobileLoginScreenState extends State<MobileLoginScreen> {
   final TextEditingController phoneController = TextEditingController();
-  String errorMessage = '';
   bool _isLoading = false;
   User? user;
   StreamSubscription? _loginSubscription;
 
   @override
   Widget build(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       backgroundColor: AppColors.loginbg,
-      body: SingleChildScrollView( // ✅ Handles keyboard scroll
-        child: Column(
-          children: [
-            /// 🔷 Image on Top
-            SizedBox(
-              height: screenHeight * 0.55,
-              width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 100.0),
-                child: Image.asset(
-                  AppImages.LoginIcon,
-                  fit: BoxFit.cover,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double screenHeight = constraints.maxHeight;
+            final double screenWidth = constraints.maxWidth;
+
+            return Column(
+              children: [
+                // 🔝 Image Section: 60% of screen height
+                Container(
+                  height: screenHeight * 0.50, // Fixed 60% of screen
+                  width: screenWidth,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.only(top: screenHeight * 0.05),
+                  child: Image.asset(
+                    AppImages.LoginIcon,
+                    fit: BoxFit.contain, // ✅ Scales image to fit perfectly
+                    width: screenWidth * 0.9, // 90% of screen width
+                    // height: screenHeight * 0.5, // Optional: limit height if needed
+                  ),
                 ),
-              ),
-            ),
 
-            /// ⚪ Login Card Section
-            Container(
-              width: double.infinity,
-              constraints: BoxConstraints(minHeight: screenHeight * 0.45),
-              decoration: const BoxDecoration(
-                gradient: AppColors.myGradient,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(100),
+                // 🔝 Bottom Card: 40% of screen
+                Container(
+                  height: screenHeight * 0.50, // Fixed 40%
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.myGradient,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(80),
+                    ),
+                  ),
+                  child: SingleChildScrollView( // ✅ Only this part scrolls if needed (safe fallback)
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.06,
+                      vertical: screenHeight * 0.02,
+                    ),
+                    child: _buildLoginForm(screenWidth, screenHeight),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 60),
-                    MyTextfield.textStyle_w800(AppString.loginText, 28, AppColors.kPrimary),
-                    const SizedBox(height: 28),
-                    MyTextfield.textStyle_w300(AppString.logindesc, 18, Colors.black54),
-                    const SizedBox(height: 16),
-
-                    /// 📞 Phone Input Row
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.kPrimary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.kPrimary.withOpacity(0.5),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            AppImages.indiaIcon,
-                            height: 25,
-                            width: 25,
-                          ),
-                          const SizedBox(width: 6),
-                          MyTextfield.textStyle_w600('+91',20,AppColors.kPrimary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: MyTextfield.textStyle(20 ,AppColors.kPrimary,FontWeight.w600),
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: InputDecoration(
-                                hintText:AppString.enterMobileNo,
-                                hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(vertical: 12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// 🔘 Continue Button
-                    SizedBox(
-                      height: 48,
-                      width: double.infinity,
-                      child: MyElevatedButton(
-                        onPressed: () {
-                          if(phoneController.text.isNotEmpty) {
-                            loginApiCall(phoneController.text);
-                          }else{
-                            AppUtils.showSnackBar(context,'Please Enter Mobile Number');
-                          }
-                        },
-                        custom_design: false,
-                        buttonText: AppString.continueText,
-                        isLoading: _isLoading,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap:signInWithGoogle,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius:BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                AppImages.gmail, // add this asset if needed
-                                height: 30,
-                                width: 30,
-                              ),
-                              const SizedBox(width: 10),
-                              MyTextfield.textStyle_w600("Continue with Gmail", 18, Colors.white),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
-  void signOut() async {
-    await GoogleSignIn().signOut();
-    await FirebaseAuth.instance.signOut();
-    setState(() {
-      user = null;
-    });
+  Widget _buildLoginForm(double screenWidth, double screenHeight) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(height: screenHeight * 0.03),
+        MyTextfield.textStyle_w800(AppString.loginText, SizeConfig.screenWidth! * 0.06, AppColors.kPrimary),
+        SizedBox(height: screenHeight * 0.015),
+        MyTextfield.textStyle_w300(AppString.logindesc, SizeConfig.screenWidth! * 0.035, Colors.black54),
+        SizedBox(height: screenHeight * 0.03),
+
+        // 📞 Phone Input
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.kPrimary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.kPrimary.withOpacity(0.5),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Image.asset(AppImages.indiaIcon, height: 24, width: 24),
+              const SizedBox(width: 6),
+              MyTextfield.textStyle_w600('+91', SizeConfig.screenWidth! * 0.045, AppColors.kPrimary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: MyTextfield.textStyle(SizeConfig.screenWidth! * 0.045, AppColors.kPrimary, FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: AppString.enterMobileNo,
+                    hintStyle: MyTextfield.textStyle(SizeConfig.screenWidth! * 0.045, Colors.grey, FontWeight.w300),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: screenHeight * 0.03),
+
+        // 🔘 Continue Button
+        SizedBox(
+          height: screenHeight * 0.07,
+          width: double.infinity,
+          child: MyElevatedButton(
+            onPressed: () {
+              if (phoneController.text.trim().isNotEmpty) {
+                loginApiCall(phoneController.text.trim());
+              } else {
+                AppUtils.showSnackBar(context, 'Please enter mobile number');
+              }
+            },
+            custom_design: false,
+            buttonText: AppString.continueText,
+            isLoading: _isLoading,
+          ),
+        ),
+
+        SizedBox(height: screenHeight * 0.02),
+
+        // 🔘 Google Sign-In
+        GestureDetector(
+          onTap: signInWithGoogle,
+          child: Container(
+            width: double.infinity,
+            height: screenHeight * 0.07,
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(AppImages.gmail, height: SizeConfig.screenWidth! * 0.045, width: SizeConfig.screenWidth! * 0.045),
+                const SizedBox(width: 5),
+                MyTextfield.textStyle_w600("Continue with Gmail", SizeConfig.screenWidth! * 0.045, Colors.white),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
+  // Google Sign-In
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-      if (user != null) {
-        signOut();
-      }
-
       if (googleUser == null) {
-        AppUtils.showSnackBar(context,"Sign-in cancelled");
+        AppUtils.showSnackBar(context, "Sign-in cancelled");
         return;
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      setState(() {
-        user = userCredential.user;
-      });
-      await loginApiCall(user!.email!);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      await loginApiCall(userCredential.user!.email!);
     } catch (e) {
-      AppUtils.showSnackBar(context,"Sign-in failed: $e");
+      AppUtils.showSnackBar(context, "Sign-in failed: $e");
     }
   }
 
-  @override
-  void dispose() {
-    _loginSubscription?.cancel();
-    super.dispose();
-  }
+  // API Call
   Future<void> loginApiCall(String text) async {
     setState(() {
       _isLoading = true;
     });
 
-    String? fcm_token = await FCMService.getFCMToken();
-
-    if (fcm_token == null) {
-      AppUtils.showSnackBar(context,"Failed to get FCM token");
+    String? fcmToken = await FCMService.getFCMToken();
+    if (fcmToken == null) {
+      AppUtils.showSnackBar(context, "Failed to get FCM token");
+      setState(() => _isLoading = false);
       return;
     }
-    context.read<ApiCubit>().login(text: text, fcm_token: fcm_token);
+
+    context.read<ApiCubit>().login(text: text, fcm_token: fcmToken);
 
     await _loginSubscription?.cancel();
-
     _loginSubscription = context.read<ApiCubit>().stream.listen((state) {
       if (state is LoginLoaded) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
 
-        if(state.loginResponse.success && state.loginResponse.user?.status=='active'){
-          if(text.contains('@')) {
-            _saveRole(state.loginResponse);
-          }else{
+        final res = state.loginResponse;
+        if (res.success && res.user?.status == 'active') {
+          if (text.contains('@')) {
+            _saveRole(res);
+          } else {
             AppRoutes.navigateTo(
-                context, OtpVerificationScreen(phoneNumber:'+91${phoneController.text.trim()}', loginResponse: state.loginResponse));
+              context,
+              OtpVerificationScreen(
+                phoneNumber: '+91${phoneController.text.trim()}',
+                loginResponse: res,
+              ),
+            );
           }
-        }else{
+        } else {
           showLoginFailedDialog(context);
         }
       } else if (state is LoginError) {
-        setState(() {
-          _isLoading = false;
-        });
-       AppUtils.showSnackBar(context,state.error);
+        setState(() => _isLoading = false);
+        AppUtils.showSnackBar(context, state.error);
       }
     });
   }
+
   Future<void> showLoginFailedDialog(BuildContext context) async {
     bool _navigatedToContact = false;
 
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: MyTextfield.textStyle_w600("Login Failed", 25, AppColors.kPrimary),
-          content: MyTextfield.textStyle_w300("Please contact our support team for assistance.", 16, AppColors.kBlackColor800),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: MyTextfield.textStyle_w800('Cancel', 18, AppColors.kRedColor),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color:AppColors.kPrimary,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.kPrimaryDark, width: 1),
-              ),
-              child: TextButton(
-                onPressed: (){
-                  if (_navigatedToContact) return;
-                  _navigatedToContact = true;
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => Webviewscreen(tittle: 'Contact Us'),
-                    ),
-                  );
-                },
-                child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (ctx) => AlertDialog(
+        title: MyTextfield.textStyle_w600("Login Failed", 20, AppColors.kPrimary),
+        content: MyTextfield.textStyle_w300(
+          "Please contact our support team for assistance.",
+          14,
+          AppColors.kBlackColor800,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: MyTextfield.textStyle_w800('Cancel', 16, AppColors.kRedColor),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_navigatedToContact) return;
+              _navigatedToContact = true;
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => Webviewscreen(tittle: 'Contact Us'),
+                ),
+              );
+            },
+            child: MyTextfield.textStyle_w800('Contact', 16, AppColors.kPrimary),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _saveRole(LoginResponse loginResponse) async {
-    AppUtils.showSnackBar(context,loginResponse.message);
+    AppUtils.showSnackBar(context, loginResponse.message);
     await SessionManager.saveLoginResponse(loginResponse);
     Navigator.pop(context);
     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+  }
+
+  @override
+  void dispose() {
+    _loginSubscription?.cancel();
+    phoneController.dispose();
+    super.dispose();
   }
 }

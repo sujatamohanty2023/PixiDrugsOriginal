@@ -34,7 +34,7 @@ class MyElevatedButton extends StatelessWidget {
           )
           :MyTextfield.textStyle_w800(
           buttonText,
-          custom_design ? 16 : 20,
+          custom_design ? 16 : SizeConfig.screenWidth! * 0.045,
           titleColor),
     );
   }

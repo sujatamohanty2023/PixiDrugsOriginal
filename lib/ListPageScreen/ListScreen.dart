@@ -228,7 +228,7 @@ class _ListScreenState extends State<ListScreen>
 
           return Container(
             color: AppColors.kPrimary,
-            padding: EdgeInsets.only(top: screenWidth * 0.12),
+            padding: EdgeInsets.only(top: screenWidth * 0.06),
             child: Column(
               children: [
                 _buildTopBar(screenWidth),

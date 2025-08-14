@@ -1,25 +1,20 @@
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/login/FCMService.dart';
-
-import '../Profile/WebviewScreen.dart';
+import '../constant/all.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
   final LoginResponse loginResponse;
 
-  const OtpVerificationScreen({super.key, required this.phoneNumber,required this.loginResponse});
+  const OtpVerificationScreen({super.key, required this.phoneNumber, required this.loginResponse});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
-  final List<TextEditingController> _otpControllers =
-  List.generate(6, (_) => TextEditingController());
-  final FocusNode _focusNode = FocusNode();
+class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+  final List<TextEditingController> _otpControllers = List.generate(6, (_) => TextEditingController());
   int _resendSeconds = 30;
   late final Timer _timer;
-  String? verificationId='';
+  String? verificationId;
   bool _isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? otp;
@@ -37,26 +32,20 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
       timeout: const Duration(seconds: 60),
       verificationCompleted: (PhoneAuthCredential credential) async {
         await _auth.signInWithCredential(credential);
-        print("Automatically signed in");
-        setState(() {
-          verificationId = credential.verificationId;
-        });
+        setState(() => verificationId = credential.verificationId);
       },
       verificationFailed: (FirebaseAuthException e) {
-        print("Verification failed: ${e.message}");
-        AppUtils.showSnackBar(context,'Verification failed: ${e.message}');
+        AppUtils.showSnackBar(context, 'Verification failed: ${e.message}');
       },
       codeSent: (String verId, int? resendToken) {
-        setState(() {
-          verificationId = verId;
-        });
-        print("OTP Sent");
+        setState(() => verificationId = verId);
       },
       codeAutoRetrievalTimeout: (String verId) {
-        print("Auto retrieval timeout");
+        // Optional
       },
     );
   }
+
   void _startResendTimer() {
     _resendSeconds = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -69,24 +58,18 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
   }
 
   Future<void> firebaseCheck() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     try {
       final credential = PhoneAuthProvider.credential(
-        verificationId: verificationId??'',
+        verificationId: verificationId ?? '',
         smsCode: otp!,
       );
 
-      final userCredential = await _auth.signInWithCredential(credential);
-      print("User signed in: ${userCredential.user?.uid}");
+      await _auth.signInWithCredential(credential);
       await _saveRole();
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print("OTP Verification Failed: $e");
-      AppUtils.showSnackBar(context,"OTP Verification Failed $otp");
+      setState(() => _isLoading = false);
+      AppUtils.showSnackBar(context, "Invalid or expired OTP");
     }
   }
 
@@ -95,33 +78,32 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
     if (otp?.length == 6) {
       firebaseCheck();
     } else {
-      AppUtils.showSnackBar(context,'Please enter a valid 6-digit OTP');
+      AppUtils.showSnackBar(context, 'Please enter a valid 6-digit OTP');
     }
   }
+
   Future<void> _saveRole() async {
-    setState(() {
-      _isLoading = false;
-    });
-    AppUtils.showSnackBar(context,widget.loginResponse.message);
+    AppUtils.showSnackBar(context, widget.loginResponse.message);
     await SessionManager.saveLoginResponse(widget.loginResponse);
     Navigator.pop(context);
     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
   }
+
   void _resendOtp() {
-    FirebaseAuth.instance.verifyPhoneNumber(
+    _auth.verifyPhoneNumber(
       phoneNumber: widget.phoneNumber,
       timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) {},
+      verificationCompleted: (_) {},
       verificationFailed: (FirebaseAuthException e) {
-        print('Verification failed: ${e.message}');
+        print('Resend failed: ${e.message}');
       },
       codeSent: (String verificationId1, int? resendToken) {
         setState(() {
-          verificationId = verificationId1; // ✅ update it here
+          verificationId = verificationId1;
           _resendSeconds = 30;
           _startResendTimer();
         });
-        AppUtils.showSnackBar(context,"OTP Resent");
+        AppUtils.showSnackBar(context, "OTP Resent");
       },
       codeAutoRetrievalTimeout: (String verificationId) {},
     );
@@ -129,10 +111,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
 
   @override
   void dispose() {
-    for (var controller in _otpControllers) {
-      controller.dispose();
-    }
-    _focusNode.dispose();
+    for (var controller in _otpControllers) controller.dispose();
     _timer.cancel();
     super.dispose();
   }
@@ -140,115 +119,152 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>{
   void _onOtpChanged(int index, String value) {
     if (value.isNotEmpty && index < 5) {
       FocusScope.of(context).nextFocus();
-    }
-    if (value.isEmpty && index > 0) {
+    } else if (value.isEmpty && index > 0) {
       FocusScope.of(context).previousFocus();
     }
   }
 
-  String get _enteredOtp =>
-      _otpControllers.map((c) => c.text).join().trim();
+  String get _enteredOtp => _otpControllers.map((c) => c.text).join().trim();
 
   @override
   Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: AppColors.loginbg,
-      body: SingleChildScrollView(
+      resizeToAvoidBottomInset: false, // 🔑 Critical: Prevents layout shrink
+      body: SafeArea(
         child: Column(
           children: [
-            /// 🔷 Image on Top
-            const SizedBox(height: 50),
-            Image.asset(
-              AppImages.otpIcon,
-              height: MediaQuery.of(context).size.height * 0.5,
-              fit: BoxFit.contain,
-            ),
-
-            /// ⚪ OTP Container
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppColors.myGradient,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(100),
+            // 🔝 Image Section: Flexible space
+            Expanded(
+              flex: 5,
+              child: Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.only(top: screenHeight * 0.04),
+                child: Image.asset(
+                  AppImages.otpIcon,
+                  fit: BoxFit.contain,
+                  width: screenWidth * 0.8,
+                  // No fixed height → let BoxFit.contain handle scaling
                 ),
               ),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 32),
-                  MyTextfield.textStyle_w800(AppString.verifyOtp, 28, AppColors.kPrimary),
-                  const SizedBox(height: 16),
-                  MyTextfield.textStyle_w300(AppString.otpdesc, 16, Colors.black54),
-                  const SizedBox(height: 20),
+            ),
 
-                  /// 🔢 OTP Boxes
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(6, (index) {
-                      return SizedBox(
-                        width: 50,
-                        child: TextField(
-                          controller: _otpControllers[index],
-                          focusNode: index == 0 ? _focusNode : null,
-                          keyboardType: TextInputType.number,
-                          maxLength: 1,
-                          textAlign: TextAlign.center,
-                          style:MyTextfield.textStyle(25 ,AppColors.kPrimary,FontWeight.w600),
-                          decoration: InputDecoration(
-                            counterText: '',
-                            filled: true,
-                            fillColor: AppColors.kPrimary.withOpacity(0.08),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: _otpControllers[index].text.isNotEmpty
-                                    ? AppColors.kPrimary
-                                    : Colors.transparent,
-                                width: 1,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
+            // ⚪ OTP Card: Remaining space
+            Expanded(
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: AppColors.myGradient,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(100),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  // ✅ Scroll only if content overflows (e.g., small screen + keyboard)
+                  physics: const ClampingScrollPhysics(), // Normal scroll
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.07,
+                    vertical: screenHeight * 0.02,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Responsive Text Sizes using SizeConfig
+                      MyTextfield.textStyle_w800(
+                        AppString.verifyOtp,
+                        SizeConfig.screenWidth! * 0.06,
+                        AppColors.kPrimary,
+                      ),
+                      SizedBox(height: screenHeight * 0.015),
+                      MyTextfield.textStyle_w300(
+                        AppString.otpdesc,
+                        SizeConfig.screenWidth! * 0.035,
+                        Colors.black54,
+                      ),
+                      SizedBox(height: screenHeight * 0.03),
+
+                      // 🔢 OTP Input Fields
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(6, (index) {
+                          return SizedBox(
+                            width: screenWidth * 0.12,
+                            child: TextField(
+                              controller: _otpControllers[index],
+                              keyboardType: TextInputType.number,
+                              maxLength: 1,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: SizeConfig.screenWidth! * 0.06,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.kPrimary,
-                                width: 1,
                               ),
+                              decoration: InputDecoration(
+                                counterText: '',
+                                filled: true,
+                                fillColor: AppColors.kPrimary.withOpacity(0.08),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: _otpControllers[index].text.isNotEmpty
+                                        ? AppColors.kPrimary
+                                        : Colors.transparent,
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppColors.kPrimary,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              onChanged: (value) => _onOtpChanged(index, value),
                             ),
+                          );
+                        }),
+                      ),
+
+                      SizedBox(height: screenHeight * 0.03),
+
+                      // ⏱ Resend Timer
+                      GestureDetector(
+                        onTap: _resendSeconds == 0 ? _resendOtp : null,
+                        child: Text(
+                          _resendSeconds == 0
+                              ? "Resend OTP"
+                              : "Resend in $_resendSeconds s",
+                          style: TextStyle(
+                            color: _resendSeconds == 0 ? Colors.red : Colors.grey,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
-
-                          onChanged: (value) => _onOtpChanged(index, value),
                         ),
-                      );
-                    }),
+                      ),
+
+                      SizedBox(height: screenHeight * 0.03),
+
+                      // ✅ Verify Button
+                      SizedBox(
+                        height: screenHeight * 0.07,
+                        width: double.infinity,
+                        child: MyElevatedButton(
+                          onPressed: _verifyOTP,
+                          custom_design: false,
+                          buttonText: AppString.verify_continue,
+                          isLoading: _isLoading,
+                        ),
+                      ),
+
+                      SizedBox(height: screenHeight * 0.02),
+                    ],
                   ),
-
-                  const SizedBox(height: 20),
-
-                  /// ⏱ Resend text
-
-                  GestureDetector(
-                      onTap: _resendSeconds == 0 ? _resendOtp : null,
-                      child: MyTextfield.textStyle_w600( _resendSeconds == 0
-                          ? "Resend OTP"
-                          : "Resend in $_resendSeconds s", 16, _resendSeconds == 0 ? Colors.red : Colors.grey)
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  /// ✅ Submit Button
-                  SizedBox(
-                      height: 48,
-                      width: double.infinity,
-                      child:MyElevatedButton(
-                        onPressed:_verifyOTP,
-                        custom_design: false,
-                        buttonText: AppString.verify_continue,
-                        isLoading: _isLoading,
-                      )
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                ),
               ),
             ),
           ],

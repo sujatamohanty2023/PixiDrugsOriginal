@@ -5,6 +5,15 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../Profile/WebviewScreen.dart';
 import '../login/mobileLoginScreen.dart';
 
+class DashboardItem {
+  final String title;
+  final String desc;
+  final String icon;
+  final VoidCallback onTap;
+
+  DashboardItem({required this.title, required this.desc, required this.icon, required this.onTap});
+}
+
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
   const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
@@ -24,6 +33,7 @@ class _HomeTabState extends State<HomeTab> {
   String? email = '';
   String? image = '';
   StreamSubscription? _profileSubscription;
+  var dashboardItems = [];
 
   @override
   void initState() {
@@ -44,6 +54,49 @@ class _HomeTabState extends State<HomeTab> {
         curve: Curves.easeInOut,
       );
     });
+    dashboardItems = [
+      DashboardItem(title: "New Sale Entry",desc: "Record a new sale", icon:AppImages.sale, onTap: _newSaleEntry),
+      DashboardItem(title: "Sales Report", desc:"Track sales summary", icon:AppImages.sale_list, onTap: () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
+      }),
+      DashboardItem(title: "Upload Invoice",desc: "Create a new invoice", icon:AppImages.add_invoice,onTap:  _UploadInvoice),
+      DashboardItem(title: "Invoice History", desc:"View all previous invoices", icon:AppImages.invoice_list,onTap:  () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.invoice));
+      }),
+      DashboardItem(title: "Expired Product",desc: "View expired items", icon:AppImages.expired,onTap:  () {
+        Navigator.pushNamed(context, '/stockList', arguments: 2);
+      }),
+      DashboardItem(title: "Expire Soon", desc:"Track nearing expiry your product", icon:AppImages.notification,onTap:  () {
+        Navigator.pushNamed(context, '/stockList', arguments: 3);
+      }),
+      DashboardItem(title: "Stockist Return",desc: "Return products back to stockist", icon:AppImages.purchase_return, onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => EditValueDialog(
+            title: 'Invoice No.',
+            initialValue: '',
+            type: 'stockReturn',
+          ),
+        );
+      }),
+      DashboardItem(title: "Customer Return",desc: "Manage products returned by customers", icon:AppImages.sale_return,onTap:  () {
+        showDialog(
+          context: context,
+          builder: (_) => EditValueDialog(
+            title: 'Bill No.',
+            initialValue: '',
+            type: 'saleReturn',
+          ),
+        );
+      }),
+      DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stockiest_return,onTap:  () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
+      }),
+      DashboardItem(title: "Sale Return List", desc:"View returns received from customers", icon:AppImages.customer_return,onTap:  () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
+      }),
+    ];
+
   }
 
   void _logoutFun() async {
@@ -54,7 +107,6 @@ class _HomeTabState extends State<HomeTab> {
           (route) => false,
     );
   }
-
   Future<void> showLoginFailedDialog(BuildContext context) async {
     await showDialog(
       context: context,
@@ -173,7 +225,6 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onNotificationTap) {
-    double width = MediaQuery.of(context).size.width;
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(80),
@@ -184,7 +235,7 @@ class _HomeTabState extends State<HomeTab> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: width * 0.07,
+              radius: SizeConfig.screenWidth! * 0.07,
               backgroundColor: AppColors.kWhiteColor,
               backgroundImage: image != null && image!.isNotEmpty
                   ? (image!.contains('https://')
@@ -199,13 +250,13 @@ class _HomeTabState extends State<HomeTab> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   MyTextfield.textStyle_w600(
-                      name ?? 'Guest', width * 0.045, Colors.white),
+                      name ?? 'Guest', SizeConfig.screenWidth! * 0.055, Colors.white,maxLines: true),
                   Text(
                     email ?? '',
                     style: TextStyle(
                         color: AppColors.kWhiteColor.withOpacity(0.6),
                         fontWeight: FontWeight.w300,
-                        fontSize: 14),
+                        fontSize: SizeConfig.screenWidth! * 0.035),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -267,67 +318,21 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
                 const SizedBox(height: 5),
-                MyTextfield.textStyle_w800("My DashBoard", 20, Colors.black87),
+                MyTextfield.textStyle_w800("My DashBoard", SizeConfig.screenWidth! * 0.055, Colors.black87),
                 const SizedBox(height: 10),
-
-                // Responsive Grid
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    int crossAxisCount = constraints.maxWidth < 360
-                        ? 1
-                        : constraints.maxWidth < 600
-                        ? 2
-                        : 3;
-
-                    return GridView.count(
-                      crossAxisCount: crossAxisCount,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      children: [
-                        _dashboardTile("New Sale Entry", "Record a new sale", AppImages.sale, _newSaleEntry),
-                        _dashboardTile("Sales Report", "Track sales summary", AppImages.sale_list, () {
-                          AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
-                        }),
-                        _dashboardTile("Upload Invoice", "Create a new invoice", AppImages.add_invoice, _UploadInvoice),
-                        _dashboardTile("Invoice History", "View all previous invoices", AppImages.invoice_list, () {
-                          AppRoutes.navigateTo(context, ListScreen(type: ListType.invoice));
-                        }),
-                        _dashboardTile("Expired Product", "View expired items", AppImages.expired, () {
-                          Navigator.pushNamed(context, '/stockList', arguments: 2);
-                        }),
-                        _dashboardTile("Expire Soon", "Track nearing expiry your product", AppImages.notification, () {
-                          Navigator.pushNamed(context, '/stockList', arguments: 3);
-                        }),
-                        _dashboardTile("Stockist Return", "Return products back to stockist or suppliers", AppImages.purchase_return, () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => EditValueDialog(
-                              title: 'Invoice No.',
-                              initialValue: '',
-                              type: 'stockReturn',
-                            ),
-                          );
-                        }),
-                        _dashboardTile("Customer Return", "Manage products returned by customers", AppImages.sale_return, () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => EditValueDialog(
-                              title: 'Bill No.',
-                              initialValue: '',
-                              type: 'saleReturn',
-                            ),
-                          );
-                        }),
-                        _dashboardTile("Stock Return List", "View returns made to suppliers", AppImages.stockiest_return, () {
-                          AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
-                        }),
-                        _dashboardTile("Sale Return List", "View returns received from customers", AppImages.customer_return, () {
-                          AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
-                        }),
-                      ],
-                    );
+                GridView.builder(
+                  physics: NeverScrollableScrollPhysics(), // Prevents scroll conflict
+                  shrinkWrap: true, // Makes GridView take only needed height
+                  itemCount: dashboardItems.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.95,
+                  ),
+                  itemBuilder: (context, index) {
+                    final item = dashboardItems[index];
+                    return _dashboardTile(item.title, item.desc, item.icon, item.onTap);
                   },
                 ),
                 const SizedBox(height: 20),

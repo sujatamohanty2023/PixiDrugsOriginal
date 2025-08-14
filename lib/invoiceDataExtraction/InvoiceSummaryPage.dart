@@ -71,20 +71,6 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       AppUtils.showSnackBar(context,state.error);
     }
   }
-  void _navigateToEditPage() async {
-    final updatedInvoice = await Navigator.push<Invoice>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddPurchaseBill(invoice: invoice1),
-      ),
-    );
-
-    if (updatedInvoice != null) {
-      setState(() {
-        invoice1 = updatedInvoice;
-      });
-    }
-  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -133,7 +119,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                 widget.details==true?SizedBox():
                   GestureDetector(
                     onTap: onEdit,
-                    child: Icon(Icons.edit, size: 18, color: AppColors.kPrimary),
+                    child:  SvgPicture.asset(AppImages.edit, height: 18, color: Colors.teal),
                   ),
               ],
             ),
@@ -208,7 +194,13 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                       AppUtils.showSnackBar(context,"Product updated successfully");
                     }
                   },
-                  child: Icon(Icons.edit, color: AppColors.kPrimary, size: 18),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(AppImages.edit, height: 18, color: Colors.teal),
+                      SizedBox(width: 4),
+                      MyTextfield.textStyle_w600('Edit', 14, Colors.teal),
+                    ],
+                  ),
                 ),
             ],
           ),
@@ -256,14 +248,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       appBar: AppUtils.BaseAppBar(
         context: context,
         title: 'Invoice Summary',
-        leading: true,
-        actions: [
-          if (widget.edit == true)
-            IconButton(
-              icon: Icon(Icons.edit, color: AppColors.kWhiteColor),
-              onPressed: _navigateToEditPage,
-            ),
-        ],
+        leading: false,
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.myGradient),

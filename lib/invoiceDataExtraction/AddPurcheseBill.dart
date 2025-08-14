@@ -382,7 +382,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                                         },
                                       );
                                     },
-                                    child: Icon(Icons.edit, size: 18, color: AppColors.kPrimary),
+                                    child: SvgPicture.asset(AppImages.edit, height: 18, color: Colors.teal),
                                   ),
                                 ],
                               ),
