@@ -152,6 +152,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                               widget.ledger!.sellerName,
                                               screenWidth * 0.04,
                                               AppColors.kPrimary,
+                                              maxLines: 1
                                             ),
                                             SizedBox(
                                               height: screenWidth * 0.01,
@@ -232,7 +233,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                   ),
                                                   child: MyTextfield.textStyle_w600(
                                                     "₹${widget.ledger!.dueAmount}",
-                                                    screenWidth * 0.04,
+                                                    screenWidth * 0.032,
                                                     amountColor,
                                                   ),
                                                 );
@@ -341,7 +342,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                       payment == 'debit'
                                                           ? 'Payment Out'
                                                           : 'Purchase In',
-                                                      20,
+                                                      screenWidth * 0.04,
                                                       AppColors.kBlackColor900,
                                                     ),
                                                     SizedBox(height: 1),
@@ -349,7 +350,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                       children: [
                                                         MyTextfield.textStyle_w400(
                                                           "Dt.",
-                                                          14,
+                                                          screenWidth * 0.03,
                                                           Colors.grey[700]!,
                                                         ),
                                                         MyTextfield.textStyle_w400(
@@ -357,7 +358,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                               .ledger!
                                                               .history[index]
                                                               .paymentDate,
-                                                          16,
+                                                          screenWidth * 0.035,
                                                           AppColors
                                                               .kBlackColor800,
                                                         ),
@@ -368,12 +369,12 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                       children: [
                                                         MyTextfield.textStyle_w400(
                                                           "Invoice No:",
-                                                          14,
+                                                          screenWidth * 0.035,
                                                           Colors.grey[700]!,
                                                         ),
                                                         MyTextfield.textStyle_w400(
                                                           '#${widget.ledger!.history[index].invoiceNo}',
-                                                          16,
+                                                          screenWidth * 0.035,
                                                           Colors.teal,
                                                         ),
                                                       ],
@@ -420,7 +421,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                       ),
                                                       child: MyTextfield.textStyle_w600(
                                                         "₹ ${widget.ledger!.history[index].amount}",
-                                                        14,
+                                                        screenWidth * 0.038,
                                                         payment == 'debit'
                                                             ? Colors.green[800]!
                                                             : Colors.red[800]!,

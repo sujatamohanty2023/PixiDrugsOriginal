@@ -109,7 +109,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
           mobileController.text=widget.staff?.phoneNumber??'';
           emailController.text=widget.staff?.email??'';
           dobController.text=widget.staff?.dob??'';
-          addressController.text='';
+          addressController.text=widget.staff?.address??'';
           selectedGender=widget.staff?.gander?.toLowerCase()=='male'?selectedGender='Male':'Female';
           status = widget.staff?.status.toLowerCase()=='active'?status='Active':'Inactive';
         }

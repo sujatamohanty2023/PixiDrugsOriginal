@@ -44,10 +44,10 @@ class PurchaseReturnModel {
 
   Map<String, dynamic> toJson() {
     final data = {
-      if (storeId != null && id!=0) 'store_id': storeId,
-      if (invoicePurchaseId != null && invoicePurchaseId!=0) 'invoice_purchase_id': invoicePurchaseId,
-      if (sellerId != null && sellerId!=0) 'seller_id': sellerId,
-      if (invoiceNo != null && invoiceNo !='') 'invoice_no': invoiceNo,
+      'store_id': storeId,
+      'invoice_purchase_id': invoicePurchaseId,
+      'seller_id': sellerId,
+      'invoice_no': invoiceNo,
       'return_date': returnDate,
       'reason': reason,
       'total_amount': totalAmount,
@@ -125,7 +125,6 @@ class ReturnItemModel {
       'total_amount': totalAmount,
     };
     if (id != null && id !=0) data['id'] = id!;
-    if (productName != null) data['product_name'] = productName!;
     return data;
   }
   @override

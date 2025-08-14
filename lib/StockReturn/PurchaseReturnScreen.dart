@@ -7,7 +7,7 @@ class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
   PurchaseReturnModel? returnModel;
   bool? edit;
-  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.edit}) : super(key: key);
+  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.edit=false}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -34,6 +34,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
   void initState() {
     super.initState();
     invoice_No=widget.invoiceNo;
+    print("invoiceId:$invoice_No");
     _fetchStockList();
   }
 
@@ -351,7 +352,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                               final item = return_invoice!.items[index];
                               return ReturnProductTile(
                                 product: item,
-                                editable: (widget.returnModel == null && editClick)||widget.edit!,
+                                editable: (widget.returnModel != null && editClick)||widget.edit!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;

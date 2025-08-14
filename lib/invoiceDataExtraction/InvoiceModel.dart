@@ -121,6 +121,7 @@ class InvoiceItem {
    String expiry;
    int qty;
    int qty_free;
+    int stock;
    String gst;
    String total;
    DiscountType discountType;
@@ -144,6 +145,7 @@ class InvoiceItem {
     this.expiry='',
     this.qty=0,
     this.qty_free=0,
+    this.stock=0,
     this.gst='',
     this.total='',
     this.discountType=DiscountType.percent,
@@ -167,6 +169,7 @@ class InvoiceItem {
      String? expiry,
      int? qty,
      int? qty_free,
+     int? stock,
      String? gst,
      String? total,
      DiscountType? discountType,
@@ -189,6 +192,7 @@ class InvoiceItem {
        expiry: expiry ?? this.expiry,
        qty: qty ?? this.qty,
        qty_free: qty_free ?? this.qty_free,
+       stock: stock ?? this.stock,
        gst: gst ?? this.gst,
        total: total ?? this.total,
        discountType: discountType??this.discountType,
@@ -361,6 +365,7 @@ class InvoiceItem {
           normalized['ex.dt'] ??
           normalized['Ex.Dt']),
       qty: qty,
+      stock: ApiParserUtils.parseInt(normalized['stock']),
       qty_free: ApiParserUtils.parseInt(
           normalized['qty_free'] ??
           normalized['free_qty'] ??
