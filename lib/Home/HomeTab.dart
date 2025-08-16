@@ -4,6 +4,7 @@ import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import '../Profile/WebviewScreen.dart';
 import '../login/mobileLoginScreen.dart';
+import 'AddPurchaseBottomSheet.dart';
 
 class DashboardItem {
   final String title;
@@ -352,7 +353,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _UploadInvoice() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5, ManualAdd: true);
+    AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5, ManualAdd: true);
   }
 
   Future<void> _setSelectedImage(List<File> file) async {
@@ -436,10 +437,9 @@ class _HomeTabState extends State<HomeTab> {
                     child: SvgPicture.asset(icon, height: 40, width: 40, color: AppColors.kPrimary),
                   ),
                 ),
-                const SizedBox(height: 15),
-                MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.045, AppColors.kPrimary),
-                const SizedBox(height: 4),
-                MyTextfield.textStyle_w300(tasks, SizeConfig.screenWidth! * 0.035, AppColors.kPrimary.withOpacity(0.6)),
+                const SizedBox(height: 5),
+                MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.043, AppColors.kPrimary),
+                MyTextfield.textStyle_w300(tasks, SizeConfig.screenWidth! * 0.030, AppColors.kPrimary.withOpacity(0.6)),
               ],
             ),
           ),

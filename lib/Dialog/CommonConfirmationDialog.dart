@@ -38,10 +38,10 @@ class CommonConfirmationDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title
-                MyTextfield.textStyle_w800(title, 20,AppColors.kPrimary),
+                MyTextfield.textStyle_w800(title, SizeConfig.screenWidth! * 0.055,AppColors.kPrimary),
                 const SizedBox(height: 12),
                 // Content
-                MyTextfield.textStyle_w300(content, 16, Colors.black54),
+                MyTextfield.textStyle_w300(content, SizeConfig.screenWidth! * 0.035, Colors.black54),
                 const SizedBox(height: 20),
                 // Action Buttons
                 Row(
@@ -51,7 +51,7 @@ class CommonConfirmationDialog {
                       onPressed: () => Navigator.of(context).pop(false),
                       child: MyTextfield.textStyle_w800(
                         negativeButton,
-                        18,
+                        SizeConfig.screenWidth! * 0.035,
                         AppColors.kRedColor,
                       ),
                     ),
@@ -66,7 +66,7 @@ class CommonConfirmationDialog {
                         onPressed: () => Navigator.of(context).pop(true),
                         child: MyTextfield.textStyle_w800(
                           positiveButton,
-                          18,
+                          SizeConfig.screenWidth! * 0.035,
                           AppColors.kWhiteColor,
                         ),
                       ),

@@ -133,7 +133,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.loginbg,
-      resizeToAvoidBottomInset: false, // 🔑 Critical: Prevents layout shrink
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [

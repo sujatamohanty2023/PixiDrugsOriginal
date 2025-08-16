@@ -97,10 +97,10 @@ class ProfileScreen extends StatefulWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         MyTextfield.textStyle_w800(
-                            name!, AppUtils.size_25, Colors.white,
+                            name!, SizeConfig.screenWidth! * 0.055, Colors.white,
                             maxLines: 1),
                         MyTextfield.textStyle_w600(
-                            email!, AppUtils.size_14, Colors.white70),
+                            email!, SizeConfig.screenWidth! * 0.045, Colors.white70),
                       ],
                     )
                   ],
@@ -373,7 +373,7 @@ void _showLogoutBottomSheet(BuildContext context,
             ),
             SizedBox(width: 16),
             Expanded(
-              child: MyTextfield.textStyle_w600(title, 16, Colors.black87),
+              child: MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.045, Colors.black87),
             ),
             Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.kPrimaryDark),
           ],

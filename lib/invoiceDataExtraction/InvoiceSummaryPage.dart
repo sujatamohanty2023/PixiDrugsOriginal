@@ -302,6 +302,21 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                   children: [
                     MyTextfield.textStyle_w600("Amount: ", AppUtils.size_18, AppColors.kBlackColor800),
                     MyTextfield.textStyle_w800(netAmount??'', AppUtils.size_18, AppColors.kPrimary),
+                    SizedBox(width: 4,),
+                    GestureDetector(
+                      onTap: () {
+                        showEditDialog(
+                          "Total Amount",
+                          netAmount ?? '',
+                          (value) {
+                            setState(() {
+                              netAmount = value;
+                            });
+                          },
+                        );
+                      },
+                      child: SvgPicture.asset(AppImages.edit, height: 20, color: Colors.teal),
+                    ),
                   ],
                 ),
               ),

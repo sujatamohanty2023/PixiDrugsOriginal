@@ -85,7 +85,7 @@ class ProductTile extends StatelessWidget {
                         children: [
                           MyTextfield.textStyle_w400(isOutOfStock
                       ? "Out of Stock"
-                              : "Stock: ${product!.qty}",16, isOutOfStock ? Colors.red : Colors.teal),
+                              : "Stock: ${product!.stock}",16, isOutOfStock ? Colors.red : Colors.teal),
                           SizedBox(height: 2,),
                           if (!isOutOfStock)
                             MyTextfield.textStyle_w400(

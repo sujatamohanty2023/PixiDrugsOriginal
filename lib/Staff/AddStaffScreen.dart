@@ -175,7 +175,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                       widget.staff!=null?Padding(
                         padding: const EdgeInsets.only(right: 15.0),
                         child: IconButton(
-                          icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
+                          icon: SvgPicture.asset(AppImages.edit, height: 18, color: Colors.white),
                           onPressed: ()=>setState(() {
                             edit = true;
                           }),

@@ -66,6 +66,7 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
         : AppColors.kBlackColor800;
 
     _returnQtyController.text=product.returnQty.toString();
+    var stock=product.qty+product.qty_free;
 
     return Column(
       children: [
@@ -95,7 +96,7 @@ class _ReturnProductTileState extends State<ReturnProductTile> {
                         const SizedBox(height: 4),
                         MyTextfield.textStyle_w400("HSN: ${product.hsn}",14,Colors.grey),
                         MyTextfield.textStyle_w400("Batch: ${product.batch ?? '-'}",14,Colors.grey),
-                        MyTextfield.textStyle_w400("Stock: ${product.qty}",16,Colors.deepOrangeAccent),
+                        MyTextfield.textStyle_w400("Stock: $stock",16,Colors.deepOrangeAccent),
                         MyTextfield.textStyle_w600("Exp: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product.expiry))}",16,expColor),
                       ],
                     ),

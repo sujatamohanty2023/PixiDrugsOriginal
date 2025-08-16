@@ -324,7 +324,13 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
               custom_design: true,
               buttonText: "Add Product",
             ),
-          ): SizedBox()
+          ): Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: MyTextfield.textStyle_w800(
+                '${currentIndex + 1} / $totalProducts',
+                AppUtils.size_18,
+                AppColors.kWhiteColor),
+          )
         ],
       ),
       body: Container(
@@ -334,11 +340,12 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.kPrimary,)) // Show loader
             :SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 16,right: 16,top: 16,bottom: 30),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (product != null) ...[
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,

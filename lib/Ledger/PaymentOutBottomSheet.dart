@@ -193,7 +193,8 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
   }
 
   Widget _buildAmountCard() {
-    totalAmount=double.parse(widget.ledger!.totalCredit.toString().replaceAll(',', ''));
+    var dueAmount=widget.ledger!.dueAmount.toString().replaceAll(',', '');
+    totalAmount=double.parse(dueAmount.replaceAll('-', ''));
     double balanceDue = totalAmount - paidAmount;
 
     return Container(
