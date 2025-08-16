@@ -10,14 +10,15 @@ import 'SaleReturnRequest.dart';
 class SaleReturnScreen extends StatefulWidget {
   final int billNo;
   CustomerReturnsResponse? returnModel;
+  bool? add;
 
-   SaleReturnScreen({Key? key,required this.billNo,this.returnModel}) : super(key: key);
+   SaleReturnScreen({Key? key,required this.billNo,this.returnModel,this.add=false}) : super(key: key);
   @override
   State<SaleReturnScreen> createState() => _SaleReturnScreenState();
 }
 
 class _SaleReturnScreenState extends State<SaleReturnScreen> {
-  bool edit=false;
+  bool editClick=false;
   Billing? returnBill;
   bool isLoading = true;
   DateTime selectedDate = DateTime.now();
@@ -67,7 +68,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
           (sum, item) => sum + (item.quantity * item.price),
     );
     var returnModel = SaleReturnRequest(
-      id: edit && widget.returnModel !=null?widget.returnModel?.id:null,
+      id: editClick && widget.returnModel !=null?widget.returnModel?.id:null,
       storeId:int.parse(userId),
       billingId:returnBill!.billingId,
       customerId:returnBill!.customerId,
@@ -77,7 +78,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
       items:selectedItems,
     );
     print(returnModel.toString());
-    if(edit && widget.returnModel !=null){
+    if(editClick && widget.returnModel !=null){
       context.read<ApiCubit>().SaleReturnEdit(returnModel: returnModel);
     }else {
       context.read<ApiCubit>().SaleReturnAdd(returnModel: returnModel);
@@ -190,12 +191,12 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                           ),
                         ],
                       ),
-                      widget.returnModel!=null?Padding(
+                      widget.returnModel!=null && widget.add==false?Padding(
                         padding: const EdgeInsets.only(right: 15.0),
                         child: IconButton(
                           icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
                           onPressed: ()=>setState(() {
-                            edit = true;
+                            editClick = true;
                           }),
                           tooltip: 'Edit',
                         ),
@@ -316,7 +317,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                               ),
                             ),
 
-                            onChanged: (widget.returnModel == null || edit)
+                            onChanged: (editClick || widget.add!)
                                 ? (value) {
                               setState(() {
                                 selectedReason = value;
@@ -346,7 +347,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                               final item = returnBill!.items[index];
                               return SaleReturnProductTile(
                                 product: item,
-                                editable: widget.returnModel == null || edit,
+                                editable: editClick || widget.add!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
@@ -380,7 +381,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: !edit && widget.returnModel !=null?SizedBox():Row(
+      floatingActionButton: !editClick && widget.returnModel !=null?SizedBox():Row(
         children: [
           Expanded(
             child: Padding(

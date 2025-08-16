@@ -86,11 +86,11 @@ class _MyAppState extends State<MyApp> {
           }else if (settings.name == '/purchaseReturn') {
             final value = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString(),edit:true));
+              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString(),add:true));
           }else if (settings.name == '/saleReturn') {
             final value = settings.arguments;
             return MaterialPageRoute(
-              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString())));
+              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString()),add:true));
           }
           return null;
         },

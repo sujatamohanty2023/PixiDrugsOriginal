@@ -6,8 +6,8 @@ import 'PurchaseReturnModel.dart';
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
   PurchaseReturnModel? returnModel;
-  bool? edit;
-  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.edit=false}) : super(key: key);
+  bool? add;
+  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.add=false}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -197,7 +197,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           ),
                         ],
                       ),
-                      widget.returnModel!=null?Padding(
+                      widget.returnModel!=null && widget.add==false?Padding(
                         padding: const EdgeInsets.only(right: 15.0),
                         child: IconButton(
                           icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
@@ -324,7 +324,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                             ),
                           ),
 
-                          onChanged: ((widget.returnModel != null && editClick)|| widget.edit!)
+                          onChanged: ( editClick|| widget.add!)
                               ? (value) {
                             setState(() {
                               selectedReason = value;
@@ -352,7 +352,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                               final item = return_invoice!.items[index];
                               return ReturnProductTile(
                                 product: item,
-                                editable: (widget.returnModel != null && editClick)||widget.edit!,
+                                editable: editClick|| widget.add!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
