@@ -326,10 +326,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             ),
           ): Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: MyTextfield.textStyle_w800(
+            child:!_isLoading? MyTextfield.textStyle_w800(
                 '${currentIndex + 1} / $totalProducts',
                 AppUtils.size_18,
-                AppColors.kWhiteColor),
+                AppColors.kWhiteColor):SizedBox(),
           )
         ],
       ),

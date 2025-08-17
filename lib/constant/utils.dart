@@ -59,7 +59,8 @@ class AppUtils {
   }
 
   static void showSnackBar(BuildContext context, String message) {
-    var isError = message.toLowerCase().contains('error') ||
+    var isError = message.toLowerCase().contains('Error:') ||
+        message.toLowerCase().contains('error')||
         message.toLowerCase().contains('failed') ||
         message.toLowerCase().contains('please') ||
         message.toLowerCase().contains('no product founds')||

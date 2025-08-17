@@ -26,11 +26,12 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final filteredSales = widget.items
-        .where((i) =>
-        i.items.first.productName!.toLowerCase().contains(widget.searchQuery.toLowerCase()))
-        .toList();
-    //i.sellerName.contains(widget.searchQuery.toLowerCase()))
+    final filteredSales = widget.items.where((i) {
+      if (i.items.isEmpty) return false;
+      return i.items.first.productName!
+          .toLowerCase()
+          .contains(widget.searchQuery.toLowerCase());
+    }).toList();
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,

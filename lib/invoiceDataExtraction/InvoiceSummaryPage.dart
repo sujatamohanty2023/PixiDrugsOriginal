@@ -42,28 +42,24 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
 
         // Navigate to the listing page after a short delay
         Future.delayed(Duration(milliseconds: 500), () {
-          if(state.status =='success') {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) =>
-                  ListScreen(type: ListType.invoice)),
-                  (route) => false,
-            );
-          }
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) =>
+                ListScreen(type: ListType.invoice)),
+                (route) => false,
+          );
         });
     }else if (state is InvoiceEditLoaded) {
       AppUtils.showSnackBar(context,state.message);
 
       // Navigate to the listing page after a short delay
       Future.delayed(Duration(milliseconds: 500), () {
-        if(state.status=='success') {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) =>
-                ListScreen(type: ListType.invoice )),
-                (route) => false,
-          );
-        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) =>
+              ListScreen(type: ListType.invoice )),
+              (route) => false,
+        );
       });
     }  else if (state is InvoiceAddError) {
       AppUtils.showSnackBar(context, state.error);
@@ -248,7 +244,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       appBar: AppUtils.BaseAppBar(
         context: context,
         title: 'Invoice Summary',
-        leading: false,
+        leading: true,
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.myGradient),

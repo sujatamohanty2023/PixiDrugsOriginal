@@ -131,7 +131,11 @@ class ApiCubit extends Cubit<ApiState> {
       final response = await apiRepository.post_Invoice(invoice);
       final message = response['message'];
       final status = response['status'];
-      emit(InvoiceAddLoaded(message: message,status: status));
+      if(status=='success') {
+        emit(InvoiceAddLoaded(message: message, status: status));
+      }else{
+        emit(InvoiceAddError('Error: $message'));
+      }
     } catch (e) {
       emit(InvoiceAddError('Error: $e'));
     }
@@ -143,7 +147,11 @@ class ApiCubit extends Cubit<ApiState> {
       final response = await apiRepository.edit_Invoice(invoice);
       final message = response['message'];
       final status = response['status'];
-      emit(InvoiceEditLoaded(message: message,status: status));
+      if(status=='success') {
+        emit(InvoiceEditLoaded(message: message, status: status));
+      }else{
+        emit(InvoiceEditError('Error: $message'));
+      }
     } catch (e) {
       emit(InvoiceEditError('Error: $e'));
     }
