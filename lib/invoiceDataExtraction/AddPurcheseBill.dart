@@ -536,7 +536,12 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                 padding: const EdgeInsets.only(left:8,right: 8),
                 child: ElevatedButton.icon(
                   onPressed: () {
-                      void _saveCurrentProductData() {
+                    if (!RegExp(r'^\d+$').hasMatch(hsnCodeController.text)) {
+                      AppUtils.showSnackBar(context, 'Error:HSN Code must be numeric');
+                      return;
+                    }
+
+                    void _saveCurrentProductData() {
                         product?.product = productNameController.text;
                         product?.batch = batchNoController.text;
                         product?.expiry = expDateController.text;

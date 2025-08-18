@@ -3,6 +3,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 import '../BarcodeScan/barcode_screen_page.dart';
+import '../BarcodeScan/batch_scanner_page.dart';
 import '../Stock/ProductList.dart';
 
 class CartTab extends StatefulWidget {
@@ -143,6 +144,19 @@ class _CartTabState extends State<CartTab> {
     }
   }
   Future<void> scanBatchNumber() async {
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BatchScannerPage()),
+      );
+      if (result.isNotEmpty) {
+        _showManualEntryBottomSheet(result);
+      }
+    } catch (e) {
+      //AppUtils.showSnackBar(context,'Failed to scan');
+    }
+  }
+  Future<void> scanBatchNumberOld() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile == null) return;
 
@@ -204,7 +218,6 @@ class _CartTabState extends State<CartTab> {
       _showManualEntryBottomSheet('');
     }
   }
-
 
   void _showManualEntryBottomSheet(String batchNumber) {
     showDialog(
