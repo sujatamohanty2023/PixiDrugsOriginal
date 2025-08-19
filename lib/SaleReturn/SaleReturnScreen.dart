@@ -10,9 +10,9 @@ import 'SaleReturnRequest.dart';
 class SaleReturnScreen extends StatefulWidget {
   final int billNo;
   CustomerReturnsResponse? returnModel;
-  bool? add;
+  bool? addReturn;
 
-   SaleReturnScreen({Key? key,required this.billNo,this.returnModel,this.add=false}) : super(key: key);
+   SaleReturnScreen({Key? key,required this.billNo,this.returnModel,this.addReturn=false}) : super(key: key);
   @override
   State<SaleReturnScreen> createState() => _SaleReturnScreenState();
 }
@@ -191,7 +191,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                           ),
                         ],
                       ),
-                      widget.returnModel!=null && widget.add==false?Padding(
+                      widget.addReturn==false?Padding(
                         padding: const EdgeInsets.only(right: 15.0),
                         child: IconButton(
                           icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
@@ -317,7 +317,7 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                               ),
                             ),
 
-                            onChanged: (editClick || widget.add!)
+                            onChanged: (editClick || widget.addReturn!)
                                 ? (value) {
                               setState(() {
                                 selectedReason = value;
@@ -347,16 +347,14 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> {
                               final item = returnBill!.items[index];
                               return SaleReturnProductTile(
                                 product: item,
-                                editable: editClick || widget.add!,
+                                editable: editClick || widget.addReturn!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
                                   });
                                 },
                                 onQtyChanged: (qtyStr) {
-                                  setState(() {
-                                    item.returnQty = int.tryParse(qtyStr) ?? 0;
-                                  });
+                                  item.returnQty = int.tryParse(qtyStr) ?? 0;
                                 },
                               );
                             },

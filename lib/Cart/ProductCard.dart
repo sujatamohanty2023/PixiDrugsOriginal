@@ -28,11 +28,14 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   late TextEditingController discController;
+  String? selectedUnitType;
+  double? unitMrp=0.0;
 
   @override
   void initState() {
     super.initState();
     discController = TextEditingController(text: widget.item.discountSale);
+    selectedUnitType = detectUnitType(widget.item.packing);
   }
 
   @override
@@ -46,6 +49,15 @@ class _ProductCardState extends State<ProductCard> {
     final cartCubit = context.read<CartCubit>();
     final isCartMode = widget.mode == ProductCardMode.cart;
     final isEditable = widget.editable;
+    final unitType = detectUnitType(widget.item.packing);
+
+    List<String> unitOptions = ["Strip","Tablet"];
+    int packingQuantity = _extractPackingQuantity(widget.item.packing);
+    double mrp = double.tryParse(widget.item.mrp) ?? 0.0;
+    unitMrp = mrp;
+    if (selectedUnitType == 'Tablet' && packingQuantity > 0) {
+      unitMrp = mrp / packingQuantity;
+    }
 
     return Padding(
       padding: const EdgeInsets.all(0.0),
@@ -63,6 +75,31 @@ class _ProductCardState extends State<ProductCard> {
                 children: [
                   if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
+
+                  if (unitType !=null && unitOptions.isNotEmpty) ...[
+                    Positioned(
+                      top:20,
+                      right: 0,
+                      child:DropdownButton<String>(
+                      value: selectedUnitType,
+                      icon: const Icon(Icons.arrow_drop_down_sharp, color: AppColors.kPrimary),
+                      underline: Container(
+                          height: 1,
+                          color: AppColors.kPrimaryDark,
+                      ),
+                      items: unitOptions.map((e) => DropdownMenuItem(value: e,
+                          child:  Text(e, style: MyTextfield.textStyle(14, AppColors.kPrimary, FontWeight.w600)))).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            selectedUnitType = val;
+                            //widget.item.unitType = val;
+                          });
+                          widget.onUpdate?.call();
+                        }
+                      },
+                    ))
+                  ],
                   Row(
                     children: [
                       _buildProductImage(),
@@ -100,8 +137,18 @@ class _ProductCardState extends State<ProductCard> {
       ),
     );
   }
+  int _extractPackingQuantity(String? packing) {
+    if (packing == null) return 0;
 
+    final regExp = RegExp(r'\d+'); // Find digits
+    final match = regExp.firstMatch(packing);
+    if (match != null) {
+      return int.tryParse(match.group(0) ?? '') ?? 0;
+    }
+    return 0;
+  }
   Widget _buildProductDetails(BuildContext context, CartCubit cartCubit, bool isCartMode, bool isEditable) {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -109,7 +156,7 @@ class _ProductCardState extends State<ProductCard> {
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
         MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
-        MyTextfield.textStyle_w600("${AppString.Rupees}${widget.item.mrp}", 16, Colors.green),
+        MyTextfield.textStyle_w600("${AppString.Rupees}${unitMrp?.toStringAsFixed(2)}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
         if (isCartMode)
           Row(
@@ -144,6 +191,35 @@ class _ProductCardState extends State<ProductCard> {
           ),
       ],
     );
+  }
+  String? detectUnitType(String? packing) {
+    if (packing == null || packing.isEmpty) return null;
+
+    final lowerPacking = packing.toLowerCase();
+
+    final containsDigit = RegExp(r'\d').hasMatch(lowerPacking);
+
+    // If packing contains GM, G, ML treat as null (liquid/weight)
+    if (lowerPacking.contains("gm") ||
+        lowerPacking.contains("g") ||
+        lowerPacking.contains("ml") ||
+        lowerPacking.contains("kit")) {
+      return null;
+    }
+
+    // Check for tablet/capsule keywords if no digit found
+    if (lowerPacking.contains("unit") ||
+        lowerPacking.contains("tablet") ||
+        lowerPacking.contains("tab") ||
+        lowerPacking.contains("capsule") ||
+        lowerPacking.contains("cap")) {
+      return "Tablet";
+    }
+
+    if (containsDigit) {
+      return "Strip";
+    }
+    return null;
   }
 
   Widget _buildQuantityControls(BuildContext context, CartCubit cartCubit, bool isCartMode) {

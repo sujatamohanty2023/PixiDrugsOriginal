@@ -2,11 +2,7 @@ import 'package:PixiDrugs/Expense/ExpenseResponse.dart';
 import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/Staff/StaffModel.dart';
 import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
-import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:PixiDrugs/Cart/ReceiptPrinterPage.dart';
 import 'package:PixiDrugs/Home/HomePageScreen.dart';
 import 'package:PixiDrugs/Ledger/LedgerListWidget.dart';
@@ -16,9 +12,8 @@ import 'package:PixiDrugs/ListPageScreen/SaleListWidget.dart';
 import 'package:PixiDrugs/SaleList/sale_details.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 import '../Cart/receipt_pdf_generator.dart';
-import '../Dialog/show_image_picker.dart';
+import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Expense/AddExpenseScreen.dart';
 import '../Expense/ExpenseListWidget.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
@@ -119,7 +114,7 @@ class _ListScreenState extends State<ListScreen>
   }
 
   Future<void> _onAddInvoicePressed() async {
-    showImageBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5,ManualAdd: true);
+    AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5,ManualAdd: true);
   }
   Future<void> _onAddExpense() async {
     AppRoutes.navigateTo(context, Addexpensescreen());

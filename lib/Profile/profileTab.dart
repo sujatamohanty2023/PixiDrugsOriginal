@@ -40,7 +40,7 @@ class ProfileScreen extends StatefulWidget {
       String? userId = await SessionManager.getParentingId();
       role=await SessionManager.getRole();
       if (userId != null) {
-        context.read<ApiCubit>().GetUserData(userId: userId);
+        context.read<ApiCubit>().GetUserData(userId: userId,useCache: false);
       } else {
         setState(() {
 

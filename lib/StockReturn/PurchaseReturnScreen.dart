@@ -6,8 +6,8 @@ import 'PurchaseReturnModel.dart';
 class PurchaseReturnScreen extends StatefulWidget {
   final String invoiceNo;
   PurchaseReturnModel? returnModel;
-  bool? add;
-  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.add=false}) : super(key: key);
+  bool? addReturn;
+  PurchaseReturnScreen({Key? key,required this.invoiceNo,this.returnModel, this.addReturn=false}) : super(key: key);
 
   @override
   State<PurchaseReturnScreen> createState() => _PurchaseReturnScreenState();
@@ -197,7 +197,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                           ),
                         ],
                       ),
-                      widget.returnModel!=null && widget.add==false?Padding(
+                      widget.addReturn==false?Padding(
                         padding: const EdgeInsets.only(right: 15.0),
                         child: IconButton(
                           icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
@@ -324,7 +324,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                             ),
                           ),
 
-                          onChanged: ( editClick|| widget.add!)
+                          onChanged: ( editClick|| widget.addReturn!)
                               ? (value) {
                             setState(() {
                               selectedReason = value;
@@ -352,16 +352,14 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
                               final item = return_invoice!.items[index];
                               return ReturnProductTile(
                                 product: item,
-                                editable: editClick|| widget.add!,
+                                editable: editClick || widget.addReturn!,
                                 onChecked: (checked) {
                                   setState(() {
                                     item.isSelected = checked;
                                   });
                                 },
                                 onQtyChanged: (qtyStr) {
-                                setState(() {
                                   item.returnQty = int.tryParse(qtyStr) ?? 0;
-                                });
                               },
                               );
                             },

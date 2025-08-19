@@ -4,6 +4,7 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'CustomerDetailBottomSheet.dart';
 import 'ProductCard.dart';
+import 'ReceiptPrinterPage.dart';
 
 class CartPage extends StatefulWidget {
   final bool barcodeScan;
@@ -204,17 +205,45 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
   }
 
   void SuccessOrderPlaceCall(SaleModel sale) {
+    final parentContext = context;
     showDialog(
       context: context,
-      builder: (BuildContext context) => SuccessDialog(
+      builder: (BuildContext dialogContext) => SuccessDialog(
         sale,
         SvgPicture.asset(AppImages.check, height: 60, width: 60),
         "Your Placed Order Successful",
         "Your order #${sale.invoiceNo} has been placed successfully.",
+        onDonePressed: () {
+          Future.delayed(Duration(milliseconds: 300), () {
+            _showReceiptBottomSheet(parentContext, sale);
+          });
+        },
       ),
     );
   }
-
+  void _showReceiptBottomSheet(BuildContext context, SaleModel sale) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      backgroundColor: AppColors.kWhiteColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.70,
+        minChildSize: 0.60,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return ReceiptPrinterPage(
+            sale: sale,
+            scrollController: scrollController,
+          );
+        },
+      ),
+    );
+  }
   void _onButtonSalePressed() {
     showModalBottomSheet(
       context: context,

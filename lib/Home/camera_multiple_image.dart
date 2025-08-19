@@ -1,15 +1,7 @@
-import 'dart:io';
+import 'package:PixiDrugs/constant/all.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-import '../constant/color.dart';
-import '../customWidget/MyTextField.dart';
-import '../invoiceDataExtraction/AddPurcheseBill.dart';
-
-List<CameraDescription> cameras = [];
 
 class MultiShotCameraScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -23,7 +15,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
   late CameraController _cameraController;
   bool _isCameraInitialized = false;
   bool _isFlashOn = false;
-  List<XFile> _clickedImages = [];
+  final List<File> _clickedImages = [];
   final ImagePicker _picker = ImagePicker();
   int? _replaceIndex;
 
@@ -35,7 +27,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
 
   Future<void> _initCamera() async {
     _cameraController = CameraController(
-      widget.cameras[0],
+      widget.cameras.first,
       ResolutionPreset.high,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.jpeg,
@@ -48,27 +40,36 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
   Future<void> _takePicture() async {
     if (!_cameraController.value.isInitialized) return;
 
-    // ✅ Check max limit
+    // ✅ Enforce max 5
     if (_clickedImages.length >= 5 && _replaceIndex == null) {
       _showLimitMessage("Maximum 5 images allowed");
       return;
     }
 
-    if (_replaceIndex != null) {
-      final image = await _cameraController.takePicture();
+    try {
+      final raw = await _cameraController.takePicture();
+
+      final croppedFiles = await cropImages([XFile(raw.path)]); // This returns List<File>
+      if (!mounted) return;
+
+    // Check if user cropped the image or cancelled
+      if (croppedFiles.isEmpty) return;
+
+      final croppedFile = croppedFiles.first;
+
       setState(() {
-        _clickedImages[_replaceIndex!] = image;
-        _replaceIndex = null;
+        if (_replaceIndex != null) {
+          _clickedImages[_replaceIndex!] = croppedFile;
+          _replaceIndex = null;
+        } else {
+          _clickedImages.add(croppedFile);
+        }
       });
-    } else {
-      final image = await _cameraController.takePicture();
-      setState(() => _clickedImages.add(image));
+      HapticFeedback.lightImpact();
+    } catch (e) {
+      _showLimitMessage("Failed to capture/crop");
     }
-
-    HapticFeedback.lightImpact();
   }
-
-
   void _showLimitMessage(String message) {
     OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
@@ -99,7 +100,6 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
       overlayEntry?.remove();
     });
   }
-
   Future<void> _pickFromGallery() async {
     int remainingSlots = 5 - _clickedImages.length;
     if (remainingSlots <= 0) {
@@ -108,16 +108,53 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
     }
 
     final List<XFile>? pickedFiles = await _picker.pickMultiImage();
-    if (pickedFiles != null && pickedFiles.isNotEmpty) {
-      List<XFile> limitedSelection = pickedFiles.take(remainingSlots).toList();
-      setState(() => _clickedImages.addAll(limitedSelection));
+    if (pickedFiles == null || pickedFiles.isEmpty) return;
 
-      if (pickedFiles.length > remainingSlots) {
-        _showLimitMessage("Only $remainingSlots more images allowed");
-      }
+    // Limit to the remaining slots
+    final limitedSelection = pickedFiles.take(remainingSlots).toList();
+
+    final cropped = await cropImages(limitedSelection);
+    setState(() {
+      _clickedImages.addAll(cropped);
+    });
+
+    if (pickedFiles.length > remainingSlots) {
+      _showLimitMessage("Only $remainingSlots more images allowed");
     }
   }
 
+  Future<List<File>> cropImages(List<XFile> files) async {
+    List<File> croppedFileList = [];
+
+    for (final file in files) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: AppColors.kPrimary,
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: AppColors.kPrimary,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9,
+            ],
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        croppedFileList.add(File(croppedFile.path));
+      }
+    }
+    return croppedFileList;
+  }
 
   Future<void> _toggleFlash() async {
     if (_isFlashOn) {
@@ -204,10 +241,10 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double screenH = MediaQuery.of(context).size.height;
-    double screenW = MediaQuery.of(context).size.width;
-    double headerHeight = screenH * 0.07;
-    double thumbSize = screenH * 0.1;
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final headerHeight = screenH * 0.07;
+    final thumbSize = screenH * 0.1;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -217,38 +254,44 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
             // Header
             Container(
               height: headerHeight,
-              padding: EdgeInsets.symmetric(horizontal: screenW * 0.04),
               color: Colors.black,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Take Your Photos",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.kPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.kPrimaryDark, width: 1),
-                    ),
-                    child: TextButton(
-                      onPressed: () {
-                        List<String> _fileList=[];
-                        for(var item in _clickedImages){
-                          _fileList.add(item.path);
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddPurchaseBill(paths: _fileList),
+              child:  Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 25,
                           ),
-                        );
-                      },
-                      child: MyTextfield.textStyle_w800('Next', 18, AppColors.kWhiteColor),
+                        ),
+                        SizedBox(width: 10),
+                        MyTextfield.textStyle_w600(
+                          'Take photo',
+                          SizeConfig.screenWidth! * 0.055,
+                          Colors.white,
+                        ),
+                      ],
                     ),
-                  )
-                ],
+                    Container(
+                      height: 40,
+                      child: MyElevatedButton(
+                        onPressed: () => Navigator.pop(context,_clickedImages),
+                        backgroundColor: AppColors.kPrimaryDark,
+                        titleColor: AppColors.kPrimary,
+                        custom_design: true,
+                        buttonText: "Done",
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -309,11 +352,11 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  // Inside your buttons row:
+                  // Shutter
                   GestureDetector(
                     onTap: _takePicture,
                     child: SvgPicture.asset(
-                      'assets/circle.svg', // Your SVG file path
+                      AppImages.camera,
                       width: screenW * 0.16,
                       height: screenW * 0.16,
                       color: Colors.white,

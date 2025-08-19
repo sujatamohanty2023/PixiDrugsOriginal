@@ -1,10 +1,9 @@
 import 'package:image_cropper/image_cropper.dart';
-import 'package:PixiDrugs/Dialog/show_image_picker.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Profile/WebviewScreen.dart';
 import '../login/mobileLoginScreen.dart';
-import 'AddPurchaseBottomSheet.dart';
 
 class DashboardItem {
   final String title;
@@ -153,7 +152,7 @@ class _HomeTabState extends State<HomeTab> {
     String? userId = await SessionManager.getParentingId();
     String? role = await SessionManager.getRole();
     if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId);
+      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
     }
 
     await _profileSubscription?.cancel();
@@ -356,40 +355,14 @@ class _HomeTabState extends State<HomeTab> {
     AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5, ManualAdd: true);
   }
 
-  Future<void> _setSelectedImage(List<File> file) async {
-    List<String> croppedFileList = [];
-    for (var item in file) {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: item.path,
-        compressFormat: ImageCompressFormat.jpg,
-        compressQuality: 90,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Image',
-            toolbarColor: AppColors.kPrimary,
-            toolbarWidgetColor: Colors.white,
-            activeControlsWidgetColor: AppColors.kPrimary,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.original,
-              CropAspectRatioPreset.square,
-              CropAspectRatioPreset.ratio4x3,
-              CropAspectRatioPreset.ratio16x9,
-            ],
-          ),
-        ],
-      );
-      if (croppedFile != null) {
-        croppedFileList.add(croppedFile.path);
-      }
-    }
-
-    if (croppedFileList.isNotEmpty) {
+  Future<void> _setSelectedImage(List<File> files) async {
+    if (files.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPurchaseBill(paths: croppedFileList),
+          builder: (context) => AddPurchaseBill(
+            paths: files.map((e) => e.path).toList(),
+          ),
         ),
       );
     }

@@ -1,6 +1,6 @@
 import 'package:PixiDrugs/AWS/S3Service.dart';
-import 'package:PixiDrugs/Dialog/show_image_picker.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import '../Dialog/AddPurchaseBottomSheet.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -159,7 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: IconButton(
                             icon: Icon(Icons.edit, color: AppColors.kPrimary),
                             onPressed: () {
-                              showImageBottomSheet(context, _setSelectedImage,
+                              AddPurchaseBottomSheet(context, _setSelectedImage,
                                   pick_Size: 1);
                             },
                           ),

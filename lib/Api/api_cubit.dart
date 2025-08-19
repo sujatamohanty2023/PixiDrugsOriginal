@@ -46,11 +46,23 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> GetUserData({required String userId}) async {
+  UserProfileResponse? _cachedUserModel;
+
+  UserProfileResponse? get cachedUser => _cachedUserModel;
+
+  Future<void> GetUserData({required String userId, bool useCache = true}) async {
+    if (useCache && _cachedUserModel != null) {
+      emit(UserProfileLoaded(userModel: _cachedUserModel!));
+      return;
+    }
+
+    emit(UserProfileLoading());
+
     try {
-      emit(UserProfileLoading());
       final response = await apiRepository.GetUserProfile(userId);
       final model = UserProfileResponse.fromJson(response);
+
+      _cachedUserModel = model;
       emit(UserProfileLoaded(userModel: model));
     } catch (e) {
       emit(UserProfileError('Error: $e'));

@@ -1,9 +1,10 @@
 import 'package:PixiDrugs/constant/all.dart';
-
-import 'camera_multiple_image.dart';
+import 'package:camera/camera.dart';
+import 'package:image_cropper/image_cropper.dart';
+import '../Home/camera_multiple_image.dart';
 
 void AddPurchaseBottomSheet(
-    BuildContext context,
+    BuildContext rootContext,
     Function(List<File>) onFileSelected, {
       int pick_Size = 5,
       bool pdf = false,
@@ -13,7 +14,7 @@ void AddPurchaseBottomSheet(
   List<File> _fileList = [];
 
   showModalBottomSheet(
-    context: context,
+    context: rootContext,
     isScrollControlled: true, // Optional for full height
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -21,11 +22,11 @@ void AddPurchaseBottomSheet(
     builder: (BuildContext context) {
       return Container(
         decoration: BoxDecoration(
-            gradient: AppColors.myGradient,
+          gradient: AppColors.myGradient,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(25),
             topRight: Radius.circular(16),
-          )
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -41,10 +42,10 @@ void AddPurchaseBottomSheet(
                     title: "Add Invoice Manually",
                     subtitle: "Search to Add from 3 Lac+ Items",
                     onTap: () async {
-                      Navigator.pop(context);
+                      Navigator.pop(rootContext);  // Changed here
                       Future.delayed(const Duration(milliseconds: 200), () {
                         AppRoutes.navigateTo(
-                            context, AddPurchaseBill(manualAdd: true));
+                            rootContext, AddPurchaseBill(manualAdd: true));
                       });
                     },
                   ),
@@ -57,18 +58,19 @@ void AddPurchaseBottomSheet(
                   title: "Take Photo",
                   subtitle: "Capture using your camera",
                   onTap: () async {
-                    final pickedFile =
-                    await picker.pickImage(source: ImageSource.camera);
-                    if (pickedFile != null) {
-                      _fileList.add(File(pickedFile.path));
+                    List<CameraDescription> cameras = await availableCameras();
+                    final result = await Navigator.push(
+                      context,  // Changed here
+                      MaterialPageRoute(
+                        builder: (_) => MultiShotCameraScreen(cameras: cameras),
+                      ),
+                    );
+                    if (result != null && result is List<File>) {
+                      print("Captured images from camera: ${result.map((e) => e.path).toList()}");
+                      _fileList.addAll(result);
+                      Navigator.pop(rootContext);  // Close sheet first
                       onFileSelected(_fileList);
                     }
-                    Navigator.pop(context);
-                   /* Future.delayed(const Duration(milliseconds: 200), () {
-                      AppRoutes.navigateTo(
-                          context, MultiShotCameraScreen(cameras: [],));
-                    });
-                    Navigator.pop(context);*/
                   },
                 ),
                 _divider(),
@@ -88,16 +90,15 @@ void AddPurchaseBottomSheet(
                         AppUtils.showSnackBar(
                             context, 'You can only select up to $pick_Size images.');
                       } else {
-                        List<File> files = pickedFiles
-                            .map((xfile) => File(xfile.path))
-                            .toList();
-                        _fileList.addAll(files);
+                        List<File> files =
+                        pickedFiles.map((xfile) => File(xfile.path)).toList();
+                        _fileList = await cropImages(files);
+                        Navigator.pop(context);
                         onFileSelected(_fileList);
                       }
                     } catch (e) {
                       AppUtils.showSnackBar(context, 'Failed to pick images: $e');
                     }
-                    Navigator.pop(context);
                   },
                 ),
                 _divider(),
@@ -111,24 +112,21 @@ void AddPurchaseBottomSheet(
                     subtitle: "Upload a single or multi-page PDF",
                     onTap: () async {
                       try {
-                        FilePickerResult? result = await FilePicker.platform
-                            .pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['pdf']);
+                        FilePickerResult? result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom, allowedExtensions: ['pdf']);
 
                         if (result != null) {
                           File pdfFile = File(result.files.single.path!);
                           _fileList.add(pdfFile);
-                          onFileSelected(_fileList);
 
-                          Navigator.pop(context);
+                          Navigator.pop(rootContext);
+                          onFileSelected(_fileList);
 
                           // Then navigate to AddPurchaseBill page
                           Navigator.push(
-                            context,
+                            rootContext,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  AddPurchaseBill(paths: [pdfFile.path]),
+                              builder: (context) => AddPurchaseBill(paths: [pdfFile.path]),
                             ),
                           );
                         }
@@ -144,6 +142,39 @@ void AddPurchaseBottomSheet(
       );
     },
   );
+}
+
+Future<List<File>> cropImages(List<File> files) async {
+  List<File> croppedFileList = [];
+
+  for (final file in files) {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: file.path,
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 90,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: AppColors.kPrimary,
+          toolbarWidgetColor: Colors.white,
+          activeControlsWidgetColor: AppColors.kPrimary,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPreset.ratio4x3,
+            CropAspectRatioPreset.ratio16x9,
+          ],
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
+      croppedFileList.add(File(croppedFile.path));
+    }
+  }
+  return croppedFileList;
 }
 
 // Reusable widget for each option
@@ -167,9 +198,11 @@ Widget _buildOption(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.054, AppColors.kPrimary),
+                MyTextfield.textStyle_w600(
+                    title, SizeConfig.screenWidth! * 0.054, AppColors.kPrimary),
                 const SizedBox(height: 2),
-                MyTextfield.textStyle_w300(subtitle, SizeConfig.screenWidth! * 0.045, Colors.grey.shade600),
+                MyTextfield.textStyle_w300(
+                    subtitle, SizeConfig.screenWidth! * 0.045, Colors.grey.shade600),
               ],
             ),
           ),
@@ -182,5 +215,8 @@ Widget _buildOption(
 
 // Simple divider
 Widget _divider() {
-  return const Divider(height: 1,color: AppColors.kPrimaryDark,);
+  return const Divider(
+    height: 1,
+    color: AppColors.kPrimaryDark,
+  );
 }

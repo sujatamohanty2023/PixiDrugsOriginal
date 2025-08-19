@@ -6,8 +6,9 @@ class SuccessDialog extends StatefulWidget {
   SvgPicture image;
   String tittle, msg;
   SaleModel sale;
+  final VoidCallback onDonePressed;
 
-  SuccessDialog(this.sale,this.image, this.tittle, this.msg, {super.key});
+  SuccessDialog(this.sale,this.image, this.tittle, this.msg, {required this.onDonePressed, super.key});
 
   @override
   _SuccessDialogState createState() => _SuccessDialogState();
@@ -53,36 +54,15 @@ class _SuccessDialogState extends State<SuccessDialog> {
                 widget.msg, AppUtils.size_14, Colors.black54),
             SizedBox(height: 50),
             MyElevatedButton(
-              onPressed: () => _onButtonPrintPressed(context),
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onDonePressed();
+              },
               buttonText: AppString.Done,
             ),
             SizedBox(height: 5),
           ],
         ),
-      ),
-    );
-  }
-
-  void _onButtonPrintPressed(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      backgroundColor: AppColors.kWhiteColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.70,
-        minChildSize: 0.60,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) {
-          return ReceiptPrinterPage(
-            sale: widget.sale,
-            scrollController: scrollController,
-          );
-        },
       ),
     );
   }

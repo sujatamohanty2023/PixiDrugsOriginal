@@ -22,6 +22,11 @@ class ReceiptPrinterPage extends StatefulWidget {
 class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   late SaleModel products;
   String? name, phone, address;
+  String Medical_Name='';
+  String Medical_Phone='';
+  String Medical_GST='';
+  String Medical_Address='';
+  String Medical_Image='';
   double totalItemAmount = 0;
   double totalDiscount = 0;
   double totalAmount = 0;
@@ -41,6 +46,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   @override
   void initState() {
     super.initState();
+    _GetProfileCall();
     products = widget.sale;
     name = products.customer.name;
     phone = products.customer.phone;
@@ -57,6 +63,23 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
         });
       } else {
         //_manualScan();
+      }
+    });
+  }
+  void _GetProfileCall() async {
+    String? userId = await SessionManager.getParentingId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
+    }
+    context.read<ApiCubit>().stream.listen((state) {
+      if (state is UserProfileLoaded) {
+        setState(() {
+          Medical_Name = state.userModel.user.name;
+          Medical_Phone = state.userModel.user.phoneNumber;
+          Medical_GST = state.userModel.user.gstin;
+          Medical_Address = state.userModel.user.address;
+          Medical_Image = state.userModel.user.profilePicture;
+        });
       }
     });
   }
@@ -182,10 +205,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.image(logoImage); // Use align: PosAlign.center if needed
       //printer.feed(1);
       printer.setStyles(boldStyle);
-      printer.text('PixiDrugs');
+      printer.text('$Medical_Name');
       printer.setStyles(normalStyle);
-      printer.text('Ph: 123456789');
-      printer.text('Address: Berhampur');
+      printer.text('Gstin: $Medical_GST');
+      printer.text('Ph: $Medical_Phone');
+      printer.text('Address: $Medical_Address');
       printer.feed(1);
       printer.hr();
 
@@ -279,8 +303,8 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
         'Print Failed: $res.Please Check your IP Address.',
       );
     }
-    AppRoutes.navigateTo(context, HomePage());
     context.read<CartCubit>().clearCart(type: CartType.barcode);
+    AppRoutes.navigateTo(context, HomePage());
   }
 
   @override
@@ -334,32 +358,32 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                                MyTextfield.textStyle_w600(
-                                  'PixiDrugs',
+                                MyTextfield.textStyle_w800(
+                                  Medical_Name.toUpperCase(),
+                                  18,
+                                  AppColors.kPrimary,
+                                ),
+                                MyTextfield.textStyle_w400(
+                                  'GSTIN: $Medical_GST',
                                   16,
                                   AppColors.kBlackColor900,
                                 ),
                                 MyTextfield.textStyle_w400(
-                                  'GSTIN: 1234567890',
+                                  'Ph: $Medical_Phone',
                                   16,
                                   AppColors.kBlackColor900,
                                 ),
                                 MyTextfield.textStyle_w400(
-                                  'Ph: 123456789',
-                                  16,
-                                  AppColors.kBlackColor900,
-                                ),
-                                MyTextfield.textStyle_w400(
-                                  'Address: Berhampur,Odisha',
+                                  'Address: $Medical_Address',
                                   16,
                                   AppColors.kBlackColor900,
                                 ),
                         const Divider(),
 
-                        MyTextfield.textStyle_w400(
+                        MyTextfield.textStyle_w800(
                           'Bill No: #${products.invoiceNo}',
-                          16,
-                          AppColors.kBlackColor900,
+                          18,
+                          AppColors.kPrimary,
                         ),
                         MyTextfield.textStyle_w400(
                           'Date: ${products.date}',
@@ -540,14 +564,20 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                 Expanded(
                   child: MyElevatedButton(
                     buttonText: 'Share',
-                    onPressed: () =>ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale),
+                    onPressed: (){
+                      ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                      context.read<CartCubit>().clearCart(type: CartType.barcode);
+                      Navigator.pop(context);
+                    },
                   ),
                 ),
                 SizedBox(width: 10,),
                 Expanded(
                   child: MyElevatedButton(
                     buttonText: 'Print Receipt',
-                    onPressed: () => _printBill(context),
+                    onPressed: () {
+                      _printBill(context);
+                    }
                   ),
                 ),
               ],
