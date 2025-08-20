@@ -2,6 +2,7 @@
 import '../Api/ApiUtil/ApiParserUtils.dart';
 
 enum DiscountType { flat, percent }
+enum UnitType { Strip, Tablet ,Other}
 class Invoice {
   String? invoiceId;
   String? invoiceDate;
@@ -129,6 +130,8 @@ class InvoiceItem {
   int invoice_purchase_id;
   bool isSelected;
   int returnQty;
+  String unitMrp;
+  UnitType unitType;
 
   InvoiceItem({
     this.id,
@@ -141,7 +144,7 @@ class InvoiceItem {
     this.rate='',
     this.taxable='',
     this.discount='0',
-    this.discountSale,
+    this.discountSale='0',
     this.expiry='',
     this.qty=0,
     this.qty_free=0,
@@ -152,6 +155,8 @@ class InvoiceItem {
     this.isSelected = false,
     this.returnQty = 0,
     this.invoice_purchase_id = 0,
+    this.unitMrp='',
+    this.unitType=UnitType.Other,
   });
 
   InvoiceItem copyWith({
@@ -176,6 +181,8 @@ class InvoiceItem {
     bool? isSelected,
     int? returnQty,
     int? invoice_purchase_id,
+    String? unitMrp,
+    UnitType? unitType,
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -198,6 +205,8 @@ class InvoiceItem {
       discountType: discountType??this.discountType,
       returnQty: returnQty??this.returnQty,
       invoice_purchase_id: invoice_purchase_id??this.invoice_purchase_id,
+      unitMrp: unitMrp??this.unitMrp,
+      unitType: unitType??this.unitType,
     );
   }
 
@@ -352,7 +361,7 @@ class InvoiceItem {
               normalized['unit'] ??
               normalized['packing']),
       batch:ApiParserUtils.parseString(
-              normalized['Batch No']??
+          normalized['Batch No']??
               normalized['batch no']??
               normalized['batch no.']??
               normalized['batch_no'] ??
@@ -362,7 +371,7 @@ class InvoiceItem {
       rate: rateValue.toStringAsFixed(2),
       taxable: taxableValue.toStringAsFixed(2),
       discount: discountValue.toString(),
-      discountSale: parseNullString(normalized['discountSale']),
+      discountSale: parseNullString(normalized['discountSale']).toString(),
       expiry:  ApiParserUtils.parseString(
           normalized['expiry date'] ??
               normalized['expiry'] ??
@@ -413,5 +422,4 @@ class InvoiceItem {
     return 'InvoiceItem(id:$id,hsn: $hsn, product: $product, composition:$composition,packing: $packing, batch_no: $batch, mrp: $mrp, rate: $rate, taxable: $taxable, discount: $discount,discountSale: $discountSale, expiry: $expiry, quantity: $qty, qty_free: $qty_free, gst: $gst, total: $total)';
   }
 }
-
 

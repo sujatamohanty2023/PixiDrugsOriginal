@@ -7,7 +7,6 @@ class ProductCard extends StatefulWidget {
   final ProductCardMode mode;
   final bool editable;
   final bool saleCart;
-  final bool barcodeScan;
   final VoidCallback? onRemove;
   final VoidCallback? onUpdate;
 
@@ -17,7 +16,6 @@ class ProductCard extends StatefulWidget {
     this.mode = ProductCardMode.search,
     this.editable = false,
     this.saleCart = false,
-    this.barcodeScan = false,
     this.onRemove,
     this.onUpdate,
   });
@@ -28,14 +26,14 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   late TextEditingController discController;
-  String? selectedUnitType;
-  double? unitMrp=0.0;
+  UnitType? selectedUnitType;
+  double? disPlayMrp=0.0;
 
   @override
   void initState() {
     super.initState();
     discController = TextEditingController(text: widget.item.discountSale);
-    selectedUnitType = detectUnitType(widget.item.packing);
+    selectedUnitType = widget.mode == ProductCardMode.cart?widget.item.unitType:detectUnitType(widget.item.packing);
   }
 
   @override
@@ -49,14 +47,15 @@ class _ProductCardState extends State<ProductCard> {
     final cartCubit = context.read<CartCubit>();
     final isCartMode = widget.mode == ProductCardMode.cart;
     final isEditable = widget.editable;
-    final unitType = detectUnitType(widget.item.packing);
+    final unitType = !widget.saleCart?widget.item.unitType:detectUnitType(widget.item.packing);
 
-    List<String> unitOptions = ["Strip","Tablet"];
     int packingQuantity = _extractPackingQuantity(widget.item.packing);
     double mrp = double.tryParse(widget.item.mrp) ?? 0.0;
-    unitMrp = mrp;
-    if (selectedUnitType == 'Tablet' && packingQuantity > 0) {
-      unitMrp = mrp / packingQuantity;
+    disPlayMrp = mrp;
+    if (selectedUnitType == UnitType.Tablet && packingQuantity > 0) {
+      disPlayMrp = mrp / packingQuantity;
+    }else if(selectedUnitType == UnitType.Tablet && isCartMode){
+      disPlayMrp = double.tryParse(widget.item.unitMrp);
     }
 
     return Padding(
@@ -76,29 +75,51 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
 
-                  if (unitType !=null && unitOptions.isNotEmpty) ...[
+                  if ((unitType !=null && unitType == UnitType.Tablet  &&  isCartMode) ||  (unitType !=null && widget.saleCart)) ...[
                     Positioned(
-                      top:20,
-                      right: 0,
-                      child:DropdownButton<String>(
-                      value: selectedUnitType,
-                      icon: const Icon(Icons.arrow_drop_down_sharp, color: AppColors.kPrimary),
-                      underline: Container(
-                          height: 1,
-                          color: AppColors.kPrimaryDark,
-                      ),
-                      items: unitOptions.map((e) => DropdownMenuItem(value: e,
-                          child:  Text(e, style: MyTextfield.textStyle(14, AppColors.kPrimary, FontWeight.w600)))).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            selectedUnitType = val;
-                            //widget.item.unitType = val;
-                          });
-                          widget.onUpdate?.call();
-                        }
-                      },
-                    ))
+                        top:20,
+                        right: 0,
+                        child:DropdownButton<UnitType>(
+                            value: selectedUnitType,
+                            icon: const Icon(Icons.arrow_drop_down_sharp, color: AppColors.kPrimary),
+                            underline: Container(
+                              height: 1,
+                              color: AppColors.kPrimaryDark,
+                            ),
+                            items: UnitType.values.map((e) => DropdownMenuItem(value: e,
+                                child:  Text(e.name, style: MyTextfield.textStyle(14, AppColors.kPrimary, FontWeight.w600)))).toList(),
+                            onChanged: widget.editable
+                                ?(val) {
+                              if (val != null) {
+                                setState(() {
+                                  selectedUnitType = val;
+                                  widget.item.unitType = val;
+
+                                  // 🟢 Calculate proper unit MRP
+                                  final fullMrp = double.tryParse(widget.item.mrp) ?? 0.0;
+                                  final packingQuantity = _extractPackingQuantity(widget.item.packing);
+
+                                  double? unitMrp;
+                                  if (val == UnitType.Tablet && packingQuantity > 0) {
+                                    unitMrp = fullMrp / packingQuantity;
+                                    widget.item.unitMrp = unitMrp.toStringAsFixed(2); // 🔄 set actual value
+                                  } else {
+                                    widget.item.unitMrp = fullMrp.toStringAsFixed(2);
+                                  }
+                                });
+
+                                // 🔄 Also update in Cubit
+                                cartCubit.updateItemUnitRate(
+                                  widget.item.id!,
+                                  double.tryParse(widget.item.unitMrp ?? '0') ?? 0.0,
+                                  type: CartType.barcode,
+                                  unitType: val,
+                                );
+
+                                widget.onUpdate?.call();
+                              }
+                            }:null
+                        ))
                   ],
                   Row(
                     children: [
@@ -156,7 +177,7 @@ class _ProductCardState extends State<ProductCard> {
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
         MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
-        MyTextfield.textStyle_w600("${AppString.Rupees}${unitMrp?.toStringAsFixed(2)}", 16, Colors.green),
+        MyTextfield.textStyle_w600("${AppString.Rupees}${disPlayMrp?.toStringAsFixed(2)}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
         if (isCartMode)
           Row(
@@ -170,15 +191,15 @@ class _ProductCardState extends State<ProductCard> {
                   keyboardType: TextInputType.number,
                   readOnly: !widget.editable,
                   onChanged: (val) {
-                    final discount = double.tryParse(val) ?? 0.0;
-                    widget.item.discount = discount.toString();
+                    final discountSale = double.tryParse(val) ?? 0.0;
+                    widget.item.discountSale = discountSale.toString();
                     if (widget.saleCart==false && isEditable) {
                       widget.onUpdate?.call();
                     } else {
                       cartCubit.updateItemDiscount(
                         widget.item.id!,
-                        discount,
-                        type: widget.barcodeScan ? CartType.barcode : CartType.main,
+                        discountSale,
+                        type: CartType.barcode,
                         discountType: widget.item.discountType,
                       );
                     }
@@ -192,7 +213,7 @@ class _ProductCardState extends State<ProductCard> {
       ],
     );
   }
-  String? detectUnitType(String? packing) {
+  UnitType? detectUnitType(String? packing) {
     if (packing == null || packing.isEmpty) return null;
 
     final lowerPacking = packing.toLowerCase();
@@ -213,11 +234,11 @@ class _ProductCardState extends State<ProductCard> {
         lowerPacking.contains("tab") ||
         lowerPacking.contains("capsule") ||
         lowerPacking.contains("cap")) {
-      return "Tablet";
+      return UnitType.Tablet;
     }
 
     if (containsDigit) {
-      return "Strip";
+      return UnitType.Strip;
     }
     return null;
   }

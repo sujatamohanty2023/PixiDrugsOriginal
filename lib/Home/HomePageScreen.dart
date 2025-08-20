@@ -6,9 +6,6 @@ import 'package:PixiDrugs/Stock/ProductList.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/Profile/profileTab.dart';
 
-import '../Profile/WebviewScreen.dart';
-import '../login/mobileLoginScreen.dart';
-
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -16,21 +13,22 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedPos = 0;
+  CartTypeSelection? type=CartTypeSelection.Sale;
 
-  void switchToTab(int index) {
+  void switchToCart(CartTypeSelection type) {
     setState(() {
-      selectedPos = index;
+      selectedPos = 2;
     });
   }
 
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        return HomeTab(onGoToCart: () => switchToTab(2));
+        return HomeTab(onGoToCart: (cartTypeSelection) => switchToCart(cartTypeSelection));
       case 1:
         return ListScreen(type:ListType.ledger);
       case 2:
-      return CartTab(barcodeScan: true, onPressedProduct: () {});
+      return CartTab(cartTypeSelection:type);
       case 3:
         return ProductListPage(flag: 1);
       case 4:

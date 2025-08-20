@@ -120,8 +120,7 @@ class _ProductListPageState extends State<ProductListPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: ProductCard(
                         item: _products[index],
-                        mode: ProductCardMode.search,
-                        barcodeScan: true,
+                        mode: ProductCardMode.search
                       ),
                     ):ProductTile(product: _filteredProducts[index]),
               );

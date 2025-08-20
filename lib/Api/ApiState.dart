@@ -7,6 +7,8 @@ import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../Staff/StaffModel.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import '../search/customerModel.dart';
+import '../search/sellerModel.dart';
 
 abstract class ApiState {}
 
@@ -90,6 +92,30 @@ class BarcodeScanLoaded extends ApiState {
 class BarcodeScanError extends ApiState {
   final String error;
   BarcodeScanError(this.error);
+}
+//--------------------------------------------------------------------
+class SearchSellerLoading extends ApiState {}
+
+class SearchSellerLoaded extends ApiState {
+  final List<Seller> sellerList;
+  SearchSellerLoaded({required this.sellerList});
+}
+
+class SearchSellerError extends ApiState {
+  final String error;
+  SearchSellerError(this.error);
+}
+//--------------------------------------------------------------------
+class SearchUserLoading extends ApiState {}
+
+class SearchUserLoaded extends ApiState {
+  final List<CustomerModel> customerList;
+  SearchUserLoaded({required this.customerList});
+}
+
+class SearchUserError extends ApiState {
+  final String error;
+  SearchUserError(this.error);
 }
 
 //--------------------------------------------------------------------

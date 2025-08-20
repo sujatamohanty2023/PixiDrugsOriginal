@@ -5,6 +5,8 @@ import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/search/customerModel.dart';
+import 'package:PixiDrugs/search/sellerModel.dart';
 
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
@@ -121,6 +123,28 @@ class ApiCubit extends Cubit<ApiState> {
       emit(BarcodeScanLoaded(list: list,source: source));
     } catch (e) {
       emit(BarcodeScanError('Error: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SearchSellerDetail({required String query}) async {
+      try {
+        emit(SearchSellerLoading());
+        final response = await apiRepository.searchDetail(query,'searchseller');
+        final list = response.map((json) => Seller.fromJson(json)).toList();
+        emit(SearchSellerLoaded(sellerList: list));
+      } catch (e) {
+        emit(SearchSellerError('Error: $e'));
+      }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> SearchCustomerDetail({required String query}) async {
+    try {
+      emit(SearchUserLoading());
+      final response = await apiRepository.searchDetail(query,'searchuser');
+      final list = response.map((json) => CustomerModel.fromJson(json)).toList();
+      emit(SearchUserLoaded(customerList: list));
+    } catch (e) {
+      emit(SearchUserError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------

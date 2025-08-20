@@ -7,13 +7,9 @@ import '../BarcodeScan/batch_scanner_page.dart';
 import '../Stock/ProductList.dart';
 
 class CartTab extends StatefulWidget {
-  final void Function() onPressedProduct;
-  final bool barcodeScan;
-
-  const CartTab({
-    Key? key,
-    required this.onPressedProduct,
-    this.barcodeScan = false,
+  CartTypeSelection? cartTypeSelection;
+   CartTab({
+    Key? key, required this.cartTypeSelection,
   }) : super(key: key);
 
   @override
@@ -21,6 +17,10 @@ class CartTab extends StatefulWidget {
 }
 
 class _CartTabState extends State<CartTab> {
+  Timer? _debounce;
+  bool showSearchBar = false;
+  TextEditingController _searchController = TextEditingController();
+  List _detail = [];
   List<InvoiceItem> searchResults = [];
   String userId='';
   final ImagePicker _picker = ImagePicker();
@@ -55,8 +55,16 @@ class _CartTabState extends State<CartTab> {
         },
         child: Column(
           children: [
-            cartAppBar(context),  // Moved here
-            Expanded(child: _buildCartContent(context)),
+            cartAppBar(context),
+            if(showSearchBar)
+              Expanded(child: _buildSearchResultList()),
+
+            if (!showSearchBar)
+              if (widget.cartTypeSelection == CartTypeSelection.Sale)
+                Expanded(child: _buildCartContent(context)),
+            if (!showSearchBar)
+              if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn || widget.cartTypeSelection == CartTypeSelection.CustomerReturn)
+                Expanded(child: _buildReturnPage()),
           ],
         ),
       ),
@@ -105,8 +113,7 @@ class _CartTabState extends State<CartTab> {
 
   /// Shows empty page or the main CartPage
   Widget _buildCartOrEmpty(List<InvoiceItem> items) {
-    return items.isEmpty ? _buildEmptyPage() : CartPage(
-        barcodeScan: widget.barcodeScan);
+    return items.isEmpty ? _buildEmptyPage() : CartPage();
   }
 
   /// Shows a customizable empty cart page
@@ -124,10 +131,149 @@ class _CartTabState extends State<CartTab> {
         image: AppImages.empty_cart,
         tittle: "Your Cart is Empty",
         description: "Looks like you haven't added anything \nto your cart yet.",
-        button_tittle: widget.barcodeScan ? 'Scan Now' : "Shop Now",
+        button_tittle:  'Scan Now',
       ),
     );
   }
+  Widget _buildReturnPage() {
+    var name=widget.cartTypeSelection==CartTypeSelection.StockiestReturn?'stockist':'customer';
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.myGradient,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(SizeConfig.screenWidth! * 0.07),
+          topRight: Radius.circular(SizeConfig.screenWidth! * 0.07),
+        ),
+      ),
+      child: NoItemPage(
+        onTap: _searchDetail,
+        image: AppImages.empty_cart,
+        tittle: "Enter Return Details",
+        description: "Search by $name name\nto process the return.",
+        button_tittle: 'Search Now',
+      ),
+    );
+  }
+  Future<void> _searchDetail() async {
+    setState(() {
+      showSearchBar = true;
+    });
+  }
+  Widget _buildSearchBar() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search ${widget.cartTypeSelection == CartTypeSelection.StockiestReturn ? "stockist" : "customer"} name...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                isDense: true,
+                contentPadding: const EdgeInsets.all(12),
+              ),
+              onChanged: (_) => _onSearch(),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              setState(() {
+                showSearchBar = false;
+                _searchController.clear();
+              });
+            },
+          )
+        ],
+      ),
+    );
+  }
+  void _onSearch() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final query = _searchController.text.trim();
+
+      if (query.isEmpty) {
+        setState(() {
+          _detail = List.from(_products);
+        });
+        return;
+      }
+
+      if (query.length >= 3) {
+        String? userId = await SessionManager.getParentingId();
+        if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn) {
+          context.read<ApiCubit>().SearchSellerDetail(query: query);
+        }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn) {
+          context.read<ApiCubit>().SearchCustomerDetail(query: query);
+        }
+      } else {
+        setState(() {
+          _detail = _products.where((product) {
+            return product.product.toLowerCase().contains(query.toLowerCase()) ||
+                product.hsn.toLowerCase().contains(query.toLowerCase());
+          }).toList();
+        });
+      }
+    });
+  }
+  // dispose
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+// Remove Expanded in _buildSearchResultList()
+  Widget _buildSearchResultList() {
+    if (_detail.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'No results found',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _detail.length,
+      itemBuilder: (context, index) {
+        final item = _detail[index];
+        final displayName = item.name ?? item.seller_name ?? 'Unknown';
+
+        return ListTile(
+          title: Text(displayName, style: TextStyle(color: Colors.white)),
+          subtitle: item.phone != null ? Text(item.phone, style: TextStyle(color: Colors.white70)) : null,
+          onTap: () {
+            _onDetailItemSelected(item);
+          },
+        );
+      },
+    );
+  }
+
+  void _onDetailItemSelected(dynamic item) {
+    // Example: You might want to add this item to cart or navigate, customize as needed
+    print('Selected item: ${item.name ?? item.seller_name}');
+
+    // Close search bar and clear list
+    setState(() {
+      showSearchBar = false;
+      _searchController.clear();
+      _detail = [];
+    });
+
+    // Example: Add to cart or other logic here
+    // context.read<CartCubit>().addToCart(item, 1, type: CartType.manual);
+  }
+
 
   /// Initiates barcode scan
   Future<void> _scanBarcode() async {
@@ -251,9 +397,10 @@ class _CartTabState extends State<CartTab> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: MyTextfield.textStyle_w600(
-                    'Sale Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
+                child: MyTextfield.textStyle_w600('${widget.cartTypeSelection?.name} Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
               ),
+              if (showSearchBar) _buildSearchBar(),
+              if(widget.cartTypeSelection== CartTypeSelection.Sale)
               Padding(
                 padding: const EdgeInsets.only(right: 15.0),
                 child: SingleChildScrollView(

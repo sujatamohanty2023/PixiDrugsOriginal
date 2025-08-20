@@ -15,7 +15,7 @@ class DashboardItem {
 }
 
 class HomeTab extends StatefulWidget {
-  final VoidCallback onGoToCart;
+  final void Function(CartTypeSelection) onGoToCart;
   const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
 
   @override
@@ -55,7 +55,11 @@ class _HomeTabState extends State<HomeTab> {
       );
     });
     dashboardItems = [
-      DashboardItem(title: "New Sale Entry",desc: "Record a new sale", icon:AppImages.sale, onTap: _newSaleEntry),
+      DashboardItem(title: "New Sale Entry",desc: "Record a new sale", icon:AppImages.sale,
+          onTap:() {
+            _newSaleEntry('Start New Sale', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.Sale);
+          }
+      ),
       DashboardItem(title: "Sales Report", desc:"Track sales summary", icon:AppImages.sale_list, onTap: () {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
       }),
@@ -70,24 +74,26 @@ class _HomeTabState extends State<HomeTab> {
         Navigator.pushNamed(context, '/stockList', arguments: 3);
       }),
       DashboardItem(title: "Stockist Return",desc: "Return products back to stockist", icon:AppImages.purchase_return, onTap: () {
-        showDialog(
+        /*showDialog(
           context: context,
           builder: (_) => EditValueDialog(
             title: 'Invoice No.',
             initialValue: '',
             type: 'stockReturn',
           ),
-        );
+        );*/
+        _newSaleEntry('Start New Stockist Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.StockiestReturn);
       }),
       DashboardItem(title: "Customer Return",desc: "Manage products returned by customers", icon:AppImages.sale_return,onTap:  () {
-        showDialog(
+        /*showDialog(
           context: context,
           builder: (_) => EditValueDialog(
             title: 'Bill No.',
             initialValue: '',
             type: 'saleReturn',
           ),
-        );
+        );*/
+        _newSaleEntry('Start New Customer Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.CustomerReturn);
       }),
       DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stockiest_return,onTap:  () {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
@@ -159,11 +165,9 @@ class _HomeTabState extends State<HomeTab> {
 
     _profileSubscription = context.read<ApiCubit>().stream.listen((state) {
       if (state is UserProfileLoaded) {
-        setState(() {
-          name = state.userModel.user.name;
-          email = state.userModel.user.email;
-          image = state.userModel.user.profilePicture;
-        });
+        name = state.userModel.user.name;
+        email = state.userModel.user.email;
+        image = state.userModel.user.profilePicture;
         if (role == 'owner' && state.userModel.user.status != 'active') {
           showLoginFailedDialog(context);
         }
@@ -368,17 +372,17 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  Future<void> _newSaleEntry() async {
+  Future<void> _newSaleEntry(String tittle,String content,CartTypeSelection type) async {
     CommonConfirmationDialog.show<int>(
       context: context,
       id: 0,
-      title: 'Start New Sale',
-      content: 'This will clear the previous cart. Do you want to continue?',
+      title: tittle,
+      content: content,
       negativeButton: 'Cancel',
       positiveButton: 'Yes, Start New',
       onConfirmed: (int) async {
         context.read<CartCubit>().clearCart(type: CartType.barcode);
-        widget.onGoToCart();
+        widget.onGoToCart(type);
       },
     );
   }

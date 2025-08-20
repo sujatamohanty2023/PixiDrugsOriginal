@@ -2,6 +2,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 
 enum CartType { main,  barcode }
+enum CartTypeSelection { Sale,  StockiestReturn,CustomerReturn }
 
 class CartCubit extends Cubit<CartState> {
   Timer? _cartDebounce;
@@ -12,19 +13,49 @@ class CartCubit extends Cubit<CartState> {
   }
 
   Map<String, double> _recalculateCartTotals(List<InvoiceItem> updatedCart) {
-    double subTotal = 0;
-    double discountAmount = 0;
+    double subTotal = 0.0;
+    double discountAmount = 0.0;
 
     for (var item in updatedCart) {
-      final double itemMrp = double.tryParse(item.mrp) ?? 0;
-      final double itemTotal = itemMrp * item.qty;
+      final bool isTablet = item.unitType == UnitType.Tablet;
+      final double mrpPerStrip = double.tryParse(item.mrp) ?? 0.0;
+      final double unitMrp = double.tryParse(item.unitMrp ?? '0') ?? 0.0;
+      final int packQty = _extractPackingQuantity(item.packing);
+
+      double appliedMrp = isTablet && packQty > 0
+          ? (unitMrp > 0 ? unitMrp : mrpPerStrip / packQty)
+          : mrpPerStrip;
+
+      print('--- ITEM DEBUG (ID ${item.id}) ---');
+      print(' unitType: ${{item.unitType}}');
+      print(' mrpPerStrip: $mrpPerStrip');
+      print(' unitMrp: $unitMrp');
+      print(' packQty: $packQty');
+      print(' appliedMrp: $appliedMrp');
+      print(' quantity: ${item.qty}');
+
+      final double itemTotal = appliedMrp * item.qty;
+      print(' itemTotal: $itemTotal');
+
+      final double discountRate = double.tryParse(item.discountSale ?? '0') ?? 0.0;
+      final double itemDiscount = item.discountType == DiscountType.flat
+          ? (discountRate * item.qty)
+          : (appliedMrp * discountRate / 100) * item.qty;
+
+      print(' discountRate: $discountRate | itemDiscount: $itemDiscount');
+      print('------------------------------');
+
       subTotal += itemTotal;
-      discountAmount += item.discountType == DiscountType.flat
-          ? double.parse(item.discount) * item.qty
-          : (double.parse(item.mrp) * double.parse(item.discount) / 100) * item.qty;
+      discountAmount += itemDiscount;
     }
 
     final double totalPrice = subTotal - discountAmount;
+
+    print('========= CART TOTALS =========');
+    print(' subTotal: $subTotal');
+    print(' discountAmount: $discountAmount');
+    print(' totalPrice: $totalPrice');
+    print('===============================');
 
     return {
       'totalPrice': totalPrice,
@@ -32,6 +63,15 @@ class CartCubit extends Cubit<CartState> {
       'discountAmount': discountAmount,
     };
   }
+
+  int _extractPackingQuantity(String? packing) {
+    if (packing == null) return 0;
+    final regExp = RegExp(r'\d+'); // match first number
+    final match = regExp.firstMatch(packing);
+    return match != null ? int.tryParse(match.group(0)!) ?? 0 : 0;
+  }
+
+
 
   List<InvoiceItem> _getCartList(CartType type) {
     switch (type) {
@@ -43,9 +83,9 @@ class CartCubit extends Cubit<CartState> {
   }
 
   void _emitUpdatedCartState(CartType type, List<InvoiceItem> updatedList, {
-  String? customerName,
-  String? customerPhone,
-  String? customerAddress,
+    String? customerName,
+    String? customerPhone,
+    String? customerAddress,
   }) {
     switch (type) {
       case CartType.main:
@@ -85,11 +125,22 @@ class CartCubit extends Cubit<CartState> {
         break;
     }
   }
-  void updateItemDiscount(int productId, double discount, {required DiscountType discountType,CartType type = CartType.main}) {
+  void updateItemDiscount(int productId, double discountSale, {required DiscountType discountType,CartType type = CartType.main}) {
     final cartList = _getCartList(type);
     final updatedCart = cartList.map((item) {
       if (item.id == productId) {
-        return item.copyWith(discount: discount.toString(), discountType: discountType,);
+        return item.copyWith(discountSale: discountSale.toString(), discountType: discountType,);
+      }
+      return item;
+    }).toList();
+
+    _emitUpdatedCartState(type, updatedCart);
+  }
+  void updateItemUnitRate(int productId, double unitRate, {required UnitType unitType,CartType type = CartType.main}) {
+    final cartList = _getCartList(type);
+    final updatedCart = cartList.map((item) {
+      if (item.id == productId) {
+        return item.copyWith(unitMrp: unitRate.toString(), unitType: unitType,);
       }
       return item;
     }).toList();
@@ -123,7 +174,7 @@ class CartCubit extends Cubit<CartState> {
     final updatedCart = List<InvoiceItem>.from(cartList);
 
     if (index == -1) {
-      updatedCart.add(product.copyWith(qty: quantity,discount: '0.0'));
+      updatedCart.add(product.copyWith(qty: quantity,discountSale: '0'));
     } else {
       var updateQuantity = detailPage ? 0 : updatedCart[index].qty;
       updatedCart[index] = updatedCart[index].copyWith(qty: updateQuantity + quantity);

@@ -33,10 +33,18 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     return sale.items.map((item) => InvoiceItem(
       id: item.productId,
       product: item.productName,
-      mrp: item.price.toString(),
+      unitMrp: item.price.toString(),
+      mrp: item.mrp.toString(),
       qty: item.quantity,
       discountSale: item.discount.toString(),
+      unitType: parseUnitType(item.unitType)
     )).toList();
+  }
+  UnitType parseUnitType(String unit) {
+    return UnitType.values.firstWhere(
+          (e) => e.name == unit,
+      orElse: () => UnitType.Other,
+    );
   }
   @override
   void initState() {
@@ -51,13 +59,13 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
   }
   void _recalculateTotals(List<InvoiceItem> cartItems) {
     subtotalPrice = cartItems.fold(0.0, (sum, item) {
-      final mrp = double.tryParse(item.mrp) ?? 0.0;
+      final mrp = double.tryParse(item.unitMrp) ?? 0.0;
       final qty = item.qty;
       return sum + (mrp * qty);
     });
 
     discountAmount = cartItems.fold(0.0, (sum, item) {
-      final mrp = double.tryParse(item.mrp) ?? 0.0;
+      final mrp = double.tryParse(item.unitMrp) ?? 0.0;
       final qty = item.qty;
       final discountSale = double.tryParse(item.discountSale??'') ?? 0.0;
       final itemDiscount = item.discountType == DiscountType.percent

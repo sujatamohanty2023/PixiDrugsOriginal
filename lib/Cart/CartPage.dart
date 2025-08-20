@@ -7,9 +7,8 @@ import 'ProductCard.dart';
 import 'ReceiptPrinterPage.dart';
 
 class CartPage extends StatefulWidget {
-  final bool barcodeScan;
 
-  const CartPage({Key? key, this.barcodeScan = false}) : super(key: key);
+  const CartPage({Key? key}) : super(key: key);
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -67,12 +66,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             return _buildLoadingOrError(state);
           }
           if (state is CartLoaded) {
-            name = widget.barcodeScan ? state.customerName : '';
-            phone = widget.barcodeScan ? state.customerPhone : '';
-            address = widget.barcodeScan ? state.customerAddress : '';
+            name = state.customerName;
+            phone = state.customerPhone ;
+            address = state.customerAddress;
             return _buildCartLoadedUI(
               context,
-              widget.barcodeScan ? state.barcodeCartItems : state.cartItems,
+              state.barcodeCartItems,
               state.totalPrice,
               state.subTotal,
               state.discountAmount,
@@ -115,7 +114,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              widget.barcodeScan && name != null && name!.isNotEmpty?
+              name != null && name!.isNotEmpty?
               addressWidget(name:name!,phone: phone!,address: address!,tap:()=>checkUserData()):SizedBox(),
               const SizedBox(height: 5),
               CustomListView<InvoiceItem>(
@@ -126,7 +125,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                     key: ValueKey(item.id),
                     item: item,
                     mode: ProductCardMode.cart,
-                    barcodeScan: widget.barcodeScan,
                     saleCart:true,
                     editable: true
                 ),
@@ -134,7 +132,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
               const SizedBox(height: 15),
               PaymentRow(title: "Order Summary", value: "", isBold: true),
               Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
-              PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$totalPrice"),
+              PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$subTotal"),
               PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
               Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
               PaymentRow(
@@ -148,8 +146,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: widget.barcodeScan
-          ? Container(
+      floatingActionButton: Container(
         height: 50,
         width: 150,
         child: MyElevatedButton(
@@ -163,8 +160,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           custom_design: true,
           buttonText: address != null && address!.isNotEmpty ? "CheckOut" : "Confirm",
         ),
-      )
-          : const SizedBox(),
+      ),
     );
   }
 

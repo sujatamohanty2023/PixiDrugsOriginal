@@ -44,6 +44,7 @@ class SaleModel {
     quantity: ApiParserUtils.parseInt(item['quantity']),
     mrp: ApiParserUtils.parseDouble(item['mrp']),
     discount: ApiParserUtils.parseDouble(item['discount']),
+      unitType: ApiParserUtils.parseString(item['unitType']),
     itemProfit: 0.0,
     );
       }).toList(),
@@ -78,6 +79,7 @@ class SaleItem {
   final double mrp;
   final double discount;
   final double itemProfit;
+  final String unitType;
 
   SaleItem({
     required this.productId,
@@ -86,6 +88,7 @@ class SaleItem {
     required this.quantity,
     required this.mrp,
     required this.discount,
+    required this.unitType,
     this.itemProfit=0.0,
   });
 
@@ -98,11 +101,12 @@ class SaleItem {
       mrp: ApiParserUtils.parseDouble(json['mrp']),
       discount: ApiParserUtils.parseDouble(json['discount']),
       itemProfit: ApiParserUtils.parseDouble(json['item_profit']),
+      unitType: ApiParserUtils.parseString(json['unit_type']),
     );
   }
   @override
   String toString() {
     return 'SaleItem(productId: $productId, productName: $productName, price: $price, '
-        'quantity: $quantity, mrp: $mrp, discount: $discount, itemProfit: $itemProfit)';
+        'quantity: $quantity, mrp: $mrp, discount: $discount, itemProfit: $itemProfit,unit_type: $unitType)';
   }
 }

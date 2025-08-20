@@ -23,10 +23,11 @@ class OrderPlaceModel {
       return {
         'product_id': item.id,
         'product_name': item.product,
-        'price': item.mrp,
+        'price': item.unitType==UnitType.Tablet?item.unitMrp : item.mrp,
         'quantity': item.qty,
-        'discount': item.discount,
-        'gst': item.gst
+        'discount': item.discountSale,
+        'gst': item.gst,
+        'unit_type': item.unitType.name
       };
     }).toList();
   }
@@ -36,7 +37,7 @@ class OrderPlaceModel {
         cartItems: (json['cartItems'] as List<dynamic>)
             .map((item) => InvoiceItem.fromJson(item))
             .toList(),
-          seller_id: json['seller_id'] ?? '',
+        seller_id: json['seller_id'] ?? '',
         name: json['name'] ?? '',
         phone: json['phone'] ?? '',
         email: json['email'] ?? '',
@@ -56,10 +57,11 @@ OrderPlaceModel:
 ${cartItems.map((item) => '''
      'product_id': ${item.id},
         'product_name': ${item.product},
-        'price': ${item.mrp},
+        'price': ${item.unitMrp},
         'quantity': ${item.qty},
         'discount': ${item.discount},
         'gst': ${item.gst}
+        'unit_type': ${item.unitType.name},
 ''').join()}
 ''';
   }
