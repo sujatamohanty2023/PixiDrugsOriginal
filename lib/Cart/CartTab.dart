@@ -20,7 +20,7 @@ class _CartTabState extends State<CartTab> {
   Timer? _debounce;
   bool showSearchBar = false;
   TextEditingController _searchController = TextEditingController();
-  List _detail = [];
+  List<dynamic> _detail = [];
   List<InvoiceItem> searchResults = [];
   String userId='';
   final ImagePicker _picker = ImagePicker();
@@ -29,6 +29,7 @@ class _CartTabState extends State<CartTab> {
   void initState() {
     super.initState();
     _loadUserId();
+    print('cartTypeSelection${widget.cartTypeSelection?.name}');
   }
   Future<void> _loadUserId() async {
     final id = await SessionManager.getParentingId();
@@ -50,6 +51,14 @@ class _CartTabState extends State<CartTab> {
               AppUtils.showSnackBar(context,'No products found.');
             }
           } else if (state is BarcodeScanError) {
+            AppUtils.showSnackBar(context,state.error);
+          }else if (state is SearchSellerLoaded) {
+            _detail=state.sellerList;
+          }else if (state is SearchSellerError) {
+            AppUtils.showSnackBar(context,state.error);
+          }else if (state is SearchUserLoaded) {
+            _detail=state.customerList;
+          }else if (state is SearchUserError) {
             AppUtils.showSnackBar(context,state.error);
           }
         },
@@ -196,13 +205,6 @@ class _CartTabState extends State<CartTab> {
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       final query = _searchController.text.trim();
 
-      if (query.isEmpty) {
-        setState(() {
-          _detail = List.from(_products);
-        });
-        return;
-      }
-
       if (query.length >= 3) {
         String? userId = await SessionManager.getParentingId();
         if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn) {
@@ -210,13 +212,6 @@ class _CartTabState extends State<CartTab> {
         }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn) {
           context.read<ApiCubit>().SearchCustomerDetail(query: query);
         }
-      } else {
-        setState(() {
-          _detail = _products.where((product) {
-            return product.product.toLowerCase().contains(query.toLowerCase()) ||
-                product.hsn.toLowerCase().contains(query.toLowerCase());
-          }).toList();
-        });
       }
     });
   }

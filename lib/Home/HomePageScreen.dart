@@ -15,9 +15,10 @@ class _HomePageState extends State<HomePage> {
   int selectedPos = 0;
   CartTypeSelection? type=CartTypeSelection.Sale;
 
-  void switchToCart(CartTypeSelection type) {
+  void switchToCart(CartTypeSelection cartType) {
     setState(() {
       selectedPos = 2;
+      type=cartType;
     });
   }
 

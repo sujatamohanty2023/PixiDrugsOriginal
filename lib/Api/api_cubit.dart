@@ -130,7 +130,8 @@ class ApiCubit extends Cubit<ApiState> {
       try {
         emit(SearchSellerLoading());
         final response = await apiRepository.searchDetail(query,'searchseller');
-        final list = response.map((json) => Seller.fromJson(json)).toList();
+        final data = response['data'] as List;
+        final list = data.map((json) => Seller.fromJson(json)).toList();
         emit(SearchSellerLoaded(sellerList: list));
       } catch (e) {
         emit(SearchSellerError('Error: $e'));
@@ -141,7 +142,8 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(SearchUserLoading());
       final response = await apiRepository.searchDetail(query,'searchuser');
-      final list = response.map((json) => CustomerModel.fromJson(json)).toList();
+      final data = response['data'] as List;
+      final list = data.map((json) => CustomerModel.fromJson(json)).toList();
       emit(SearchUserLoaded(customerList: list));
     } catch (e) {
       emit(SearchUserError('Error: $e'));

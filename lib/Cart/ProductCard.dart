@@ -75,7 +75,7 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
 
-                  if ((unitType !=null && unitType == UnitType.Tablet  &&  isCartMode) ||  (unitType !=null && widget.saleCart)) ...[
+                  if ((unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) &&  isCartMode) ||  (unitType !=null && widget.saleCart)) ...[
                     Positioned(
                         top:20,
                         right: 0,
