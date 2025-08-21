@@ -1,9 +1,14 @@
 import 'package:PixiDrugs/Stock/ProductTile.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../search/customerModel.dart';
+import '../search/sellerModel.dart';
+
 class ProductListPage extends StatefulWidget {
   final int flag;
-  const ProductListPage({super.key,required this.flag});
+  Seller? selectedSeller;
+  CustomerModel? selectedCustomer;
+  ProductListPage({super.key,required this.flag,this.selectedSeller,this.selectedCustomer});
 
   @override
   State<ProductListPage> createState() => _ProductListPageState();
@@ -50,7 +55,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
       if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
         String? userId = await SessionManager.getParentingId();
-        context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual');
+        context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
       } else {
         // Local filtering if not in search mode (flag != 4)
         setState(() {

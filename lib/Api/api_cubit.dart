@@ -110,10 +110,10 @@ class ApiCubit extends Cubit<ApiState> {
   }
 
   //------------------------------------------------------------------------------------
-  Future<void> BarcodeScan({required String code,required String storeId,String source = 'scan'}) async {
+  Future<void> BarcodeScan({required String code,required String storeId,String source = 'scan',String seller_id='',String customer_id=''}) async {
     try {
       emit(BarcodeScanLoading());
-      final response = await apiRepository.barcodeScan(code,storeId);
+      final response = await apiRepository.barcodeScan(code,storeId,seller_id,customer_id);
       if (response['status'] == 'not_found') {
         emit(BarcodeScanError(response['message'] ?? 'No product found.'));
         return;

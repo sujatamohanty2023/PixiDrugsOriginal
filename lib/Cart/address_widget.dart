@@ -3,6 +3,7 @@ import 'package:PixiDrugs/constant/all.dart';
 
 class addressWidget extends StatefulWidget {
   final String name,address,phone;
+  bool isSaleCart;
   Future<void> Function() tap;
 
   addressWidget({
@@ -10,6 +11,7 @@ class addressWidget extends StatefulWidget {
     this.name = '',
     this.address = '',
     this.phone = '',
+    this.isSaleCart=false,
     required this.tap,
   }) : super(key: key);
 
@@ -45,14 +47,16 @@ class _addressWidgetState extends State<addressWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  MyTextfield.textStyle_w600('${widget.name}\n${widget.phone}\n${widget.address}', 14, Colors.grey[700]!),
+                  MyTextfield.textStyle_w600('${widget.name}', 15, AppColors.kPrimary),
+                  MyTextfield.textStyle_w400('${widget.phone}', 13, Colors.teal),
+                  MyTextfield.textStyle_w400('${widget.address}', 12, Colors.grey[700]!,maxLines: true),
                 ],
               ),
             ),
-            GestureDetector(
+            widget.isSaleCart?GestureDetector(
               onTap: widget.tap,
               child: MyTextfield.textStyle_w600("Change", 14, Colors.deepOrange),
-            ),
+            ):SizedBox(),
           ],
         ),
       ),

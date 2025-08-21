@@ -97,12 +97,14 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> barcodeScan(String barcode, String storeId) {
+  Future<Map<String, dynamic>> barcodeScan(String barcode, String storeId,String seller_id,String customer_id) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/barcodepro',
       queryParameters: {
         'barcode': barcode,
         'store_id': storeId,
+        'seller_id': seller_id,
+        'customer_id':customer_id
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -167,7 +169,7 @@ class ApiRepository {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {'term': query},
-    ));
+    )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> saleList(String userId) async {
     return _safeApiCall(() => dio.get(

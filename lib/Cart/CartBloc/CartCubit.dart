@@ -182,6 +182,10 @@ class CartCubit extends Cubit<CartState> {
 
     _emitUpdatedCartState(type, updatedCart);
   }
+  void loadItemsToCart(List<InvoiceItem> items, {required CartType type}) {
+    _emitUpdatedCartState(type, items);
+  }
+
 
   void incrementQuantity(int productId, {CartType type = CartType.main}) {
     final cartList = _getCartList(type);

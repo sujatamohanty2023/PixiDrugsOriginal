@@ -2,13 +2,17 @@ import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/Dialog/success_dialog.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/search/sellerModel.dart';
+import '../StockReturn/PurchaseReturnModel.dart';
 import 'CustomerDetailBottomSheet.dart';
 import 'ProductCard.dart';
 import 'ReceiptPrinterPage.dart';
 
 class CartPage extends StatefulWidget {
 
-  const CartPage({Key? key}) : super(key: key);
+  const CartPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -67,7 +71,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           }
           if (state is CartLoaded) {
             name = state.customerName;
-            phone = state.customerPhone ;
+            phone = state.customerPhone;
             address = state.customerAddress;
             return _buildCartLoadedUI(
               context,
@@ -115,8 +119,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               name != null && name!.isNotEmpty?
-              addressWidget(name:name!,phone: phone!,address: address!,tap:()=>checkUserData()):SizedBox(),
+              addressWidget(name:name!,phone: phone!,address: address!,tap:() =>checkUserData(),isSaleCart:true):SizedBox(),
               const SizedBox(height: 5),
+
               CustomListView<InvoiceItem>(
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
@@ -130,15 +135,19 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                 ),
               ),
               const SizedBox(height: 15),
-              PaymentRow(title: "Order Summary", value: "", isBold: true),
-              Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
-              PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$subTotal"),
-              PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
-              Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
-              PaymentRow(
-                title: "Total",
-                value: "${AppString.Rupees}${totalPrice.toStringAsFixed(2)}",
-                isBold: true,
+              Column(
+                children: [
+                  PaymentRow(title: "Order Summary", value: "", isBold: true),
+                  Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
+                  PaymentRow(title: "Sub-total", value: "${AppString.Rupees}$subTotal"),
+                  PaymentRow(title: "Discount", value: "- ${AppString.Rupees}$discountAmount", color: Colors.green),
+                  Divider(color: AppColors.kPrimary.withOpacity(0.1), thickness: 1),
+                  PaymentRow(
+                    title: "Total",
+                    value: "${AppString.Rupees}${totalPrice.toStringAsFixed(2)}",
+                    isBold: true,
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
             ],
@@ -163,7 +172,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       ),
     );
   }
-
   Future<void> _paymentPageCall() async {
     String? userId = await SessionManager.getParentingId();
     final cartState = context.read<CartCubit>().state;
