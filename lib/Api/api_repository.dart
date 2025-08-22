@@ -165,10 +165,10 @@ class ApiRepository {
       queryParameters: {'user_id': userId},
     )).then((data) => List<dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> searchDetail(String query, String apiName) {
+  Future<Map<String, dynamic>> searchDetail(String query, String storeId,String apiName) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/$apiName/',
-      queryParameters: {'term': query},
+      queryParameters: {'term': query,'store_id':storeId},
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> saleList(String userId) async {

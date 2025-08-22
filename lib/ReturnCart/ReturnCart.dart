@@ -2,17 +2,16 @@ import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/search/sellerModel.dart';
 import '../Home/HomePageScreen.dart';
+import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 class ReturnCart extends StatefulWidget {
-  dynamic returnDetail;
   CartTypeSelection? cartTypeSelection;
-  PurchaseReturnModel? returnModel;
+  dynamic returnModel;
   bool edit;
   bool detail;
   ReturnCart({
-    Key? key,
-    this.returnDetail, this.cartTypeSelection,this.returnModel,this.edit =false,this.detail=false
+    Key? key, this.cartTypeSelection,this.returnModel,this.edit =false,this.detail=false
   }) : super(key: key);
 
   @override
@@ -20,7 +19,6 @@ class ReturnCart extends StatefulWidget {
 }
 
 class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, RouteAware {
-  String? name, phone, address = '';
   List<String> returnReasons = [
     'Select return reason',
     'Expired Product',
@@ -31,37 +29,39 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
   ];
 
   String? selectedReason;
+  PurchaseReturnModel? purchaseReturnModel;
+  CustomerReturnsResponse? customerReturnModel;
 
   @override
   void initState() {
     super.initState();
-    if(widget.returnDetail!=null) {
-      if (widget.returnDetail is Seller) {
-        name = widget.returnDetail.sellerName;
-      } else {
-        name = widget.returnDetail.name;
-      }
-      phone = widget.returnDetail.phone;
-      address = widget.returnDetail.address;
-    }else{
-      name = widget.returnModel?.sellerName;
-      phone = '';
-      address = '';
 
+    if(widget.returnModel!=null) {
+      if (widget.returnModel is PurchaseReturnModel) {
+        purchaseReturnModel = widget.returnModel;
+      } else if (widget.returnModel is CustomerReturnsResponse) {
+        customerReturnModel = widget.returnModel;
+      }
+    }else{
+
+    }
+    if(widget.returnModel!=null) {
       final items = widget.returnModel!.items;
-      final invoiceItems = items.map((item) => InvoiceItem(
-        id: item.productId,
-        product:item.productName??'',
-        qty: item.quantity,
-        rate: item.rate,
-        batch: item.batchNo,
-        expiry: item.expiry,
-        gst: item.gstPercent,
-        discount: item.discountPercent,
-      )).toList();
+      final invoiceItems = items.map((item) =>
+          InvoiceItem(
+            id: item.productId,
+            product: item.productName ?? '',
+            qty: item.quantity,
+            rate: item.rate,
+            batch: item.batchNo,
+            expiry: item.expiry,
+            gst: item.gstPercent,
+            discount: item.discountPercent,
+          )).toList();
 
       // Load into CartCubit
-      context.read<CartCubit>().loadItemsToCart(invoiceItems, type: CartType.barcode);
+      context.read<CartCubit>().loadItemsToCart(
+          invoiceItems, type: CartType.barcode);
 
       // Set selected reason from model
       selectedReason = widget.returnModel?.reason;
@@ -163,8 +163,8 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              name != null && name!.isNotEmpty?
-              addressWidget(name:name!,phone: phone!,address: address!,tap:() async =>{},isSaleCart:false):SizedBox(),
+              // name != null && name!.isNotEmpty?
+              // addressWidget(name:name!,phone: phone!,address: address!,tap:() async =>{},isSaleCart:false):SizedBox(),
               const SizedBox(height: 5),
                 Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,6 +246,7 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
     );
   }
   void _onCartItemTap(InvoiceItem item) {}
+
   Future<void> ReturnApiCall() async {
     final userId = await SessionManager.getParentingId() ?? '';
     final cartState = context.read<CartCubit>().state;
@@ -259,6 +260,7 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
       expiry:item.expiry,
       gstPercent:item.gst,
       discountPercent: item.discount,
+      invoiceNo: item.invoiceNo,
       totalAmount: (item.qty * (double.tryParse(item.rate) ?? 0.0)).toString(),
     ))
         .toList();
@@ -271,7 +273,7 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
       id: widget.edit && widget.returnModel !=null?widget.returnModel?.id:0,
       storeId:int.parse(userId),
       invoicePurchaseId:0,
-      sellerId:widget.returnDetail.id,
+      // sellerId:widget.returnDetail.id,
       invoiceNo: 'N/A',
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount.toString(),

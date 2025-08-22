@@ -60,6 +60,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
       expiry:item.expiry,
       gstPercent:item.gst,
       discountPercent: item.discount,
+      invoiceNo: item.invoiceNo,
       totalAmount: (item.returnQty * (double.tryParse(item.rate) ?? 0.0)).toString(),
     ))
         .toList();

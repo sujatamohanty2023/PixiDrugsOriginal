@@ -1,8 +1,8 @@
-import 'package:image_cropper/image_cropper.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Profile/WebviewScreen.dart';
+import '../ReturnCart/ReturnCartTab.dart';
 import '../login/mobileLoginScreen.dart';
 
 class DashboardItem {
@@ -382,7 +382,11 @@ class _HomeTabState extends State<HomeTab> {
       positiveButton: 'Yes, Start New',
       onConfirmed: (int) async {
         context.read<CartCubit>().clearCart(type: CartType.barcode);
-        widget.onGoToCart(type);
+        if(type==CartTypeSelection.Sale){
+          widget.onGoToCart(type);
+        }else{
+          AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
+        }
       },
     );
   }

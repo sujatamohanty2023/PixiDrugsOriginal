@@ -5,6 +5,7 @@ import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
 
 import '../Cart/CartTab.dart';
 import '../ListPageScreen/ListScreen.dart';
+import '../ReturnCart/ReturnCartTab.dart';
 import 'PurchaseReturnScreen.dart';
 
 class StockReturnListWidget extends StatefulWidget {
@@ -68,7 +69,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
     return GestureDetector(
       onTap: (){
         //AppRoutes.navigateTo(context, PurchaseReturnScreen(invoiceNo:item.invoiceNo!,returnModel: item));
-        AppRoutes.navigateTo(context, CartTab(cartTypeSelection:CartTypeSelection.StockiestReturn,returnModel:item,detail: true,));
+        AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:CartTypeSelection.StockiestReturn,returnModel:item,detail: true,));
       },
       child: Card(
         color: Colors.white,

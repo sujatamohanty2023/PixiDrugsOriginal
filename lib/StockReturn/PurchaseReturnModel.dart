@@ -47,7 +47,6 @@ class PurchaseReturnModel {
       'store_id': storeId,
       'invoice_purchase_id': invoicePurchaseId,
       'seller_id': sellerId,
-      'invoice_no': invoiceNo,
       'return_date': returnDate,
       'reason': reason,
       'total_amount': totalAmount,
@@ -84,6 +83,7 @@ class ReturnItemModel {
   final String gstPercent;
   final String discountPercent;
   final String totalAmount;
+  final String invoiceNo;
 
   ReturnItemModel({
     this.id,
@@ -96,6 +96,7 @@ class ReturnItemModel {
     required this.gstPercent,
     required this.discountPercent,
     required this.totalAmount,
+    required this.invoiceNo,
   });
 
   factory ReturnItemModel.fromJson(Map<String, dynamic> json) {
@@ -110,6 +111,7 @@ class ReturnItemModel {
       gstPercent: ApiParserUtils.parseString(json['gst_percent']),
       discountPercent: ApiParserUtils.parseString(json['discount_percent']),
       totalAmount: ApiParserUtils.parseString(json['total_amount']),
+      invoiceNo: ApiParserUtils.parseString(json['invoice_no']),
     );
   }
 
@@ -123,6 +125,7 @@ class ReturnItemModel {
       'gst_percent': gstPercent,
       'discount_percent': discountPercent,
       'total_amount': totalAmount,
+      'invoice_no': invoiceNo,
     };
     if (id != null && id !=0) data['id'] = id!;
     return data;
@@ -140,6 +143,7 @@ class ReturnItemModel {
         'gstPercent: $gstPercent, '
         'discountPercent: $discountPercent, '
         'totalAmount: $totalAmount'
+        'invoice_no: $invoiceNo'
         ')';
   }
 

@@ -132,6 +132,7 @@ class InvoiceItem {
   int returnQty;
   String unitMrp;
   UnitType unitType;
+  String invoiceNo;
 
   InvoiceItem({
     this.id,
@@ -157,6 +158,7 @@ class InvoiceItem {
     this.invoice_purchase_id = 0,
     this.unitMrp='',
     this.unitType=UnitType.Other,
+    this.invoiceNo='',
   });
 
   InvoiceItem copyWith({
@@ -183,6 +185,7 @@ class InvoiceItem {
     int? invoice_purchase_id,
     String? unitMrp,
     UnitType? unitType,
+    String? invoiceNo,
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -207,6 +210,7 @@ class InvoiceItem {
       invoice_purchase_id: invoice_purchase_id??this.invoice_purchase_id,
       unitMrp: unitMrp??this.unitMrp,
       unitType: unitType??this.unitType,
+      invoiceNo: invoiceNo??this.invoiceNo,
     );
   }
 
@@ -395,6 +399,7 @@ class InvoiceItem {
               normalized['Net Amt.'] ??
               normalized['netAmount'] ),
       invoice_purchase_id: ApiParserUtils.parseInt(normalized['invoice_purchase_id']),
+      invoiceNo: ApiParserUtils.parseString(normalized['invoice_no']),
     );
   }
 

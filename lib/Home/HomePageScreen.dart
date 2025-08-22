@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
       case 1:
         return ListScreen(type:ListType.ledger);
       case 2:
-      return CartTab(cartTypeSelection:type);
+      return CartTab();
       case 3:
         return ProductListPage(flag: 1);
       case 4:

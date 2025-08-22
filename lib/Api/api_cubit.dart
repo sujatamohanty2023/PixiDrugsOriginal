@@ -126,10 +126,10 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> SearchSellerDetail({required String query}) async {
+  Future<void> SearchSellerDetail({required String query,String storeId=''}) async {
       try {
         emit(SearchSellerLoading());
-        final response = await apiRepository.searchDetail(query,'searchseller');
+        final response = await apiRepository.searchDetail(query,storeId,'searchseller');
         final data = response['data'] as List;
         final list = data.map((json) => Seller.fromJson(json)).toList();
         emit(SearchSellerLoaded(sellerList: list));
@@ -138,10 +138,10 @@ class ApiCubit extends Cubit<ApiState> {
       }
   }
   //------------------------------------------------------------------------------------
-  Future<void> SearchCustomerDetail({required String query}) async {
+  Future<void> SearchCustomerDetail({required String query,String storeId=''}) async {
     try {
       emit(SearchUserLoading());
-      final response = await apiRepository.searchDetail(query,'searchuser');
+      final response = await apiRepository.searchDetail(query,storeId,'searchuser');
       final data = response['data'] as List;
       final list = data.map((json) => CustomerModel.fromJson(json)).toList();
       emit(SearchUserLoaded(customerList: list));
