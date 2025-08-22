@@ -1,24 +1,24 @@
 import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/search/sellerModel.dart';
 import '../Home/HomePageScreen.dart';
-import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import '../search/sellerModel.dart';
 
-class ReturnCart extends StatefulWidget {
+class ReturnCartStockiest extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
-  dynamic returnModel;
+  PurchaseReturnModel? purchaseReturnModel;
+  Seller? returnDetail;
   bool edit;
   bool detail;
-  ReturnCart({
-    Key? key, this.cartTypeSelection,this.returnModel,this.edit =false,this.detail=false
+  ReturnCartStockiest({
+    Key? key, this.cartTypeSelection,this.purchaseReturnModel,this.edit =false,this.detail=false, this.returnDetail
   }) : super(key: key);
 
   @override
-  _ReturnCartState createState() => _ReturnCartState();
+  _ReturnCartStockiestState createState() => _ReturnCartStockiestState();
 }
 
-class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, RouteAware {
+class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsBindingObserver, RouteAware {
   List<String> returnReasons = [
     'Select return reason',
     'Expired Product',
@@ -29,25 +29,22 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
   ];
 
   String? selectedReason;
-  PurchaseReturnModel? purchaseReturnModel;
-  CustomerReturnsResponse? customerReturnModel;
+  String? name, phone, address = '';
+  int personId=0;
 
   @override
   void initState() {
     super.initState();
+    print('🛠️ ReturnCart initState called. Edit mode: ${widget.edit}');
 
-    if(widget.returnModel!=null) {
-      if (widget.returnModel is PurchaseReturnModel) {
-        purchaseReturnModel = widget.returnModel;
-      } else if (widget.returnModel is CustomerReturnsResponse) {
-        customerReturnModel = widget.returnModel;
-      }
-    }else{
 
-    }
-    if(widget.returnModel!=null) {
-      final items = widget.returnModel!.items;
-      final invoiceItems = items.map((item) =>
+    if(widget.purchaseReturnModel!=null) {
+      name=widget.purchaseReturnModel?.sellerName;
+      phone=widget.purchaseReturnModel?.phone;
+      address=widget.purchaseReturnModel?.address;
+      personId=widget.purchaseReturnModel!.sellerId!;
+      final items =widget.purchaseReturnModel?.items;
+      final invoiceItems = items?.map((item) =>
           InvoiceItem(
             id: item.productId,
             product: item.productName ?? '',
@@ -57,14 +54,22 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
             expiry: item.expiry,
             gst: item.gstPercent,
             discount: item.discountPercent,
+            invoiceNo: item.invoiceNo
           )).toList();
 
       // Load into CartCubit
       context.read<CartCubit>().loadItemsToCart(
-          invoiceItems, type: CartType.barcode);
-
+          invoiceItems!, type: CartType.barcode);
       // Set selected reason from model
-      selectedReason = widget.returnModel?.reason;
+      selectedReason = widget.purchaseReturnModel?.reason;
+    }
+
+    if(widget.detail==false){
+      name=widget.returnDetail?.sellerName;
+      phone=widget.returnDetail?.phone;
+      address=widget.returnDetail?.address;
+      personId=widget.returnDetail!.id;
+      print('$name$phone$address');
     }
   }
 
@@ -100,16 +105,6 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
           }
         } else if (state is StockReturnAddError) {
           AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
-        }else if (state is StockReturnEditLoaded) {
-          if(state.success) {
-            AppUtils.showSnackBar(context,'Successfully Updated');
-            context.read<CartCubit>().clearCart(type: CartType.barcode);
-            AppRoutes.navigateTo(context, HomePage());
-          }else{
-            AppUtils.showSnackBar(context,'Failed to Update');
-          }
-        } else if (state is StockReturnEditError) {
-          AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
         }
       },
       child: BlocBuilder<CartCubit, CartState>(
@@ -163,8 +158,8 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // name != null && name!.isNotEmpty?
-              // addressWidget(name:name!,phone: phone!,address: address!,tap:() async =>{},isSaleCart:false):SizedBox(),
+              name != null && name!.isNotEmpty?
+              addressWidget(name:name!,phone: phone!,address: address!,tap:() async =>{},isSaleCart:false):SizedBox(),
               const SizedBox(height: 5),
                 Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +218,7 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
                     item: item,
                     mode: ProductCardMode.cart,
                     saleCart:true,
-                    editable: widget.edit|| !widget.detail
+                    editable: widget.edit|| !widget.detail,
                 ),
               ),
               const SizedBox(height: 20),
@@ -232,22 +227,22 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: !widget.detail?Container(
+      floatingActionButton:widget.purchaseReturnModel!=null && !widget.edit ?SizedBox():Container(
         height: 50,
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            ReturnApiCall();
+            StockestReturnApiCall();
           },
           custom_design: true,
-          buttonText: widget.edit==true?'Update Return':'Make Return',
+          buttonText: widget.edit?'Update Return':"Make Return",
         ),
-      ):SizedBox(),
+      ),
     );
   }
   void _onCartItemTap(InvoiceItem item) {}
 
-  Future<void> ReturnApiCall() async {
+  Future<void> StockestReturnApiCall() async {
     final userId = await SessionManager.getParentingId() ?? '';
     final cartState = context.read<CartCubit>().state;
 
@@ -270,18 +265,19 @@ class _ReturnCartState extends State<ReturnCart> with WidgetsBindingObserver, Ro
           (sum, item) => sum + (item.quantity * double.parse(item.rate)),
     );
     var returnModel = PurchaseReturnModel(
-      id: widget.edit && widget.returnModel !=null?widget.returnModel?.id:0,
+      id: widget.edit && widget.purchaseReturnModel !=null?widget.purchaseReturnModel?.id:0,
       storeId:int.parse(userId),
       invoicePurchaseId:0,
-      // sellerId:widget.returnDetail.id,
-      invoiceNo: 'N/A',
+      sellerId:widget.edit && widget.purchaseReturnModel !=null?widget.purchaseReturnModel?.sellerId:personId,
+      address: widget.purchaseReturnModel?.address,
+      phone: widget.purchaseReturnModel?.phone,
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount.toString(),
       reason: selectedReason ?? '',
       items:selectedItems,
     );
-    print('returnModel=${returnModel.toString()}');
-    if(widget.edit && widget.returnModel !=null){
+    print('API returnModel=${returnModel.toString()}');
+    if(widget.edit && widget.purchaseReturnModel !=null){
       context.read<ApiCubit>().StockReturnEdit(returnModel: returnModel);
     }else {
       context.read<ApiCubit>().StockReturnAdd(returnModel: returnModel);

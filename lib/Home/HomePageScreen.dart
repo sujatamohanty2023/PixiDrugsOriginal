@@ -13,19 +13,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedPos = 0;
-  CartTypeSelection? type=CartTypeSelection.Sale;
 
-  void switchToCart(int index,CartTypeSelection cartType) {
+  void switchToCart(int index) {
     setState(() {
       selectedPos = index;
-      type=cartType;
     });
   }
 
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        return HomeTab(onGoToCart: (cartTypeSelection) => switchToCart(2,cartTypeSelection));
+        return HomeTab(onGoToCart:() => switchToCart(2));
       case 1:
         return ListScreen(type:ListType.ledger);
       case 2:

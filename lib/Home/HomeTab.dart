@@ -15,7 +15,7 @@ class DashboardItem {
 }
 
 class HomeTab extends StatefulWidget {
-  final void Function(CartTypeSelection) onGoToCart;
+  final VoidCallback? onGoToCart;
   const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
 
   @override
@@ -383,7 +383,7 @@ class _HomeTabState extends State<HomeTab> {
       onConfirmed: (int) async {
         context.read<CartCubit>().clearCart(type: CartType.barcode);
         if(type==CartTypeSelection.Sale){
-          widget.onGoToCart(type);
+          widget.onGoToCart;
         }else{
           AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
         }

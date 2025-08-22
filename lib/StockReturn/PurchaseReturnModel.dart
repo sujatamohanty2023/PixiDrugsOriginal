@@ -5,11 +5,12 @@ class PurchaseReturnModel {
   final int? storeId;
   final int? invoicePurchaseId;
   final int? sellerId;
-  final String? invoiceNo;
   final String returnDate;
   final String reason;
   final String totalAmount;
   final String? sellerName;
+  final String? phone;
+  final String? address;
   final List<ReturnItemModel> items;
 
   PurchaseReturnModel({
@@ -17,12 +18,13 @@ class PurchaseReturnModel {
     this.storeId,
     this.invoicePurchaseId,
     this.sellerId,
-    this.invoiceNo,
     required this.returnDate,
     required this.reason,
     required this.totalAmount,
     this.sellerName,
     required this.items,
+    required this.phone,
+    required this.address,
   });
 
   factory PurchaseReturnModel.fromJson(Map<String, dynamic> json) {
@@ -31,11 +33,12 @@ class PurchaseReturnModel {
       storeId: ApiParserUtils.parseInt(json['store_id']),
       invoicePurchaseId: ApiParserUtils.parseInt(json['invoice_purchase_id']),
       sellerId: ApiParserUtils.parseInt(json['seller_id']),
-      invoiceNo: ApiParserUtils.parseString(json['invoice_no']),
       returnDate: ApiParserUtils.parseString(json['return_date']),
       reason: ApiParserUtils.parseString(json['reason']),
       totalAmount: ApiParserUtils.parseString(json['total_amount']),
-      sellerName: ApiParserUtils.parseString(json['seller_name'], defaultValue: '-------'),
+      sellerName: ApiParserUtils.parseString(json['seller_name'], defaultValue: 'Unknown'),
+      phone: ApiParserUtils.parseString(json['phone'], defaultValue: 'Unknown'),
+      address: ApiParserUtils.parseString(json['address'], defaultValue: 'Unknown'),
       items: (json['items'] as List<dynamic>? ?? [])
           .map((e) => ReturnItemModel.fromJson(e))
           .toList(),
@@ -62,7 +65,6 @@ class PurchaseReturnModel {
         'storeId: $storeId, '
         'invoicePurchaseId: $invoicePurchaseId, '
         'sellerId: $sellerId, '
-        'invoiceNo: $invoiceNo, '
         'returnDate: $returnDate, '
         'reason: $reason, '
         'totalAmount: $totalAmount, '

@@ -1,4 +1,5 @@
 
+import 'package:PixiDrugs/ReturnCart/ReturnCartCustomer.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/search/customerModel.dart';
 import 'package:PixiDrugs/search/sellerModel.dart';
@@ -8,7 +9,7 @@ import '../BarcodeScan/barcode_screen_page.dart';
 import '../BarcodeScan/batch_scanner_page.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../Stock/ProductList.dart';
-import '../ReturnCart/ReturnCart.dart';
+import '../ReturnCart/ReturnCartStockiest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 
 class ReturnCartTab extends StatefulWidget {
@@ -139,11 +140,26 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     );
   }
   Widget _buildReturnContent(BuildContext context) {
+    final isStockist = widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
+
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
         return Container(
             color: AppColors.kPrimary,
-            child: ReturnCart(cartTypeSelection:widget.cartTypeSelection,returnModel: widget.returnModel,edit:edit,detail:widget.detail));
+            child: isStockist?ReturnCartStockiest(
+                key: ValueKey(edit),
+                cartTypeSelection:widget.cartTypeSelection,
+                purchaseReturnModel: widget.returnModel,
+                edit:edit,
+                detail:widget.detail,
+                returnDetail:widget.detail?null:selectedSeller!):
+            ReturnCartCustomer(
+                key: ValueKey(edit),
+                cartTypeSelection:widget.cartTypeSelection,
+                customerReturnModel: widget.returnModel,
+                edit:edit,
+                detail:widget.detail,
+                returnDetail:widget.detail?null:selectedCustomer!));
       },
     );
   }
@@ -424,42 +440,49 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: (){
-                        Navigator.pop(context);
-                      },
-                      child: SvgPicture.asset(
-                        AppImages.back,
-                        height: 24,
-                        color: AppColors.kWhiteColor,
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    MyTextfield.textStyle_w600('Return Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
-                      if( widget.returnModel!=null)
-                      Positioned(
-                        top: 0,
-                        right:0,
-                        child: Padding(
-                        padding: const EdgeInsets.only(right: 15.0),
-                        child: IconButton(
-                          icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
-                          onPressed: ()=>setState(() {
-                            edit = true;
-                          }),
-                          tooltip: 'Edit',
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            AppImages.back,
+                            height: 24,
+                            color: AppColors.kWhiteColor,
+                          ),
                         ),
-                      ))
-
-                  ],
-                ),
+                        const SizedBox(width: 5),
+                        MyTextfield.textStyle_w600(
+                          'Return Cart',
+                          SizeConfig.screenWidth! * 0.055,
+                          Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.returnModel != null)
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
+                      onPressed: () {
+                        setState(() {
+                          edit = true;
+                        });
+                      },
+                      tooltip: 'Edit',
+                    ),
+                ],
               ),
+
               if (!widget.detail) _buildSearchBar(),
-              const SizedBox(height: 10),
+              if(selectedSeller != null || selectedCustomer != null || edit)
+              const SizedBox(height: 5),
               if(selectedSeller != null || selectedCustomer != null || edit)
                 Padding(
                   padding: const EdgeInsets.only(right: 15.0),
