@@ -3,6 +3,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../Home/HomePageScreen.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 import '../search/sellerModel.dart';
+import 'ReturnItemTile.dart';
 
 class ReturnCartStockiest extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
@@ -30,8 +31,8 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
 
   String? selectedReason;
   String? name, phone, address = '';
-  int personId=0;
-
+  int? personId=0;
+  bool isSubmitting = false;
   @override
   void initState() {
     super.initState();
@@ -42,7 +43,7 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
       name=widget.purchaseReturnModel?.sellerName;
       phone=widget.purchaseReturnModel?.phone;
       address=widget.purchaseReturnModel?.address;
-      personId=widget.purchaseReturnModel!.sellerId!;
+      personId=widget.purchaseReturnModel?.sellerId!;
       final items =widget.purchaseReturnModel?.items;
       final invoiceItems = items?.map((item) =>
           InvoiceItem(
@@ -99,12 +100,22 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
           if(state.success) {
             AppUtils.showSnackBar(context,'Successfully retrun to stock');
             context.read<CartCubit>().clearCart(type: CartType.barcode);
-            AppRoutes.navigateTo(context, HomePage());
+            Navigator.pop(context);
           }else{
             AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
           }
         } else if (state is StockReturnAddError) {
           AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
+        }else if (state is StockReturnEditLoaded) {
+          if(state.success) {
+            AppUtils.showSnackBar(context,'Successfully Updated');
+            context.read<CartCubit>().clearCart(type: CartType.barcode);
+            Navigator.pop(context);
+          }else{
+            AppUtils.showSnackBar(context,'Failed to Update');
+          }
+        } else if (state is StockReturnEditError) {
+          AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
         }
       },
       child: BlocBuilder<CartCubit, CartState>(
@@ -213,13 +224,20 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
                 onTap: _onCartItemTap,
-                itemBuilder: (item) => ProductCard(
+                itemBuilder: (item) =>ReturnItemTile(
+                  product: item,
+                  editable: widget.edit || !widget.detail,
+                  onQtyChanged: (qtyStr) {
+                    item.qty = int.tryParse(qtyStr) ?? 0;
+                  },
+                ),
+                /*itemBuilder: (item) => ProductCard(
                     key: ValueKey(item.id),
                     item: item,
                     mode: ProductCardMode.cart,
                     saleCart:true,
                     editable: widget.edit|| !widget.detail,
-                ),
+                ),*/
               ),
               const SizedBox(height: 20),
             ],
@@ -232,7 +250,10 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            StockestReturnApiCall();
+            if (!isSubmitting) {
+              isSubmitting = true;
+              StockestReturnApiCall();
+            }
           },
           custom_design: true,
           buttonText: widget.edit?'Update Return':"Make Return",

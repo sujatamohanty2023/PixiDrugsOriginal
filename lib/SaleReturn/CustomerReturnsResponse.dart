@@ -92,6 +92,8 @@ class Item {
   String price;
   String gst;
   String discount;
+  String batchNo;
+  String expiry;
   String totalAmount;
   String createdAt;
   String updatedAt;
@@ -104,6 +106,8 @@ class Item {
     required this.quantity,
     required this.price,
     required this.gst,
+    required this.batchNo,
+    required this.expiry,
     required this.discount,
     required this.totalAmount,
     required this.createdAt,
@@ -121,6 +125,8 @@ class Item {
       gst: ApiParserUtils.parseString(json['gst']),
       discount: ApiParserUtils.parseString(json['discount']),
       totalAmount: ApiParserUtils.parseString(json['total_amount']),
+      batchNo: ApiParserUtils.parseString(json['batch_no']),
+      expiry: ApiParserUtils.parseString(json['expiry']),
       createdAt: ApiParserUtils.parseString(json['created_at']),
       updatedAt: ApiParserUtils.parseString(json['updated_at']),
       product: Product.fromJson(json['product'] ?? {}),

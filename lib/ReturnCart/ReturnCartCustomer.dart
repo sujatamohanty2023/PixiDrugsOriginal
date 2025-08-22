@@ -4,6 +4,7 @@ import '../Home/HomePageScreen.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../search/customerModel.dart';
+import 'ReturnItemTile.dart';
 
 class ReturnCartCustomer extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
@@ -30,39 +31,38 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
   ];
 
   String? selectedReason;
-  CustomerReturnsResponse? customerReturnModel;
   String? name, phone, address = '';
-  int personId=0;
-
+  int? personId=0;
+  bool isSubmitting = false;
   @override
   void initState() {
     super.initState();
     print('🛠️ ReturnCart initState called. Edit mode: ${widget.edit}');
 
     if(widget.customerReturnModel!=null) {
-      name=customerReturnModel?.customer.name;
+      name=widget.customerReturnModel?.customer.name;
       phone='';
       address='';
-      personId=customerReturnModel!.customerId;
-      final items =customerReturnModel?.items;
+      personId=widget.customerReturnModel?.customerId;
+      final items =widget.customerReturnModel?.items;
       final invoiceItems = items?.map((item) =>
           InvoiceItem(
             id: item.productId,
             product: item.product.productName ?? '',
             qty: item.quantity,
             rate: item.price,
-            batch: '',
-            expiry: '',
+            batch: item.batchNo,
+            expiry: item.expiry,
             gst:item.gst,
             discount: item.discount,
           )).toList();
-
+    print("API=${invoiceItems.toString()}");
       // Load into CartCubit
       context.read<CartCubit>().loadItemsToCart(
           invoiceItems!, type: CartType.barcode);
 
       // Set selected reason from model
-      selectedReason = customerReturnModel?.reason;
+      selectedReason = widget.customerReturnModel?.reason;
     }
 
     if(widget.detail==false){
@@ -96,15 +96,25 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
   Widget build(BuildContext context) {
     return BlocListener<ApiCubit, ApiState>(
       listener: (context, state) {
-        if (state is StockReturnEditLoaded) {
+        if (state is SaleReturnAddLoaded) {
+          if(state.success) {
+            AppUtils.showSnackBar(context,'Successfully retrun to stock');
+            context.read<CartCubit>().clearCart(type: CartType.barcode);
+            Navigator.pop(context);
+          }else{
+            AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
+          }
+        } else if (state is SaleReturnAddError) {
+          AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
+        }else if (state is SaleReturnEditLoaded) {
           if(state.success) {
             AppUtils.showSnackBar(context,'Successfully Updated');
             context.read<CartCubit>().clearCart(type: CartType.barcode);
-            AppRoutes.navigateTo(context, HomePage());
+            Navigator.pop(context);
           }else{
             AppUtils.showSnackBar(context,'Failed to Update');
           }
-        } else if (state is StockReturnEditError) {
+        } else if (state is SaleReturnEditError) {
           AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
         }
       },
@@ -214,13 +224,20 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
                 onTap: _onCartItemTap,
-                itemBuilder: (item) => ProductCard(
+                itemBuilder: (item) => ReturnItemTile(
+                  product: item,
+                  editable: widget.edit || !widget.detail,
+                  onQtyChanged: (qtyStr) {
+                    item.qty = int.tryParse(qtyStr) ?? 0;
+                  },
+                ),
+                /*itemBuilder: (item) => ProductCard(
                   key: ValueKey(item.id),
                   item: item,
                   mode: ProductCardMode.cart,
                   saleCart:true,
                   editable: widget.edit|| !widget.detail,
-                ),
+                ),*/
               ),
               const SizedBox(height: 20),
             ],
@@ -233,7 +250,10 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            CustomerReturnApiCall();
+            if (!isSubmitting) {
+              isSubmitting = true;
+              CustomerReturnApiCall();
+            }
           },
           custom_design: true,
           buttonText: widget.edit?'Update Return':"Make Return"
@@ -261,17 +281,17 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
           (sum, item) => sum + (item.quantity * item.price),
     );
     var returnModel = SaleReturnRequest(
-      id: widget.edit && customerReturnModel !=null?customerReturnModel?.id:0,
+      id: widget.edit && widget.customerReturnModel !=null?widget.customerReturnModel?.id:0,
       storeId:int.parse(userId),
       billingId:0,
-      customerId:widget.edit && customerReturnModel !=null?customerReturnModel!.customerId:personId,
+      customerId:widget.edit && widget.customerReturnModel !=null?widget.customerReturnModel?.customerId:personId,
       returnDate:DateTime.now().toString(),
       totalAmount:totalAmount,
       reason: selectedReason ?? '',
       items:selectedItems,
     );
     print('API returnModel=${returnModel.toString()}');
-    if(widget.edit && customerReturnModel !=null){
+    if(widget.edit && widget.customerReturnModel !=null){
       context.read<ApiCubit>().SaleReturnEdit(returnModel: returnModel);
     }else {
       context.read<ApiCubit>().SaleReturnAdd(returnModel: returnModel);

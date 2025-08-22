@@ -1,7 +1,9 @@
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
+import '../Dialog/update_bottom_sheet.dart';
 import '../Profile/WebviewScreen.dart';
+import '../Profile/contact_us.dart';
 import '../ReturnCart/ReturnCartTab.dart';
 import '../login/mobileLoginScreen.dart';
 
@@ -15,7 +17,7 @@ class DashboardItem {
 }
 
 class HomeTab extends StatefulWidget {
-  final VoidCallback? onGoToCart;
+  final VoidCallback onGoToCart;
   const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
 
   @override
@@ -141,7 +143,7 @@ class _HomeTabState extends State<HomeTab> {
                 child: TextButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => Webviewscreen(tittle: 'Contact Us')),
+                      MaterialPageRoute(builder: (_) => ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/),
                     );
                   },
                   child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
@@ -302,6 +304,40 @@ class _HomeTabState extends State<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Update Banner (instead of button)
+                /*InkWell(
+                  onTap: () => {},
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: const BoxDecoration(
+                      color: Colors.deepOrange,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:  [
+                              MyTextfield.textStyle_w400(
+                                  "A Newer App Version is Available",
+                                  SizeConfig.screenWidth! * 0.04,
+                                  Colors.white
+                              ),
+                              SizedBox(height: 4),
+                              MyTextfield.textStyle_w400(
+                                  "Click this Banner to Update App to Latest Version",
+                                  SizeConfig.screenWidth! * 0.03,
+                                  Colors.white
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: Colors.white, size: 28),
+                      ],
+                    ),
+                  ),
+                ),*/
                 SizedBox(
                   height: screenHeight * 0.25,
                   child: PageView.builder(
@@ -383,7 +419,7 @@ class _HomeTabState extends State<HomeTab> {
       onConfirmed: (int) async {
         context.read<CartCubit>().clearCart(type: CartType.barcode);
         if(type==CartTypeSelection.Sale){
-          widget.onGoToCart;
+          widget.onGoToCart();
         }else{
           AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
         }
@@ -439,6 +475,17 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ],
       ),
+    );
+  }
+  void _showUpdateBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const UpdateBottomSheet(),
     );
   }
 }

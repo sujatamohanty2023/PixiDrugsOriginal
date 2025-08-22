@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../Profile/contact_us.dart';
 import 'OtpVerificationScreen.dart';
 import '../constant/all.dart';
 import '../Profile/WebviewScreen.dart';
@@ -252,7 +253,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               Navigator.of(ctx).pop();
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => Webviewscreen(tittle: 'Contact Us'),
+                  builder: (_) => ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/,
                 ),
               );
             },

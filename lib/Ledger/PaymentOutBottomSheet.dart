@@ -22,7 +22,6 @@ class PaymentOutEntryPage extends StatefulWidget {
 }
 
 class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerProviderStateMixin {
-  final TextEditingController _invoice_noController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController paidController = TextEditingController(text: '0.00');
   final TextEditingController referenceNumberController = TextEditingController();
@@ -31,23 +30,30 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
   DateTime selectedDate = DateTime.now();
   String selectedPaymentType = "Cash";
 
-  bool isPaid = false;
+  bool isPaid = true;
   double totalAmount = 0.00;
   double paidAmount = 0.0;
 
   @override
   void initState() {
     super.initState();
-    if(widget.edit!) {
+
+    if (widget.edit!) {
       setState(() {
-        _invoice_noController.text =widget.ledger!.history[widget.index!].invoiceNo;
-        _dateController.text =AppUtils().formatDate(widget.ledger!.history[widget.index!].paymentDate);
-        paidController.text =widget.ledger!.history[widget.index!].amount;
-        selectedPaymentType=widget.ledger!.history[widget.index!].paymentType;
-        referenceNumberController.text =widget.ledger!.history[widget.index!].paymentReference;
+        _dateController.text = AppUtils().formatDate(widget.ledger!.history[widget.index!].paymentDate);
+        paidController.text = widget.ledger!.history[widget.index!].amount;
+        selectedPaymentType = widget.ledger!.history[widget.index!].paymentType;
+        referenceNumberController.text = widget.ledger!.history[widget.index!].paymentReference;
       });
+    } else {
+      // Auto-generate invoice/payment no (example: Payment-YYYYMMDD-HHMM)
+      final now = DateTime.now();
+
+      // Also set date field automatically
+      _dateController.text = DateFormat('dd MMM, yyyy').format(now);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +122,9 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       children: [
         Expanded(
           child: _buildEditTextField(
-            _invoice_noController,
-            'Invoice No.',
-            TextInputType.text,
+            paidController,
+            'Pay Amount',
+            TextInputType.number,
           ),
         ),
         const SizedBox(width: 16),
@@ -191,11 +197,18 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       ],
     );
   }
-
   Widget _buildAmountCard() {
-    var dueAmount=widget.ledger!.dueAmount.toString().replaceAll(',', '');
-    totalAmount=double.parse(dueAmount.replaceAll('-', ''));
-    double balanceDue = totalAmount - paidAmount;
+    var dueAmount = widget.ledger!.dueAmount.toString().replaceAll(',', '');
+    totalAmount = double.parse(dueAmount.replaceAll('-', ''));
+
+    // ✅ Always recalc paidAmount from controller
+    double enteredPaid = double.tryParse(paidController.text.replaceAll(',', '')) ?? 0.0;
+    if (enteredPaid > totalAmount) {
+      enteredPaid = totalAmount;
+      paidController.text = totalAmount.toStringAsFixed(2);
+    }
+
+    double balanceDue = totalAmount - enteredPaid;
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -224,8 +237,11 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
                 onChanged: (value) {
                   setState(() {
                     isPaid = value ?? false;
-                    paidAmount = isPaid ? totalAmount : 0.0;
-                    paidController.text = paidAmount.toStringAsFixed(2);
+                    if (isPaid) {
+                      paidController.text = totalAmount.toStringAsFixed(2);
+                    } else {
+                      paidController.text = "0.00";
+                    }
                   });
                 },
               ),
@@ -239,20 +255,15 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.end,
                   style: MyTextfield.textStyle(
-                    AppUtils.size_16, Colors.green,
+                    AppUtils.size_16,
+                    Colors.green,
                     FontWeight.w600,
                     decoration: TextDecoration.underline,
                     decorationStyle: TextDecorationStyle.dashed,
                   ),
                   decoration: const InputDecoration(isDense: true, border: InputBorder.none),
-                  onChanged: (value) {
-                    setState(() {
-                      paidAmount = double.tryParse(value) ?? 0.0;
-                      if (paidAmount > totalAmount) {
-                        paidAmount = totalAmount;
-                        paidController.text = totalAmount.toStringAsFixed(2);
-                      }
-                    });
+                  onChanged: (_) {
+                    setState(() {}); // ✅ Trigger rebuild so balanceDue recalculates
                   },
                 ),
               ),
@@ -265,6 +276,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       ),
     );
   }
+
 
   Widget _buildAmountRow(String label, double amount, {bool bold = false, Color? color}) {
     return Row(
@@ -379,7 +391,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
     );
   }
   void SubmitCall() async {
-    if (_invoice_noController.text.isEmpty || _dateController.text.isEmpty || double.tryParse(paidController.text) == null) {
+    if (_dateController.text.isEmpty || double.tryParse(paidController.text) == null) {
       AppUtils.showSnackBar(context,"Please fill all required fields.");
       return;
     }
@@ -389,7 +401,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       id: widget.edit!?widget.ledger!.history[widget.index!].id:null,
       userId: int.parse(userId),
       sellerId: widget.ledger!.partyId,
-      invoiceNo: _invoice_noController.text.toString(),
+      invoiceNo: "NA",
       amount: double.parse(paidController.text.toString().replaceAll(',', '')),
       paymentDate: AppUtils().formatDateForServerInput(_dateController.text.toString()),
       paymentType: selectedPaymentType,

@@ -1,3 +1,4 @@
+
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -6,6 +7,7 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/PaymentOutBottomSheet.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
+
 
 class LedgerDetailsPage extends StatefulWidget {
   LedgerModel? ledger;
@@ -17,6 +19,11 @@ class LedgerDetailsPage extends StatefulWidget {
 }
 
 class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
+  String truncateWords(String text, int wordLimit) {
+    List<String> words = text.split(" ");
+    if (words.length <= wordLimit) return text;
+    return words.take(wordLimit).join(" ") + " ...";
+  }
 
   int deleteId = 0;
   String? role;
@@ -25,6 +32,8 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     super.initState();
     loadUserData();
   }
+
+
   void loadUserData() async {
     role = await SessionManager.getRole();
   }
@@ -84,7 +93,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                         backgroundColor: AppColors.kPrimaryDark,
                         titleColor: AppColors.kPrimary,
                         custom_design: true,
-                        buttonText: "Add Payment",
+                        buttonText: "Pay to stockist",
                       ),
                     ),
                   ],
@@ -148,8 +157,12 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            // MyTextfield.textStyle_w800(
+                                            //     truncateWords(widget.ledger!.sellerName, 5),
+                                            //     screenWidth * 0.045,
+                                            //     AppColor.kblack),
                                             MyTextfield.textStyle_w800(
-                                              widget.ledger!.sellerName,
+                                                truncateWords(widget.ledger!.sellerName, 2),
                                               screenWidth * 0.04,
                                               AppColors.kPrimary,
                                               maxLines: 1
@@ -263,8 +276,19 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   MyTextfield.textStyle_w600('Payment History', screenWidth * 0.05, Colors.black),
-                                  GestureDetector(
-                                    onTap: () => _shareLast7Transactions(widget.ledger!),
+                                  PopupMenuButton<String>(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    color: Colors.white,
+                                    elevation: 8,
+                                    onSelected: (value) async {
+                                      if (value == 'share') {
+                                        await _shareLast7Transactions(widget.ledger!);
+                                      } else if (value == 'download') {
+                                        _showTransactionsBottomSheet(context, widget.ledger!);
+                                      }
+                                    },
                                     child: Container(
                                       padding: EdgeInsets.all(10),
                                       decoration: BoxDecoration(
@@ -273,13 +297,36 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.share, color: AppColors.kPrimary,size: 16),
+                                          Icon(Icons.more_vert, color: AppColors.kPrimary, size: 18),
                                           SizedBox(width: 5),
-                                          MyTextfield.textStyle_w600('Share',16, AppColors.kPrimary),
+                                          MyTextfield.textStyle_w600('Options', 16, AppColors.kPrimary),
                                         ],
                                       ),
                                     ),
-                                  ),
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                        value: 'share',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.share, color: AppColors.kPrimary, size: 18),
+                                            SizedBox(width: 8),
+                                            Text("Share"),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'download',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.remove_red_eye, color: Colors.green, size: 18),
+                                            SizedBox(width: 8),
+                                            Text("View Transactions"),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )
+
                                 ],
                               ),
                             ),
@@ -335,17 +382,17 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                               // Payment Info
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
+                                                    // Header Title
                                                     MyTextfield.textStyle_w600(
-                                                      payment == 'debit'
-                                                          ? 'Payment Out'
-                                                          : 'Purchase In',
+                                                      payment == 'debit' ? 'Payment Out' : 'Purchase In',
                                                       screenWidth * 0.04,
                                                       AppColors.kBlackColor900,
                                                     ),
-                                                    SizedBox(height: 1),
+                                                    const SizedBox(height: 1),
+
+                                                    // Date Row
                                                     Row(
                                                       children: [
                                                         MyTextfield.textStyle_w400(
@@ -354,18 +401,17 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                           Colors.grey[700]!,
                                                         ),
                                                         MyTextfield.textStyle_w400(
-                                                          widget
-                                                              .ledger!
-                                                              .history[index]
-                                                              .paymentDate,
+                                                          widget.ledger!.history[index].paymentDate,
                                                           screenWidth * 0.035,
-                                                          AppColors
-                                                              .kBlackColor800,
+                                                          AppColors.kBlackColor800,
                                                         ),
                                                       ],
                                                     ),
-                                                    SizedBox(height: 1),
-                                                    Row(
+                                                    const SizedBox(height: 1),
+
+                                                    // ✅ Invoice No (only visible for Purchase In)
+                                                    payment != 'debit'
+                                                        ? Row(
                                                       children: [
                                                         MyTextfield.textStyle_w400(
                                                           "Invoice No:",
@@ -378,46 +424,40 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                           Colors.teal,
                                                         ),
                                                       ],
-                                                    ),
-                                                    SizedBox(height: 1),
+                                                    )
+                                                        : const SizedBox(),
+                                                    const SizedBox(height: 1),
+
+                                                    // ✅ Payment Type (only visible for Payment Out)
                                                     payment == 'debit'
                                                         ? Row(
-                                                          children: [
-                                                            MyTextfield.textStyle_w400(
-                                                              "Payment type:",
-                                                              16,
-                                                              Colors.grey[700]!,
-                                                            ),
-                                                            MyTextfield.textStyle_w400(
-                                                              widget
-                                                                  .ledger!
-                                                                  .history[index]
-                                                                  .paymentType,
-                                                              14,
-                                                              AppColors
-                                                                  .kBlackColor800,
-                                                            ),
-                                                          ],
-                                                        )
-                                                        : SizedBox(),
-                                                    SizedBox(height: 6),
+                                                      children: [
+                                                        MyTextfield.textStyle_w400(
+                                                          "Payment type:",
+                                                          screenWidth * 0.035,
+                                                          Colors.grey[700]!,
+                                                        ),
+                                                        MyTextfield.textStyle_w400(
+                                                          widget.ledger!.history[index].paymentType,
+                                                          screenWidth * 0.035,
+                                                          AppColors.kBlackColor800,
+                                                        ),
+                                                      ],
+                                                    )
+                                                        : const SizedBox(),
+                                                    const SizedBox(height: 6),
+
+                                                    // Amount Container
                                                     Container(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 4,
-                                                          ),
+                                                      padding: const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4,
+                                                      ),
                                                       decoration: BoxDecoration(
-                                                        color:
-                                                            payment == 'debit'
-                                                                ? Colors
-                                                                    .green[100]
-                                                                : Colors
-                                                                    .red[100],
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              10,
-                                                            ),
+                                                        color: payment == 'debit'
+                                                            ? Colors.green[100]
+                                                            : Colors.red[100],
+                                                        borderRadius: BorderRadius.circular(10),
                                                       ),
                                                       child: MyTextfield.textStyle_w600(
                                                         "₹ ${widget.ledger!.history[index].amount}",
@@ -500,9 +540,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                       'assets/share.svg',
                                                       width: 18,
                                                       height: 18,
-                                                      color:
-                                                          AppColors
-                                                              .kGreyColor700,
+                                                      color: AppColors.kGreyColor700,
                                                     ),
                                                   ),
                                                 ],
@@ -527,6 +565,140 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showTransactionsBottomSheet(BuildContext context, LedgerModel ledger) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    final last7 = (ledger.history ?? []).take(7).toList();
+
+    double totalDebit = 0;
+    double totalCredit = 0;
+
+    for (var item in last7) {
+      final reason = (item.paymentReason ?? "").toLowerCase();
+      final amount = double.tryParse(item.amount ?? '0') ?? 0;
+
+      if (reason == 'debit') {
+        totalDebit += amount;
+      } else if (reason == 'purchase in') {
+        totalCredit += amount;
+      }
+    }
+
+    // ✅ Correct Net Due Logic (Credit - Debit)
+    double netDue = totalCredit - totalDebit;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MyTextfield.textStyle_w800(
+                ledger.sellerName ?? "-",
+                screenWidth * 0.038,
+                Colors.black,
+              ),
+              const SizedBox(height: 12),
+
+              // Table Header
+              Container(
+                color: AppColors.kPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: const Row(
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Text("Date",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                    Expanded(
+                        flex: 2,
+                        child: Text("Type",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                    Expanded(
+                        flex: 1,
+                        child: Text("Mode",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                    Expanded(
+                        flex: 1,
+                        child: Text("Ref No",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                    Expanded(
+                        flex: 2,
+                        child: Text("Amount",
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+
+              // Table Data
+              ...last7.map((item) {
+                String typeText = "-";
+                final reason = (item.paymentReason ?? "").toLowerCase();
+
+                if (reason == "debit") {
+                  typeText = "Payment Out";
+                } else if (reason == "credit") {
+                  typeText = "purchase in";
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: Row(
+                    children: [
+                      Expanded(flex: 2, child: Text(item.paymentDate ?? "-")),
+                      Expanded(flex: 2, child: Text(typeText)),
+                      Expanded(flex: 1, child: Text(item.paymentType ?? "-")),
+                      Expanded(flex: 1, child: Text(item.paymentReference ?? "-")),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.amount ?? "0",
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+
+              const Divider(thickness: 1),
+              const SizedBox(height: 8),
+
+              // Summary Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  MyTextfield.textStyle_w400(
+                      "Total Debit:", screenWidth * 0.038, Colors.red),
+                  MyTextfield.textStyle_w400("₹ -${totalDebit.toStringAsFixed(2)}",
+                      screenWidth * 0.038, Colors.red),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -621,7 +793,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   children: [
                     pw.Expanded(flex: 2, child: pw.Text('Date', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
                     pw.Expanded(flex: 2, child: pw.Text('Type', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
-                    pw.Expanded(flex: 2, child: pw.Text('Invoice No.', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
+                    // pw.Expanded(flex: 2, child: pw.Text('Invoice No.', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
                     pw.Expanded(flex: 1, child: pw.Text('Mode', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
                     pw.Expanded(flex: 1, child: pw.Text('Ref No', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
                     pw.Expanded(flex: 2, child: pw.Text('Amount', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.right)),
@@ -643,7 +815,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                         item.paymentReason == 'debit' ? 'Payment Out' : 'Purchase In',
                         style: pw.TextStyle(font: ttf, fontSize: 11),
                       )),
-                      pw.Expanded(flex: 2, child: pw.Text('#${item.invoiceNo}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
+                      // pw.Expanded(flex: 2, child: pw.Text('#${item.invoiceNo}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
                       pw.Expanded(flex: 1, child: pw.Text('${item.paymentType}', style: pw.TextStyle(font: ttf, fontSize: 11))),
                       pw.Expanded(flex: 1, child: pw.Text('${item.paymentReference }', style: pw.TextStyle(font: ttf, fontSize: 11))),
                       pw.Expanded(flex: 2, child: pw.Text('${item.amount}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
@@ -810,8 +982,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
         Size(SizeConfig.screenWidth!, SizeConfig.screenHeight! * 0.83),
       ),
       isScrollControlled: true,
-      builder:
-          (context) => DraggableScrollableSheet(
+      builder: (context) => DraggableScrollableSheet(
             expand: false,
             initialChildSize: 0.73,
             minChildSize: 0.73,

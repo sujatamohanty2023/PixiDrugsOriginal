@@ -2,7 +2,7 @@ class SaleReturnRequest {
   final int? id;
   final int storeId;
   final int billingId;
-  final int customerId;
+  final int? customerId;
   final String returnDate;
   final double totalAmount;
   final String reason;

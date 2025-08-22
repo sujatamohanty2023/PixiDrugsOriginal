@@ -23,6 +23,7 @@ class _CartTabState extends State<CartTab> {
   @override
   void initState() {
     super.initState();
+    context.read<CartCubit>().clearCart(type: CartType.barcode);
     _loadUserId();
   }
   Future<void> _loadUserId() async {

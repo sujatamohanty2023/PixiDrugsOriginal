@@ -114,7 +114,7 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(BarcodeScanLoading());
       final response = await apiRepository.barcodeScan(code,storeId,seller_id,customer_id);
-      if (response['status'] == 'not_found') {
+      if (response['status'] == 'not_found'|| response['status'] == 'not_found_for_customer') {
         emit(BarcodeScanError(response['message'] ?? 'No product found.'));
         return;
       }

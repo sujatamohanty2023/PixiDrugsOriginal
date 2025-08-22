@@ -7,6 +7,8 @@ import 'package:PixiDrugs/Profile/edit_profile.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
 
+import 'contact_us.dart';
+
 class ProfileScreen extends StatefulWidget {
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -163,7 +165,7 @@ class ProfileScreen extends StatefulWidget {
                       GestureDetector(
                         onTap: () {
                           AppRoutes.navigateTo(
-                              context, Webviewscreen(tittle: 'Contact Us'));
+                              context, ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/);
                         },
                         child: _buildMenuItem(
                             Icons.call, "Contact Us", Colors.green),

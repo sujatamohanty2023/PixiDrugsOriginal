@@ -3,26 +3,28 @@ import 'package:PixiDrugs/constant/all.dart';
 
 class MyTextfield {
   // Helper method for generating text with a specific font weight and style
-  static Text textStyle_w800(String text, double size, Color color,
-      {var maxLines = 2}) {
+  static Text textStyle_w800(String text, double size, Color color, {var maxLines = 2,TextOverflow overflow = TextOverflow.ellipsis,}) {
     return Text(
       text,
       maxLines: maxLines,
+      overflow: overflow,
       style: textStyle(size, color, FontWeight.w800),
     );
   }
 
-  static Text textStyle_w600(String text, double size, Color color,{var maxLines = false}) {
+  static Text textStyle_w600(String text, double size, Color color,{var maxLines = false,TextOverflow overflow = TextOverflow.ellipsis,}) {
     return Text(
       text,
       maxLines: maxLines?1:null,
+      overflow: overflow,
       style: textStyle(size, color, FontWeight.w600),
     );
   }
-  static Text textStyle_w400(String text, double size, Color color,{var maxLines = false}) {
+  static Text textStyle_w400(String text, double size, Color color, {var maxLines = false,TextOverflow overflow = TextOverflow.ellipsis,}) {
     return Text(
       text,
       maxLines: maxLines?1:null,
+      overflow: overflow,
       style: textStyle(size, color, FontWeight.w400),
     );
   }
