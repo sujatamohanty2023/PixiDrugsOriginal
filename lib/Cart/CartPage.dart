@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/Cart/address_widget.dart';
+import 'package:PixiDrugs/Cart/customerDetailWidget.dart';
 import 'package:PixiDrugs/Dialog/success_dialog.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
@@ -19,7 +20,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteAware {
-  String? name, phone, address = '';
+  String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
 
   @override
   void initState() {
@@ -118,10 +119,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              name != null && name!.isNotEmpty?
-              addressWidget(name:name!,phone: phone!,address: address!,tap:() =>checkUserData(),isSaleCart:true):SizedBox(),
+              name.isNotEmpty?
+              customerDetailWidget(name:name,phone: phone,address: address,
+                  paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
+                  referralAmount: referralAmount,
+                  tap:() =>checkUserData(),isSaleCart:true):SizedBox(),
               const SizedBox(height: 5),
-
               CustomListView<InvoiceItem>(
                 data: cartItems,
                 physics: const NeverScrollableScrollPhysics(),
@@ -160,14 +163,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            if (address != null && address!.isNotEmpty) {
+            if (address.isNotEmpty && paymentType.isNotEmpty) {
               _paymentPageCall();
             } else {
               _onButtonSalePressed();
             }
           },
           custom_design: true,
-          buttonText: address != null && address!.isNotEmpty ? "CheckOut" : "Confirm",
+          buttonText: address.isNotEmpty ? "CheckOut" : "Confirm",
         ),
       ),
     );
@@ -185,10 +188,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       final model = OrderPlaceModel(
         cartItems: cartState.barcodeCartItems,
         seller_id: userId!,
-        name: name!,
-        phone: phone!,
+        name: name,
+        phone: phone,
         email: '',
-        address: address!,
+        address: address,
+        payment_type:paymentType
       );
       print('API URL: ${model.toString()}');
       _showLoadingDialog(); // Show loading
@@ -257,28 +261,47 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
       ),
       constraints: BoxConstraints.loose(Size(
         SizeConfig.screenWidth!,
-        SizeConfig.screenHeight! * 0.60,
+        SizeConfig.screenHeight! * 0.90,
       )),
-      isScrollControlled: false,
-      builder: (_) => CustomerDetailBottomSheet(
-        name: name,
-        phone: phone,
-        address: address,
-        onSubmit: (name1, phone1, submittedAddress1) {
-          setState(() {
-            name = name1;
-            phone = phone1;
-            address = submittedAddress1;
-          });
-          context.read<CartCubit>().setBarcodeCustomerDetails(
-            name: name1,
-            phone: phone1,
-            address: submittedAddress1,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.95,
+        minChildSize: 0.95,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return CustomerDetailBottomSheet(
+            name: name,
+            phone: phone,
+            address: address,
+            scrollController: scrollController,
+            onSubmit: (name1, phone1, submittedAddress1,paymentType1, referenceNumber1,
+                referralName1, referralPhone1,referralAmount1) async {
+
+              setState(() {
+                name = name1;
+                phone = phone1;
+                address = submittedAddress1;
+                paymentType= paymentType1;
+                referenceNumber= referenceNumber1;
+                referralName= referralName1;
+                referralPhone= referralPhone1;
+                referralAmount= referralAmount1;
+              });
+
+              context.read<CartCubit>().setBarcodeCustomerDetails(
+                name: name1,
+                phone: phone1,
+                address: submittedAddress1,
+              );
+              Navigator.pop(context); // Close bottom sheet
+            },
           );
         },
       ),
     );
   }
+
   void _onCartItemTap(InvoiceItem item) {}
 }
 

@@ -4,6 +4,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 
 import '../Cart/ProductCard.dart';
+import '../Cart/customerDetailWidget.dart';
 
 class SaleDetailsPage extends StatefulWidget {
   final SaleModel? sale;
@@ -22,9 +23,7 @@ class SaleDetailsPage extends StatefulWidget {
 class _SaleDetailsPageState extends State<SaleDetailsPage> {
   List<InvoiceItem> cartItems=[];
   int billingid=0;
-  late String name;
-  late String phone;
-  late String address;
+  String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
   double totalPrice = 0.0;
   double subtotalPrice = 0.0;
   double discountAmount = 0.0;
@@ -134,15 +133,12 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                         const SizedBox(height: 8),
 
                         /// Address Widget with Edit Option
-                        addressWidget(
-                          name: name,
-                          phone: phone,
-                          address: address,
+                        customerDetailWidget(name:name!,phone: phone!,address: address!,
+                            paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
+                            referralAmount: referralAmount,
                           tap: () async {
-                            await checkUserData(name, phone, address);
-                          },
-                        ),
-
+                            await checkUserData(name!, phone!, address!);
+                          },),
                         const SizedBox(height: 10),
 
                         /// Cart Items
@@ -254,21 +250,38 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
         SizeConfig.screenHeight! * 0.60,
       )),
       isScrollControlled: true,
-      builder: (_) => CustomerDetailBottomSheet(
-        name: name,
-        phone: phone,
-        address: address,
-        onSubmit: (name1, phone1, submittedAddress1) {
-          setState(() {
-            this.name = name1;
-            this.phone = phone1;
-            this.address = submittedAddress1;
-          });
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.73,
+        minChildSize: 0.73,
+        maxChildSize: 0.85,
+        builder: (context, scrollController) {
+          return CustomerDetailBottomSheet(
+            name: name,
+            phone: phone,
+            address: address,
+            scrollController: scrollController,
+            onSubmit: (name1, phone1, submittedAddress1,paymentType1, referenceNumber1,
+                referralName1, referralPhone1,referralAmount1) async {
+              Navigator.pop(context); // Close bottom sheet
 
-          context.read<CartCubit>().setBarcodeCustomerDetails(
-            name: name1,
-            phone: phone1,
-            address: submittedAddress1,
+              setState(() {
+                name = name1;
+                phone = phone1;
+                address = submittedAddress1;
+                paymentType= paymentType1;
+                referenceNumber= referenceNumber1;
+                referralName= referralName1;
+                referralPhone= referralPhone1;
+                referralAmount= referralAmount1;
+              });
+
+              context.read<CartCubit>().setBarcodeCustomerDetails(
+                name: name1,
+                phone: phone1,
+                address: submittedAddress1,
+              );
+            },
           );
         },
       ),

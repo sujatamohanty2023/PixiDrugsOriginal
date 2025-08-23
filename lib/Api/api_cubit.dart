@@ -337,7 +337,13 @@ class ApiCubit extends Cubit<ApiState> {
       emit(StockReturnAddLoading());
       final response = await apiRepository.stockReturn(returnModel,'store');
       final success = response['success'];
-      emit(StockReturnAddLoaded(success: success));
+      String error='';
+      if(!success){
+        error = response['error'];
+        emit(StockReturnAddError('Error: $error'));
+      }else {
+        emit(StockReturnAddLoaded(success: success));
+      }
     } catch (e) {
       emit(StockReturnAddError('Error: $e'));
     }
@@ -348,7 +354,13 @@ class ApiCubit extends Cubit<ApiState> {
       emit(StockReturnEditLoading());
       final response = await apiRepository.stockReturn(returnModel,'update');
       final success = response['success'];
-      emit(StockReturnEditLoaded(success: success));
+      String error='';
+      if(!success){
+        error = response['error'];
+        emit(StockReturnEditError('Error: $error'));
+      }else {
+        emit(StockReturnEditLoaded(success: success));
+      }
     } catch (e) {
       emit(StockReturnEditError('Error: $e'));
     }
@@ -404,7 +416,13 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleReturnAddLoading());
       final response = await apiRepository.saleReturn(returnModel,'store');
       final success = response['success'];
-      emit(SaleReturnAddLoaded(success: success));
+      String error='';
+      if(!success){
+        error = response['error'];
+        emit(SaleReturnAddError('Error: $error'));
+      }else {
+        emit(SaleReturnAddLoaded(success: success));
+      }
     } catch (e) {
       emit(SaleReturnAddError('Error: $e'));
     }
@@ -415,7 +433,13 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleReturnEditLoading());
       final response = await apiRepository.saleReturn(returnModel,'update');
       final success = response['success'];
-      emit(SaleReturnEditLoaded(success: success));
+      String error='';
+      if(!success){
+        error = response['error'];
+        emit(SaleReturnEditError('Error: $error'));
+      }else {
+        emit(SaleReturnEditLoaded(success: success));
+      }
     } catch (e) {
       emit(SaleReturnEditError('Error: $e'));
     }

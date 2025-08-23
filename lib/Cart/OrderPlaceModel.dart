@@ -8,6 +8,7 @@ class OrderPlaceModel {
   String phone;
   String email;
   String address;
+  String payment_type;
 
   OrderPlaceModel({
     this.cartItems = const [],
@@ -16,6 +17,7 @@ class OrderPlaceModel {
     this.phone = '',
     this.email = '',
     this.address = '',
+    this.payment_type = '',
   });
 
   List<Map<String, dynamic>> toApiFormatProductOrder() {
@@ -42,6 +44,7 @@ class OrderPlaceModel {
         phone: json['phone'] ?? '',
         email: json['email'] ?? '',
         address: json['address'] ?? '',
+        payment_type: json['payment_type'] ?? '',
       );
 
   @override
@@ -53,6 +56,7 @@ OrderPlaceModel:
   Phone: $phone
   Email: $email
   Address: $address
+  PaymentType: $payment_type
   Cart Items:
 ${cartItems.map((item) => '''
      'product_id': ${item.id},

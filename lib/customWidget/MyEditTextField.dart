@@ -13,6 +13,7 @@ class MyEdittextfield extends StatefulWidget {
   Function()? onTap;
   String? Function(String?)? validator;
   final Function(String)? onChanged;
+  final bool mandatory;
 
   MyEdittextfield({
   Key? key,
@@ -26,6 +27,7 @@ class MyEdittextfield extends StatefulWidget {
     this.onChanged,
     this.autofocus = false,
     this.obscureText=false,
+    this.mandatory = true,
   }) : super(key: key);
 
   @override
@@ -82,11 +84,12 @@ class MyEdittextfield extends StatefulWidget {
                 LengthLimitingTextInputFormatter(10),
               ]
             : null,
-        validator: widget.validator ??
-                (value) {
-              if (value == null || value.isEmpty) return 'Please ${widget.hintText}';
-              return null;
-            },
+        validator: widget.mandatory
+            ? widget.validator ?? (value) {
+          if (value == null || value.isEmpty) return 'Please ${widget.hintText}';
+          return null;
+        }
+            : widget.validator,
         readOnly: widget.readOnly, // Make the TextField read-only
         onTap: widget.onTap,
         onChanged: widget.onChanged,

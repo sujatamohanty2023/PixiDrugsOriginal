@@ -117,6 +117,7 @@ class ApiRepository {
         'phone': model.phone,
         'email': model.email,
         'address': model.address,
+        'payment_type': model.payment_type,
         'items': model.toApiFormatProductOrder(),
       },
     )).then((data) => Map<String, dynamic>.from(data));
