@@ -81,7 +81,7 @@ class ContactUsPage extends StatelessWidget {
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(
-                  horizontal: width * 0.05, vertical: width * 0.02),
+                  horizontal: width * 0.04, vertical: width * 0.02),
               decoration: const BoxDecoration(
                 color: AppColors.kWhiteColor,
                 borderRadius: BorderRadius.only(
@@ -98,27 +98,16 @@ class ContactUsPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: Text(
-                            "Get in touch if you need help with a project",
-                            style: TextStyle(
-                              fontSize: width * 0.07,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black,
-                            ),
-                            softWrap: true,
-                            overflow: TextOverflow.visible,
+                          child:  MyTextfield.textStyle_w800(
+                            "Get in touch if you need help with a project",width * 0.07, Colors.black,
                           ),
                         ),
-                        SizedBox(width: width * 0.02),
-                        SvgPicture.asset(
-                          'assets/contact/contact_2.svg',
-                          height: height * 0.20,
-                          width: width * 0.20,
-                          fit: BoxFit.contain,
-                        ),
+                        Image.asset(AppImages.contact_us,
+                          height: height * 0.30,
+                          width: width * 0.50,
+                          fit: BoxFit.cover,)
                       ],
                     ),
-                    SizedBox(height: height * 0.03),
 
                     MyTextfield.textStyle_w800(
                       "For any custom requirement or any issues related to the app, please contact us.",
@@ -130,8 +119,8 @@ class ContactUsPage extends StatelessWidget {
                     // 👉 WhatsApp Button
                     ElevatedButton.icon(
                       onPressed: _launchWhatsApp,
-                      icon: SvgPicture.asset(
-                        'assets/contact/whatsapp.svg',
+                      icon: Image.asset(
+                        AppImages.whatsapp,
                         height: 24,
                         width: 24,
                       ),
@@ -147,7 +136,7 @@ class ContactUsPage extends StatelessWidget {
 
                     SizedBox(height: height * 0.030),
                     MyTextfield.textStyle_w800(
-                        "Pixiglam", width * 0.045, Colors.black),
+                        "PixiDrugs", width * 0.045, Colors.black),
                     SizedBox(height: height * 0.015),
 
                     // 👉 Contact Info
@@ -155,14 +144,14 @@ class ContactUsPage extends StatelessWidget {
                       visualDensity: const VisualDensity(horizontal: 0.0, vertical: -4.0),
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(Icons.phone_android, size: 20, color: AppColors.kPrimary),
-                      title: MyTextfield.textStyle_w400(phone, width * 0.04, Colors.black,maxLines: 1),
+                      title: MyTextfield.textStyle_w400(phone, width * 0.04, Colors.black,maxLines: true),
                       onTap: _launchPhone,
                     ),
                     ListTile(
                       visualDensity: const VisualDensity(horizontal: 0.0, vertical: -4.0),
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(Icons.email, size: 20, color: AppColors.kPrimary),
-                      title: MyTextfield.textStyle_w400(email, 14, Colors.black, maxLines: 1),
+                      title: MyTextfield.textStyle_w400(email, 14, Colors.black, maxLines: true),
                       onTap: _launchEmail,
                     ),
                     ListTile(
@@ -170,7 +159,7 @@ class ContactUsPage extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(Icons.language,
                           size: 20, color: AppColors.kPrimary),
-                      title: MyTextfield.textStyle_w400(website, 14, Colors.black,maxLines: 1),
+                      title: MyTextfield.textStyle_w400(website, 14, Colors.black,maxLines: true),
                       onTap: _launchWebsite,
                     ),
                     SizedBox(height: height * 0.03),

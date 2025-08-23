@@ -41,8 +41,8 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
 
     if(widget.customerReturnModel!=null) {
       name=widget.customerReturnModel?.customer.name;
-      phone='';
-      address='';
+      phone=widget.customerReturnModel?.customer.phone;
+      address='Address: --------';
       personId=widget.customerReturnModel?.customerId;
       final items =widget.customerReturnModel?.items;
       final invoiceItems = items?.map((item) =>

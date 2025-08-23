@@ -10,6 +10,8 @@ class AppImages {
   static String LoginIcon = "${PNGFolder}login.png";
   static String indiaIcon = "${PNGFolder}india.jpg";
   static String otpIcon = "${PNGFolder}otp.png";
+  static String contact_us = "${PNGFolder}contact_us.jpg";
+  static String whatsapp = "${PNGFolder}whatsapp.png";
 
   static String gmail = "${svgFolder}gmail.svg";
   static String home_address = "${svgFolder}home_address.svg";

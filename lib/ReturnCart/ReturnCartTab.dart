@@ -41,6 +41,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   @override
   void initState() {
     super.initState();
+    context.read<CartCubit>().clearCart(type: CartType.barcode);
     _loadUserId();
     _searchController.addListener(_onSearch);
   }
@@ -52,41 +53,46 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocListener<ApiCubit, ApiState>(
-        listener: (context, state) {
-          if (state is BarcodeScanLoaded && state.source=='scan') {
-            searchResults = state.list;
-            if (searchResults.isNotEmpty) {
-              final cartCubit = context.read<CartCubit>();
-              cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
-            } else {
-              AppUtils.showSnackBar(context,'No products found.');
+    return WillPopScope(
+      onWillPop: () async {
+        context.read<CartCubit>().clearCart(type: CartType.barcode);
+        return true; // allow popping
+      },
+      child:Scaffold(
+        body: BlocListener<ApiCubit, ApiState>(
+          listener: (context, state) {
+            if (state is BarcodeScanLoaded && state.source=='scan') {
+              searchResults = state.list;
+              if (searchResults.isNotEmpty) {
+                final cartCubit = context.read<CartCubit>();
+                cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
+              } else {
+                AppUtils.showSnackBar(context,'No products found.');
+              }
+            } else if (state is BarcodeScanError) {
+              AppUtils.showSnackBar(context,state.error);
+            }else if (state is SearchSellerLoaded) {
+              setState(() {
+                _detail_Seller.clear();
+                _detail_Seller.addAll(state.sellerList);
+              });
+            }else if (state is SearchSellerError) {
+              // AppUtils.showSnackBar(context,state.error);
+            }else if (state is SearchUserLoaded) {
+              setState(() {
+                _detail_Customer.clear();
+                _detail_Customer.addAll(state.customerList);
+              });
+            }else if (state is SearchUserError) {
+              // AppUtils.showSnackBar(context,state.error);
             }
-          } else if (state is BarcodeScanError) {
-            AppUtils.showSnackBar(context,state.error);
-          }else if (state is SearchSellerLoaded) {
-            setState(() {
-              _detail_Seller.clear();
-              _detail_Seller.addAll(state.sellerList);
-            });
-          }else if (state is SearchSellerError) {
-            // AppUtils.showSnackBar(context,state.error);
-          }else if (state is SearchUserLoaded) {
-            setState(() {
-              _detail_Customer.clear();
-              _detail_Customer.addAll(state.customerList);
-            });
-          }else if (state is SearchUserError) {
-            // AppUtils.showSnackBar(context,state.error);
-          }
-        },
-        child: Column(
-          children: [
-            cartAppBar(context),
-            Expanded(
-              child: Builder(
-                builder: (_) {
+          },
+          child: Column(
+            children: [
+              cartAppBar(context),
+              Expanded(
+                child: Builder(
+                  builder: (_) {
                     final hasSearchText = _searchController.text.isNotEmpty;
                     final hasSelection = selectedSeller != null || selectedCustomer != null || widget.returnModel!=null;
 
@@ -101,12 +107,13 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     }else {
                       return _buildReturnPage();
                     }
-                },
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 
@@ -450,6 +457,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                       children: [
                         GestureDetector(
                           onTap: () {
+                            context.read<CartCubit>().clearCart(type: CartType.barcode);
                             Navigator.pop(context);
                           },
                           child: SvgPicture.asset(

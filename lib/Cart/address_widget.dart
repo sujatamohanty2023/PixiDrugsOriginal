@@ -47,8 +47,8 @@ class _addressWidgetState extends State<addressWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  MyTextfield.textStyle_w600('${widget.name}', 15, AppColors.kPrimary),
-                  MyTextfield.textStyle_w400('${widget.phone}', 13, Colors.teal),
+                  MyTextfield.textStyle_w600('${widget.name}', 16, AppColors.kPrimary),
+                  MyTextfield.textStyle_w400('${widget.phone}', 14, Colors.teal),
                   MyTextfield.textStyle_w400('${widget.address}', 12, Colors.grey[700]!,maxLines: true),
                 ],
               ),

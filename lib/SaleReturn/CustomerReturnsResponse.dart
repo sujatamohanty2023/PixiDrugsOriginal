@@ -66,16 +66,19 @@ class CustomerReturnsResponse {
 class Customer {
   int id;
   String name;
+  String phone;
 
   Customer({
     required this.id,
     required this.name,
+    required this.phone,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
       id: ApiParserUtils.parseInt(json['id']),
       name: ApiParserUtils.parseString(json['name']),
+      phone: ApiParserUtils.parseString(json['phone_number']),
     );
   }
 

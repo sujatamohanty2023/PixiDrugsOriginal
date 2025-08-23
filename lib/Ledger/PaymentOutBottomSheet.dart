@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:intl/intl.dart';
 import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
@@ -29,8 +31,6 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
   String selectedReceiptNo = "1";
   DateTime selectedDate = DateTime.now();
   String selectedPaymentType = "Cash";
-
-  bool isPaid = true;
   double totalAmount = 0.00;
   double paidAmount = 0.0;
 
@@ -46,14 +46,22 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
         referenceNumberController.text = widget.ledger!.history[widget.index!].paymentReference;
       });
     } else {
-      // Auto-generate invoice/payment no (example: Payment-YYYYMMDD-HHMM)
       final now = DateTime.now();
 
       // Also set date field automatically
       _dateController.text = DateFormat('dd MMM, yyyy').format(now);
     }
+    paidController.addListener(() {
+      setState(() {}); // Rebuilds widget tree to update paid/balance
+    });
   }
-
+  @override
+  void dispose() {
+    paidController.dispose();
+    _dateController.dispose();
+    referenceNumberController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -230,45 +238,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
         children: [
           _buildAmountRow("Total Amount", totalAmount, bold: true, color: Colors.black),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Checkbox(
-                value: isPaid,
-                onChanged: (value) {
-                  setState(() {
-                    isPaid = value ?? false;
-                    if (isPaid) {
-                      paidController.text = totalAmount.toStringAsFixed(2);
-                    } else {
-                      paidController.text = "0.00";
-                    }
-                  });
-                },
-              ),
-              MyTextfield.textStyle_w600("Paid", AppUtils.size_16, Colors.green),
-              const Spacer(),
-              SizedBox(
-                width: 100,
-                child: TextFormField(
-                  controller: paidController,
-                  enabled: isPaid,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.end,
-                  style: MyTextfield.textStyle(
-                    AppUtils.size_16,
-                    Colors.green,
-                    FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                    decorationStyle: TextDecorationStyle.dashed,
-                  ),
-                  decoration: const InputDecoration(isDense: true, border: InputBorder.none),
-                  onChanged: (_) {
-                    setState(() {}); // ✅ Trigger rebuild so balanceDue recalculates
-                  },
-                ),
-              ),
-            ],
-          ),
+          _buildAmountRow("Paid",double.tryParse( paidController.text)??0.00, bold: true, color: Colors.green),
           Divider(),
           const SizedBox(height: 12),
           _buildAmountRow("Balance Due", balanceDue, bold: true, color: Colors.red),
