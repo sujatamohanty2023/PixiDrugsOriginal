@@ -137,8 +137,6 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
               if(state.success) {
                 Navigator.pop(context); // Use caution here
                 AppUtils.showSnackBar(context,'Successfully retrun to stock');
-              }else{
-          AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
               }
             });
           } else if (state is StockReturnAddError) {
@@ -146,15 +144,13 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
               isLoading = false;
             });
             Navigator.pop(context); // Use caution here
-            AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
+            AppUtils.showSnackBar(context,state.error);
           }else if (state is StockReturnEditLoaded) {
             setState(() {
               isLoading = false;
               if(state.success) {
                 Navigator.pop(context); // Use caution here
                 AppUtils.showSnackBar(context,'Successfully Updated');
-              }else{
-            AppUtils.showSnackBar(context,'Failed to Update');
               }
             });
           } else if (state is StockReturnEditError) {
@@ -162,7 +158,7 @@ class _PurchaseReturnScreenState extends State<PurchaseReturnScreen> {
               isLoading = false;
             });
             Navigator.pop(context); // Use caution here
-            AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
+            AppUtils.showSnackBar(context,state.error);
           }
         },
         child: Container(

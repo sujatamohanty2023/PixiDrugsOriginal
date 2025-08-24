@@ -192,7 +192,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         phone: phone,
         email: '',
         address: address,
-        payment_type:paymentType
+        payment_type:paymentType,
+        amount:double.parse(referralAmount),
+        title:'Referral Bonus',
+        note:referralName+'/'+referralPhone,
       );
       print('API URL: ${model.toString()}');
       _showLoadingDialog(); // Show loading

@@ -49,8 +49,6 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
         _referralPhoneController.text.trim(),
         _referralAmountController.text.trim(),
       );
-
-      if (mounted) Navigator.of(context).pop();
     }
   }
 
@@ -90,7 +88,7 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
                       }),
                   const SizedBox(height: 15),
                   _buildTextField(_addressController, 'Address', TextInputType.streetAddress,
-                      maxLines: 3),
+                      maxLines: 1),
                   const SizedBox(height: 15),
                   _buildPaymentTypeDropdown(),
                   if (selectedPaymentType != "Cash") ...[

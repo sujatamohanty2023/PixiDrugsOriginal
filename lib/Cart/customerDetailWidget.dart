@@ -55,8 +55,19 @@ class _customerDetailWidgetState extends State<customerDetailWidget> {
                   MyTextfield.textStyle_w600('${widget.name}', 16, AppColors.kPrimary),
                   MyTextfield.textStyle_w400('${widget.phone}', 14, Colors.teal),
                   MyTextfield.textStyle_w400('${widget.address}', 12, Colors.grey[700]!,maxLines: true),
-                  MyTextfield.textStyle_w400('Payment Mode${widget.paymentType}', 14, Colors.deepOrangeAccent),
-                  MyTextfield.textStyle_w400('Referral Doctor Name${widget.referralName}', 14, Colors.deepOrangeAccent),
+
+                  Row(
+                      children: [
+                        MyTextfield.textStyle_w400('Payment Mode: ', 14, Colors.grey),
+                        MyTextfield.textStyle_w800('${widget.paymentType}', 16, Colors.green),
+                      ]
+                  ),
+                  widget.referralName.toString().isNotEmpty?Row(
+                      children: [
+                        MyTextfield.textStyle_w400('Referral Name: ', 14, Colors.grey),
+                        MyTextfield.textStyle_w800('${widget.referralName}', 16, Colors.orangeAccent),
+                      ]
+                  ):SizedBox(),
                 ],
               ),
             ),

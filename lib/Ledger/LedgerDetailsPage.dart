@@ -1,4 +1,5 @@
 
+import 'package:PixiDrugs/Ledger/show_transation_pdf.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -93,7 +94,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                         backgroundColor: AppColors.kPrimaryDark,
                         titleColor: AppColors.kPrimary,
                         custom_design: true,
-                        buttonText: "Pay to stockist",
+                        buttonText: "Pay stockist",
                       ),
                     ),
                   ],
@@ -275,19 +276,13 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  MyTextfield.textStyle_w600('Payment History', screenWidth * 0.05, Colors.black),
-                                  PopupMenuButton<String>(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    color: Colors.white,
-                                    elevation: 8,
-                                    onSelected: (value) async {
-                                      if (value == 'share') {
-                                        await _shareLast7Transactions(widget.ledger!);
-                                      } else if (value == 'download') {
+                                  MyTextfield.textStyle_w600('Transaction Details', screenWidth * 0.05, Colors.black),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
                                         _showTransactionsBottomSheet(context, widget.ledger!);
-                                      }
+                                      });
+                                      print("Options tapped");
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(10),
@@ -297,36 +292,13 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.more_vert, color: AppColors.kPrimary, size: 18),
-                                          SizedBox(width: 5),
-                                          MyTextfield.textStyle_w600('Options', 16, AppColors.kPrimary),
+                                          Icon(Icons.remove_red_eye, color: AppColors.kPrimary, size: 18),
+                                          SizedBox(width: 5,),
+                                          MyTextfield.textStyle_w600('History', 16, AppColors.kPrimary),
                                         ],
                                       ),
                                     ),
-                                    itemBuilder: (context) => [
-                                      PopupMenuItem(
-                                        value: 'share',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.share, color: AppColors.kPrimary, size: 18),
-                                            SizedBox(width: 8),
-                                            Text("Share"),
-                                          ],
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'download',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.remove_red_eye, color: Colors.green, size: 18),
-                                            SizedBox(width: 8),
-                                            Text("View Transactions"),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
                                   )
-
                                 ],
                               ),
                             ),
@@ -492,11 +464,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                           'delete') {
                                                         _showDeleteDialog(
                                                           context,
-                                                          widget
-                                                              .ledger!
-                                                              .history[index]
-                                                              .id
-                                                              .toString(),
+                                                          widget.ledger!.history[index].id.toString(),
                                                         );
                                                       }
                                                     },
@@ -568,7 +536,8 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     );
   }
 
-  void _showTransactionsBottomSheet(BuildContext context, LedgerModel ledger) {
+  Future<void> _showTransactionsBottomSheet(BuildContext context, LedgerModel ledger) async {
+
     double screenWidth = MediaQuery.of(context).size.width;
     final last7 = (ledger.history ?? []).take(7).toList();
 
@@ -611,40 +580,45 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
               // Table Header
               Container(
                 color: AppColors.kPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                child: const Row(
+                padding:  EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child:  Row(
                   children: [
                     Expanded(
                         flex: 2,
-                        child: Text("Date",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
+                        child: MyTextfield.textStyle_w400(
+                          "Date",
+                          screenWidth * 0.038,
+                          Colors.white,
+                        ),
+                    ),
                     Expanded(
                         flex: 2,
-                        child: Text("Type",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
+                        child: MyTextfield.textStyle_w400(
+                          "Type",
+                          screenWidth * 0.038,
+                          Colors.white,
+                        ),
+                    ),
                     Expanded(
                         flex: 1,
-                        child: Text("Mode",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
+                        child: MyTextfield.textStyle_w400(
+                          "Mode",
+                          screenWidth * 0.038,
+                          Colors.white,
+                        ),
+                    ),
                     Expanded(
                         flex: 1,
-                        child: Text("Ref No",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
+                        child: MyTextfield.textStyle_w400(
+                          "Ref No",
+                          screenWidth * 0.038,
+                          Colors.white,
+                        ),
+                    ),
                     Expanded(
                         flex: 2,
-                        child: Text("Amount",
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
+                        child: MyTextfield.textStyle_w400("Amount", screenWidth * 0.038, Colors.white,textAlign: TextAlign.right,),
+                    ),
                   ],
                 ),
               ),
@@ -665,16 +639,19 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   padding: const EdgeInsets.symmetric(vertical: 6.0),
                   child: Row(
                     children: [
-                      Expanded(flex: 2, child: Text(item.paymentDate ?? "-")),
-                      Expanded(flex: 2, child: Text(typeText)),
-                      Expanded(flex: 1, child: Text(item.paymentType ?? "-")),
-                      Expanded(flex: 1, child: Text(item.paymentReference ?? "-")),
+                      Expanded(flex: 2, child:
+                      MyTextfield.textStyle_w400(item.paymentDate ?? "-", screenWidth * 0.038, Colors.black,),
+                      ),
+                      Expanded(flex: 2, child:
+                      MyTextfield.textStyle_w400(typeText, screenWidth * 0.038, Colors.black,),
+                      ),
+                      Expanded(flex: 1, child: MyTextfield.textStyle_w400(item.paymentType ?? "-", screenWidth * 0.038, Colors.black,),
+                      ),
+                      Expanded(flex: 1, child: MyTextfield.textStyle_w400(item.paymentReference ?? "-", screenWidth * 0.038, Colors.black,),
+                      ),
                       Expanded(
                         flex: 2,
-                        child: Text(
-                          item.amount ?? "0",
-                          textAlign: TextAlign.right,
-                        ),
+                        child: MyTextfield.textStyle_w400( item.amount ?? "0", screenWidth * 0.038, Colors.black,textAlign: TextAlign.right,),
                       ),
                     ],
                   ),
@@ -685,16 +662,65 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
               const SizedBox(height: 8),
 
               // Summary Section
+             Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color:  Color(0xFFC4DAF6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        MyTextfield.textStyle_w400( 'Total Debit:', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400( '${ledger.totalDebit}', screenWidth * 0.038, Colors.black,),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        MyTextfield.textStyle_w400('Total Credit:', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400( '${ledger.totalCredit}', screenWidth * 0.038, Colors.black,),
+                      ],
+                    ),
+                    Divider(),
+                   Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        MyTextfield.textStyle_w400('Net Due:', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400('${ledger.dueAmount}', screenWidth * 0.038, Colors.black,),
+                      ],
+                    ),
+
+                  ],
+                ),
+              ),
+              // const SizedBox(height: 10),
+              const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  MyTextfield.textStyle_w400(
-                      "Total Debit:", screenWidth * 0.038, Colors.red),
-                  MyTextfield.textStyle_w400("₹ -${totalDebit.toStringAsFixed(2)}",
-                      screenWidth * 0.038, Colors.red),
+                  Expanded(
+                    child: MyElevatedButton(
+                      onPressed: () async {
+                        await _shareLast7Transactions(widget.ledger!);
+                      },
+                      buttonText: 'Share',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MyElevatedButton(
+                      onPressed: () async {
+                        await generateAndSaveLedgerPdf(ledger);
+                      },
+                      buttonText: 'Download',
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
             ],
           ),
         );

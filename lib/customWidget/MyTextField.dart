@@ -20,11 +20,12 @@ class MyTextfield {
       style: textStyle(size, color, FontWeight.w600),
     );
   }
-  static Text textStyle_w400(String text, double size, Color color, {var maxLines = false,TextOverflow overflow = TextOverflow.ellipsis,}) {
+  static Text textStyle_w400(String text, double size, Color color, {var maxLines = false,TextOverflow overflow = TextOverflow.ellipsis, TextAlign textAlign=TextAlign.start,}) {
     return Text(
       text,
       maxLines: maxLines?1:null,
       overflow: overflow,
+      textAlign: textAlign,
       style: textStyle(size, color, FontWeight.w400),
     );
   }

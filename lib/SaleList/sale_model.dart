@@ -2,6 +2,7 @@ import '../Api/ApiUtil/ApiParserUtils.dart';
 
 class SaleModel {
   final int invoiceNo;
+  final String paymentType;
   final String date;
   final double totalAmount;
   final double profit;
@@ -10,6 +11,7 @@ class SaleModel {
 
   SaleModel({
     required this.invoiceNo,
+    required this.paymentType,
     required this.date,
     required this.totalAmount,
     required this.profit,
@@ -20,6 +22,7 @@ class SaleModel {
   factory SaleModel.fromJson(Map<String, dynamic> json) {
     return SaleModel(
       invoiceNo: ApiParserUtils.parseInt(json['invoice_no']),
+      paymentType: ApiParserUtils.parseString(json['payment_type']),
       date: ApiParserUtils.parseString(json['date']),
       totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
       profit: ApiParserUtils.parseDouble(json['profit']),
@@ -32,6 +35,7 @@ class SaleModel {
   static SaleModel fromBillingResponse(Map<String, dynamic> json) {
     return SaleModel(
     invoiceNo: ApiParserUtils.parseInt(json['billing_id']),
+    paymentType: ApiParserUtils.parseString(json['payment_type']),
     date: DateTime.now().toString(),
     totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
     profit: 0.0,

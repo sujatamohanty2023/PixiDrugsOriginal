@@ -21,7 +21,7 @@ class ReceiptPrinterPage extends StatefulWidget {
 
 class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   late SaleModel products;
-  String? name, phone, address;
+  String? name, phone, address,paymentType;
   String Medical_Name='';
   String Medical_Phone='';
   String Medical_GST='';
@@ -51,6 +51,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
     name = products.customer.name;
     phone = products.customer.phone;
     address = products.customer.address;
+    paymentType = products.paymentType;
 
     totalItemAmount = calculateItemTotal(products.items);
     totalDiscount = calculateTotalDiscount(products.items);
@@ -218,6 +219,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.text('Customer: $name');
       printer.text('Ph: $phone');
       printer.text('Address: $address');
+      printer.text('Payment Mode: $paymentType');
       printer.hr();
 
       printer.row([
@@ -402,6 +404,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                         ),
                         MyTextfield.textStyle_w400(
                           'Address: $address',
+                          16,
+                          AppColors.kBlackColor900,
+                        ),
+                        MyTextfield.textStyle_w400(
+                          'Payment Mode: $paymentType',
                           16,
                           AppColors.kBlackColor900,
                         ),

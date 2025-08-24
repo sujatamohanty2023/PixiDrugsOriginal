@@ -52,6 +52,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     name = widget.sale?.customer.name ?? "";
     phone = widget.sale?.customer.phone ?? "";
     address = widget.sale?.customer.address ?? "";
+    paymentType = widget.sale?.paymentType ?? "";
     billingid=widget.sale?.invoiceNo??0;
 
     _recalculateTotals(cartItems);

@@ -8,7 +8,7 @@ class ProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isOutOfStock = product!.qty <= 0;
+    final bool isOutOfStock = product!.qty+product!.qty_free <= 0;
     final DateTime now = DateTime.now();
     final expiryDate = parseFlexibleExpiry(product!.expiry);
 

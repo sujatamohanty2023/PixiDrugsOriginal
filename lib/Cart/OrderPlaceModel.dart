@@ -9,6 +9,9 @@ class OrderPlaceModel {
   String email;
   String address;
   String payment_type;
+  double amount;
+  String title;
+  String note;
 
   OrderPlaceModel({
     this.cartItems = const [],
@@ -18,6 +21,9 @@ class OrderPlaceModel {
     this.email = '',
     this.address = '',
     this.payment_type = '',
+    this.amount = 0.00,
+    this.title = '',
+    this.note = '',
   });
 
   List<Map<String, dynamic>> toApiFormatProductOrder() {

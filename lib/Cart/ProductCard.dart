@@ -261,8 +261,20 @@ class _ProductCardState extends State<ProductCard> {
             }
 
             final quantity = cartItem?.qty ?? 0;
+            final bool isOutOfStock = widget.item.qty+widget.item.qty_free <= 0;
 
-            if (isSearchMode && quantity == 0) {
+            if (isSearchMode && isOutOfStock){
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: MyTextfield.textStyle_w600("Out of Stock", 14, Colors.white),
+              );
+            }
+
+            if (isSearchMode && quantity == 0 && !isOutOfStock) {
               return GestureDetector(
                 onTap: () {
                   cartCubit.addToCart(widget.item, 1, type: CartType.barcode);
