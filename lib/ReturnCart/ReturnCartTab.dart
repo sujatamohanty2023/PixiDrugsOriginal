@@ -59,6 +59,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         return true; // allow popping
       },
       child:Scaffold(
+        backgroundColor: AppColors.kPrimary,
         body: BlocListener<ApiCubit, ApiState>(
           listener: (context, state) {
             if (state is BarcodeScanLoaded && state.source=='scan') {
@@ -185,7 +186,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         image: AppImages.empty_cart,
         tittle: "Enter Return Details",
         description: "Search by $name name to process the return. and\n also search through invoice or bill no. ",
-        button_tittle: 'Search By Invoice No.',
+        button_tittle: '',
       ),
     );
   }

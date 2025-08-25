@@ -9,7 +9,7 @@ class SaleListWidget extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final Function(SaleModel sale) onEditPressed;
-  final Function(String id) onDeletePressed;
+  final Function(int id) onDeletePressed;
   final Function(SaleModel sale) onPrintPressed;
   final Function(SaleModel sale) onSharePressed;
   String? role;
@@ -123,7 +123,7 @@ class SaleListWidget extends StatelessWidget {
                       }else if (value == 'edit') {
                         onEditPressed(sale);
                       } else if (value == 'delete') {
-                        onDeletePressed(sale.invoiceNo!.toString());
+                        onDeletePressed(sale.invoiceNo!);
                       }
                     },
                     itemBuilder: (context) => [

@@ -1,9 +1,11 @@
 
 import '../Api/ApiUtil/ApiParserUtils.dart';
+import '../constant/utils.dart';
 
 enum DiscountType { flat, percent }
 enum UnitType { Strip, Tablet ,Other}
 class Invoice {
+  int? id;
   String? invoiceId;
   String? invoiceDate;
   String? sellerId;
@@ -16,6 +18,7 @@ class Invoice {
   List<InvoiceItem> items;
 
   Invoice({
+    this.id=0,
     this.invoiceId='',
     this.invoiceDate='',
     this.sellerId='',
@@ -28,6 +31,7 @@ class Invoice {
     this.items = const [],
   });
   Invoice copyWith({
+    int? id,
     String? invoiceId,
     String? invoiceDate,
     String? sellerId,
@@ -40,6 +44,7 @@ class Invoice {
     List<InvoiceItem>? items,
   }) {
     return Invoice(
+      id: id ?? this.id,
       invoiceId: invoiceId ?? this.invoiceId,
       invoiceDate: invoiceDate ?? this.invoiceDate,
       sellerId: sellerId ?? this.sellerId,
@@ -57,6 +62,7 @@ class Invoice {
     final gstRaw = (json['gst_no']?.toString().trim() ?? '');
 
     return Invoice(
+      id: ApiParserUtils.parseInt(json['id']),
       invoiceId: ApiParserUtils.parseString(json['invoice_no']),
       invoiceDate: ApiParserUtils.parseString(json['invoice_date']),
       sellerName: ApiParserUtils.parseString(json['seller_name']),
@@ -133,6 +139,9 @@ class InvoiceItem {
   String unitMrp;
   UnitType unitType;
   String invoiceNo;
+  String medType;
+  int tabQty;
+
 
   InvoiceItem({
     this.id,
@@ -159,6 +168,8 @@ class InvoiceItem {
     this.unitMrp='',
     this.unitType=UnitType.Other,
     this.invoiceNo='',
+    this.medType='',
+    this.tabQty=0,
   });
 
   InvoiceItem copyWith({
@@ -186,6 +197,8 @@ class InvoiceItem {
     String? unitMrp,
     UnitType? unitType,
     String? invoiceNo,
+    String? medType,
+    int? tabQty
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -211,6 +224,8 @@ class InvoiceItem {
       unitMrp: unitMrp??this.unitMrp,
       unitType: unitType??this.unitType,
       invoiceNo: invoiceNo??this.invoiceNo,
+      medType: medType??this.medType,
+      tabQty: tabQty??this.tabQty,
     );
   }
 
@@ -400,6 +415,8 @@ class InvoiceItem {
               normalized['netAmount'] ),
       invoice_purchase_id: ApiParserUtils.parseInt(normalized['invoice_purchase_id']),
       invoiceNo: ApiParserUtils.parseString(normalized['invoice_no']),
+      medType: ApiParserUtils.parseString(normalized['med_type']),
+      tabQty: ApiParserUtils.parseInt(normalized['tab_qty']),
     );
   }
 
@@ -420,11 +437,13 @@ class InvoiceItem {
     'qty_free': qty_free,
     'gst': gst,
     'total': total,
+    'med_type': medType,
+    'tab_qty': tabQty,
   };
 
   @override
   String toString() {
-    return 'InvoiceItem(id:$id,hsn: $hsn, product: $product, composition:$composition,packing: $packing, batch_no: $batch, mrp: $mrp, rate: $rate, taxable: $taxable, discount: $discount,discountSale: $discountSale, expiry: $expiry, quantity: $qty, qty_free: $qty_free, gst: $gst, total: $total)';
+    return 'InvoiceItem(id:$id,hsn: $hsn, product: $product, composition:$composition,packing: $packing, batch_no: $batch, mrp: $mrp, rate: $rate, taxable: $taxable, discount: $discount,discountSale: $discountSale, expiry: $expiry, quantity: $qty, qty_free: $qty_free, gst: $gst, total: $total, medType: $medType, tabQty: $tabQty)';
   }
 }
 

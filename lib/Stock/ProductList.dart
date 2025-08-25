@@ -43,6 +43,10 @@ class _ProductListPageState extends State<ProductListPage> {
       context.read<ApiCubit>().expiredStockList(user_id: userId!);
     }else if(widget.flag==3) {
       context.read<ApiCubit>().expireSoonStockList(user_id: userId!);
+    }else if(widget.flag==4 && (widget.selectedSeller!=null || widget.selectedCustomer !=null)){
+      context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
+    }else if(widget.flag==4 && widget.selectedSeller==null || widget.selectedCustomer ==null){
+      context.read<ApiCubit>().fetchStockList(user_id: userId!);
     }
   }
   void _onSearch() {

@@ -33,7 +33,7 @@ class _ProductCardState extends State<ProductCard> {
   void initState() {
     super.initState();
     discController = TextEditingController(text: widget.item.discountSale);
-    selectedUnitType = widget.mode == ProductCardMode.cart?widget.item.unitType:detectUnitType(widget.item.packing);
+    selectedUnitType = widget.mode == ProductCardMode.cart?widget.item.unitType:AppUtils().detectUnitType(widget.item.packing);
   }
 
   @override
@@ -47,9 +47,9 @@ class _ProductCardState extends State<ProductCard> {
     final cartCubit = context.read<CartCubit>();
     final isCartMode = widget.mode == ProductCardMode.cart;
     final isEditable = widget.editable;
-    final unitType = !widget.saleCart?widget.item.unitType:detectUnitType(widget.item.packing);
+    final unitType = !widget.saleCart?widget.item.unitType:AppUtils().detectUnitType(widget.item.packing);
+    int packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
 
-    int packingQuantity = _extractPackingQuantity(widget.item.packing);
     double mrp = double.tryParse(widget.item.mrp) ?? 0.0;
     disPlayMrp = mrp;
     if (selectedUnitType == UnitType.Tablet && packingQuantity > 0) {
@@ -97,7 +97,7 @@ class _ProductCardState extends State<ProductCard> {
 
                                   // 🟢 Calculate proper unit MRP
                                   final fullMrp = double.tryParse(widget.item.mrp) ?? 0.0;
-                                  final packingQuantity = _extractPackingQuantity(widget.item.packing);
+                                      final packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
 
                                   double? unitMrp;
                                   if (val == UnitType.Tablet && packingQuantity > 0) {
@@ -158,16 +158,6 @@ class _ProductCardState extends State<ProductCard> {
       ),
     );
   }
-  int _extractPackingQuantity(String? packing) {
-    if (packing == null) return 0;
-
-    final regExp = RegExp(r'\d+'); // Find digits
-    final match = regExp.firstMatch(packing);
-    if (match != null) {
-      return int.tryParse(match.group(0) ?? '') ?? 0;
-    }
-    return 0;
-  }
   Widget _buildProductDetails(BuildContext context, CartCubit cartCubit, bool isCartMode, bool isEditable) {
 
     return Column(
@@ -212,35 +202,6 @@ class _ProductCardState extends State<ProductCard> {
           ),
       ],
     );
-  }
-  UnitType? detectUnitType(String? packing) {
-    if (packing == null || packing.isEmpty) return null;
-
-    final lowerPacking = packing.toLowerCase();
-
-    final containsDigit = RegExp(r'\d').hasMatch(lowerPacking);
-
-    // If packing contains GM, G, ML treat as null (liquid/weight)
-    if (lowerPacking.contains("gm") ||
-        lowerPacking.contains("g") ||
-        lowerPacking.contains("ml") ||
-        lowerPacking.contains("kit")) {
-      return null;
-    }
-
-    // Check for tablet/capsule keywords if no digit found
-    if (lowerPacking.contains("unit") ||
-        lowerPacking.contains("tablet") ||
-        lowerPacking.contains("tab") ||
-        lowerPacking.contains("capsule") ||
-        lowerPacking.contains("cap")) {
-      return UnitType.Tablet;
-    }
-
-    if (containsDigit) {
-      return UnitType.Strip;
-    }
-    return null;
   }
 
   Widget _buildQuantityControls(BuildContext context, CartCubit cartCubit, bool isCartMode) {

@@ -31,6 +31,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     invoice1 = widget.invoice;
     print('netAmount${invoice1.items.toString()}');
 
+    invoice1 = invoice1.copyWith(
+      items: calculateTabQtyForAllItems(invoice1.items),
+    );
+
     _subscription = context.read<ApiCubit>().stream.listen((state) {
       if (!mounted) return;
       handleApiState(state);
@@ -126,6 +130,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
   }
 
   Widget _buildProductCard(InvoiceItem product, int index) {
+
     final productName = product.product.isNotEmpty == true ? product.product : 'Product ${index + 1}';
 
     final fields = {
@@ -140,12 +145,14 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       'Free': product.qty_free,
       'GST': product.gst,
       'Total': product.total,
+      if (product.tabQty > 0) 'TabQty': product.tabQty
     };
 
     final filteredFields = fields.entries
         .where((e) => e.value != null && e.value.toString().trim().isNotEmpty)
         .toList();
 
+    print(filteredFields);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.all(10),
@@ -378,6 +385,20 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     }
     return sum.toStringAsFixed(2);
   }
+  List<InvoiceItem> calculateTabQtyForAllItems(List<InvoiceItem> items) {
+    return items.map((item) {
+      final unitType = AppUtils().detectUnitType(item.packing);
+      final packingQty = AppUtils().extractPackingQuantity(item.packing);
+      final totalQty = item.qty + item.qty_free;
+
+      int computedTabQty = 0;
+      if (unitType == UnitType.Tablet && packingQty > 0) {
+        computedTabQty = totalQty * packingQty;
+      }
+
+      return item.copyWith(tabQty: computedTabQty);
+    }).toList();
+  }
 
   Future<void> AddInvoiceApiCall() async {
     String? userId = await SessionManager.getParentingId();
@@ -386,7 +407,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     final formattedDate = formatDate(invoice1.invoiceDate);
 
     final newInvoice = invoice1.copyWith(
-      items: updatedItems,
+      items: calculateTabQtyForAllItems(updatedItems),
       netAmount: netAmount,
       invoiceDate: formattedDate,
       userId: userId

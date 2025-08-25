@@ -8,7 +8,8 @@ class ProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isOutOfStock = product!.qty+product!.qty_free <= 0;
+    final stock=  product!.qty+product!.qty_free;
+    final bool isOutOfStock = stock<= 0;
     final DateTime now = DateTime.now();
     final expiryDate = parseFlexibleExpiry(product!.expiry);
 
@@ -85,7 +86,7 @@ class ProductTile extends StatelessWidget {
                         children: [
                           MyTextfield.textStyle_w400(isOutOfStock
                       ? "Out of Stock"
-                              : "Stock: ${product!.stock}",16, isOutOfStock ? Colors.red : Colors.teal),
+                              : "Stock: $stock",16, isOutOfStock ? Colors.red : Colors.teal),
                           SizedBox(height: 2,),
                           if (!isOutOfStock)
                             MyTextfield.textStyle_w400(

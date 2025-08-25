@@ -134,4 +134,50 @@ class AppUtils {
     String formattedDate = DateFormat('d MMM, yyyy').format(dateTime);
     return formattedDate;
   }
+
+  UnitType? detectUnitType(String? packing) {
+    if (packing == null || packing.isEmpty) return null;
+
+    final lowerPacking = packing.toLowerCase();
+
+    // If packing contains GM, G, ML treat as Other (liquid/weight)
+    if (lowerPacking.contains("gm") ||
+        lowerPacking.contains("g") ||
+        lowerPacking.contains("ml") ||
+        lowerPacking.contains("kit")) {
+      return UnitType.Other;
+    }
+
+    // ✅ Check for common tablet or capsule indicators
+    if (lowerPacking.contains("unit") ||
+        lowerPacking.contains("tablet") ||
+        lowerPacking.contains("tab") ||
+        lowerPacking.contains("capsule") ||
+        lowerPacking.contains("cap") ||
+        RegExp(r"'\s?s$").hasMatch(lowerPacking) ||  // Matches "10's", "30's"
+        lowerPacking.contains("s)")) { // Optional fallback for variations like (10s)
+      return UnitType.Tablet;
+    }
+
+    // If digits are present and no tablet keywords matched, assume strip
+    if (RegExp(r'\d').hasMatch(lowerPacking)) {
+      return UnitType.Strip;
+    }
+
+    return UnitType.Other;
+  }
+
+  int extractPackingQuantity(String? packing) {
+    if (packing == null || packing.isEmpty) return 0;
+
+    final numbers = RegExp(r'\d+').allMatches(packing).map((e) => int.tryParse(e.group(0) ?? '0') ?? 0).toList();
+
+    if (numbers.length >= 2) {
+      return numbers[0] * numbers[1]; // e.g., 10x1 => 10 * 1 = 10
+    } else if (numbers.length == 1) {
+      return numbers[0]; // e.g., "30's" => 30
+    }
+    return 0;
+  }
+
 }

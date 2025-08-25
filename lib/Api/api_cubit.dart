@@ -118,7 +118,7 @@ class ApiCubit extends Cubit<ApiState> {
         emit(BarcodeScanError(response['message'] ?? 'No product found.'));
         return;
       }
-      final data = response['data'] as List;
+      final data = response['data']['data'] as List;
       final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
       emit(BarcodeScanLoaded(list: list,source: source));
     } catch (e) {

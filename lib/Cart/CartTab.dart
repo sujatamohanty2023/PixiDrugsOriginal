@@ -69,7 +69,7 @@ class _CartTabState extends State<CartTab> {
     return GestureDetector(
       onTap: (){
         if(flag==1) {
-          AppRoutes.navigateTo(context,ProductListPage(flag: 4));
+          AppRoutes.navigateTo(context,ProductListPage(flag: 4,selectedSeller: null,));
         }else if(flag==2) {
           _scanBarcode();
         }else if(flag==3){

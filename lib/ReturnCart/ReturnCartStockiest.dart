@@ -29,10 +29,9 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
     'Other',
   ];
 
-  String? selectedReason;
+  String? selectedReason='Select return reason';
   String? name, phone, address = '';
   int? personId=0;
-  bool isSubmitting = false;
   @override
   void initState() {
     super.initState();
@@ -250,10 +249,7 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            if (!isSubmitting) {
-              isSubmitting = true;
-              StockestReturnApiCall();
-            }
+            StockestReturnApiCall();
           },
           custom_design: true,
           buttonText: widget.edit?'Update Return':"Make Return",
@@ -266,6 +262,14 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
   Future<void> StockestReturnApiCall() async {
     final userId = await SessionManager.getParentingId() ?? '';
     final cartState = context.read<CartCubit>().state;
+    if (selectedReason == null || selectedReason == 'Select return reason') {
+      AppUtils.showSnackBar(context, 'Please select a valid return reason');
+      return;
+    }
+    if(cartState.barcodeCartItems.isEmpty){
+      AppUtils.showSnackBar(context, 'Please Add return Item' );
+      return;
+    }
 
     final selectedItems = cartState.barcodeCartItems.
     map((item) => ReturnItemModel(

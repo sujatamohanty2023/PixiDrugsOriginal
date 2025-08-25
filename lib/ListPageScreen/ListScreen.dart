@@ -159,16 +159,16 @@ class _ListScreenState extends State<ListScreen>
       );
     }
   }
-  void _deleteRecord(String id) async {
+  void _deleteRecord(int id) async {
     try {
       switch (widget.type) {
         case ListType.invoice:
-          await context.read<ApiCubit>().InvoiceDelete(invoice_id: id);
-          setState(() => invoiceList.removeWhere((inv) => inv.invoiceId == id));
+          await context.read<ApiCubit>().InvoiceDelete(invoice_id: id.toString());
+          setState(() => invoiceList.removeWhere((inv) => inv.id == id));
           break;
         case ListType.sale:
-          await context.read<ApiCubit>().SaleDelete(billing_id: id);
-          setState(() => saleList.removeWhere((sale) => sale.invoiceNo == int.parse(id)));
+          await context.read<ApiCubit>().SaleDelete(billing_id: id.toString());
+          setState(() => saleList.removeWhere((sale) => sale.invoiceNo == id));
           break;
         default:
           break;
@@ -179,10 +179,10 @@ class _ListScreenState extends State<ListScreen>
     }
   }
 
-  void _showDeleteDialog(BuildContext context,String id) {
+  void _showDeleteDialog(BuildContext context,int id) {
     CommonConfirmationDialog.show<String>(
       context: context,
-      id: id,
+      id: id.toString(),
       title: 'Delete ${widget.type.name} Record?',
       content: 'Are you sure you want to delete this ${widget.type.name} record?',
       onConfirmed: (_) => _deleteRecord(id),
@@ -318,7 +318,7 @@ class _ListScreenState extends State<ListScreen>
 
   Widget _buildTopBar(double screenWidth) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
+      padding: EdgeInsets.only(top:screenWidth * 0.02,left:screenWidth * 0.02,right: screenWidth * 0.02),
       child: Row(
         children: [
           IconButton(
@@ -336,7 +336,7 @@ class _ListScreenState extends State<ListScreen>
   }
   Widget _buildSearchBar(double screenWidth) {
     return Padding(
-      padding: EdgeInsets.all(screenWidth * 0.04),
+      padding: EdgeInsets.only(left:screenWidth * 0.04,right: screenWidth * 0.04,bottom: screenWidth * 0.02),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

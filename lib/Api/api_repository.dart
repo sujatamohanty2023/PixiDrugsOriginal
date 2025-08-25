@@ -118,12 +118,14 @@ class ApiRepository {
         'email': model.email,
         'address': model.address,
         'payment_type': model.payment_type,
-        'amount':model.amount,
-        'title':model.title,
-        'expanse_date':DateTime.now().toString(),
-        'note':model.note,
-        'store_id': model.seller_id,
         'items': model.toApiFormatProductOrder(),
+        if (model.note.isNotEmpty) ...{
+          'amount': model.amount,
+          'title': model.title,
+          'expanse_date': DateTime.now().toString(),
+          'note': model.note,
+          'store_id': model.seller_id,
+        },
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }

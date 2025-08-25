@@ -7,7 +7,7 @@ class InvoiceListWidget extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final Function(Invoice invoice) onEditPressed;
-  final Function(String id) onDeletePressed;
+  final Function(int id) onDeletePressed;
   String? role;
 
   InvoiceListWidget({
@@ -134,7 +134,7 @@ class InvoiceListWidget extends StatelessWidget {
                               if (value == 'edit') {
                                 onEditPressed(invoice);
                               } else if (value == 'delete') {
-                                onDeletePressed(invoice.invoiceId!);
+                                onDeletePressed(invoice.id!);
                               }
                             },
                             itemBuilder: (context) => [

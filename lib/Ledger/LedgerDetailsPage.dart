@@ -48,11 +48,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
             AppUtils.showSnackBar(context,state.message);
             setState(() {
               widget.ledger!.history.removeWhere(
-                (ledger) => ledger.id == deleteId,
+                    (ledger) => ledger.id == deleteId,
               );
             });
           } else if (state is DeletePaymentError) {
-          AppUtils.showSnackBar(context,'Failed: ${state.error}');
+            AppUtils.showSnackBar(context,'Failed: ${state.error}');
           }
         },
         child: Container(
@@ -152,11 +152,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                   Expanded(
                                     child: Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
                                         Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                           children: [
                                             // MyTextfield.textStyle_w800(
                                             //     truncateWords(widget.ledger!.sellerName, 5),
@@ -164,9 +164,9 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                             //     AppColor.kblack),
                                             MyTextfield.textStyle_w800(
                                                 truncateWords(widget.ledger!.sellerName, 2),
-                                              screenWidth * 0.04,
-                                              AppColors.kPrimary,
-                                              maxLines: 1
+                                                screenWidth * 0.04,
+                                                AppColors.kPrimary,
+                                                maxLines: 1
                                             ),
                                             SizedBox(
                                               height: screenWidth * 0.01,
@@ -194,7 +194,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                         ),
                                         Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.end,
+                                          CrossAxisAlignment.end,
                                           children: [
                                             // Call button
                                             GestureDetector(
@@ -210,7 +210,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                 decoration: BoxDecoration(
                                                   color: Colors.green[100],
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
+                                                  BorderRadius.circular(10),
                                                 ),
                                                 child: Icon(
                                                   Icons.call,
@@ -225,25 +225,25 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                             Builder(
                                               builder: (context) {
                                                 Color amountColor =
-                                                    widget.ledger!.dueAmount
-                                                            .contains('-')
-                                                        ? Colors.red
-                                                        : Colors.green;
+                                                widget.ledger!.dueAmount
+                                                    .contains('-')
+                                                    ? Colors.red
+                                                    : Colors.green;
 
                                                 return Container(
                                                   padding: EdgeInsets.symmetric(
                                                     horizontal:
-                                                        screenWidth * 0.025,
+                                                    screenWidth * 0.025,
                                                     vertical:
-                                                        screenWidth * 0.01,
+                                                    screenWidth * 0.01,
                                                   ),
                                                   decoration: BoxDecoration(
                                                     color: amountColor
                                                         .withOpacity(0.1),
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                          screenWidth * 0.02,
-                                                        ),
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.02,
+                                                    ),
                                                   ),
                                                   child: MyTextfield.textStyle_w600(
                                                     "₹${widget.ledger!.dueAmount}",
@@ -314,9 +314,9 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                           .history[index]
                                           .paymentReason;
                                   final icon =
-                                      payment == 'debit'
-                                          ? Icons.arrow_upward
-                                          : Icons.arrow_downward;
+                                  payment == 'debit'
+                                      ? Icons.arrow_upward
+                                      : Icons.arrow_downward;
 
                                   return Card(
                                     color: Colors.white,
@@ -339,15 +339,15 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                 child: CircleAvatar(
                                                   radius: 30,
                                                   backgroundColor:
-                                                      payment == 'debit'
-                                                          ? Colors.green[100]
-                                                          : Colors.red[100],
+                                                  payment == 'debit'
+                                                      ? Colors.green[100]
+                                                      : Colors.red[100],
                                                   child: Icon(
                                                     icon,
                                                     color:
-                                                        payment == 'debit'
-                                                            ? Colors.green[800]
-                                                            : Colors.red[800],
+                                                    payment == 'debit'
+                                                        ? Colors.green[800]
+                                                        : Colors.red[800],
                                                   ),
                                                 ),
                                               ),
@@ -445,7 +445,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                               // Popup menu
                                               Column(
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
+                                                CrossAxisAlignment.end,
                                                 children: [
                                                   PopupMenuButton<String>(
                                                     shape: RoundedRectangleBorder(
@@ -470,32 +470,32 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                     },
                                                     itemBuilder:
                                                         (
-                                                          BuildContext context,
+                                                        BuildContext context,
                                                         ) => [
-                                                          PopupMenuItem(
-                                                            value: 'edit',
-                                                            child: Row(
-                                                              children: [
-                                                                SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
-                                                                SizedBox(
-                                                                  width: 8,
-                                                                ),
-                                                                MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
-                                                              ],
+                                                      PopupMenuItem(
+                                                        value: 'edit',
+                                                        child: Row(
+                                                          children: [
+                                                            SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
+                                                            SizedBox(
+                                                              width: 8,
                                                             ),
+                                                            MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      if(role=='owner')
+                                                        PopupMenuItem(
+                                                          value: 'delete',
+                                                          child: Row(
+                                                            children: [
+                                                              SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
+                                                              SizedBox(width: 8),
+                                                              MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
+                                                            ],
                                                           ),
-                                                          if(role=='owner')
-                                                          PopupMenuItem(
-                                                            value: 'delete',
-                                                            child: Row(
-                                                              children: [
-                                                                SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
-                                                                SizedBox(width: 8),
-                                                                MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
+                                                        ),
+                                                    ],
                                                   ),
                                                   SizedBox(
                                                     height: screenWidth * 0.05,
@@ -584,40 +584,40 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                 child:  Row(
                   children: [
                     Expanded(
-                        flex: 2,
-                        child: MyTextfield.textStyle_w400(
-                          "Date",
-                          screenWidth * 0.038,
-                          Colors.white,
-                        ),
+                      flex: 2,
+                      child: MyTextfield.textStyle_w400(
+                        "Date",
+                        screenWidth * 0.038,
+                        Colors.white,
+                      ),
                     ),
                     Expanded(
-                        flex: 2,
-                        child: MyTextfield.textStyle_w400(
-                          "Type",
-                          screenWidth * 0.038,
-                          Colors.white,
-                        ),
+                      flex: 2,
+                      child: MyTextfield.textStyle_w400(
+                        "Type",
+                        screenWidth * 0.038,
+                        Colors.white,
+                      ),
                     ),
                     Expanded(
-                        flex: 1,
-                        child: MyTextfield.textStyle_w400(
-                          "Mode",
-                          screenWidth * 0.038,
-                          Colors.white,
-                        ),
+                      flex: 1,
+                      child: MyTextfield.textStyle_w400(
+                        "Mode",
+                        screenWidth * 0.038,
+                        Colors.white,
+                      ),
                     ),
                     Expanded(
-                        flex: 1,
-                        child: MyTextfield.textStyle_w400(
-                          "Ref No",
-                          screenWidth * 0.038,
-                          Colors.white,
-                        ),
+                      flex: 1,
+                      child: MyTextfield.textStyle_w400(
+                        "Ref No",
+                        screenWidth * 0.038,
+                        Colors.white,
+                      ),
                     ),
                     Expanded(
-                        flex: 2,
-                        child: MyTextfield.textStyle_w400("Amount", screenWidth * 0.038, Colors.white,textAlign: TextAlign.right,),
+                      flex: 2,
+                      child: MyTextfield.textStyle_w400("Amount", screenWidth * 0.038, Colors.white,textAlign: TextAlign.right,),
                     ),
                   ],
                 ),
@@ -662,7 +662,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
               const SizedBox(height: 8),
 
               // Summary Section
-             Container(
+              Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color:  Color(0xFFC4DAF6),
@@ -686,7 +686,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                       ],
                     ),
                     Divider(),
-                   Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         MyTextfield.textStyle_w400('Net Due:', screenWidth * 0.038, Colors.black,),
@@ -994,10 +994,10 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
   }
 
   void _AddPaymentPressed(
-    LedgerModel ledger, {
-    var edit = false,
-    var index = 0,
-  }) {
+      LedgerModel ledger, {
+        var edit = false,
+        var index = 0,
+      }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.kWhiteColor,
@@ -1009,19 +1009,19 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
       ),
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.73,
-            minChildSize: 0.73,
-            maxChildSize: 0.85,
-            builder: (context, scrollController) {
-              return PaymentOutEntryPage(
-                edit: edit,
-                index: index,
-                ledger: ledger,
-                scrollController: scrollController,
-              );
-            },
-          ),
+        expand: false,
+        initialChildSize: 0.73,
+        minChildSize: 0.73,
+        maxChildSize: 0.85,
+        builder: (context, scrollController) {
+          return PaymentOutEntryPage(
+            edit: edit,
+            index: index,
+            ledger: ledger,
+            scrollController: scrollController,
+          );
+        },
+      ),
     );
   }
 

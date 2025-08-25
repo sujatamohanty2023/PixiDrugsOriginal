@@ -9,7 +9,7 @@ class OrderPlaceModel {
   String email;
   String address;
   String payment_type;
-  double amount;
+  String amount;
   String title;
   String note;
 
@@ -21,7 +21,7 @@ class OrderPlaceModel {
     this.email = '',
     this.address = '',
     this.payment_type = '',
-    this.amount = 0.00,
+    this.amount = '',
     this.title = '',
     this.note = '',
   });
