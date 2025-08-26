@@ -713,7 +713,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   Expanded(
                     child: MyElevatedButton(
                       onPressed: () async {
-                        await generateAndSaveLedgerPdf(ledger);
+                        await generateAndSaveLedgerPdf(ledger,context);
                       },
                       buttonText: 'Download',
                     ),

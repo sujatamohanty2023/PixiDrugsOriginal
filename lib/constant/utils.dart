@@ -164,7 +164,7 @@ class AppUtils {
       return UnitType.Strip;
     }
 
-    return UnitType.Other;
+    return null;
   }
 
   int extractPackingQuantity(String? packing) {

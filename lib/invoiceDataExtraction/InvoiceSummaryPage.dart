@@ -392,11 +392,11 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       final totalQty = item.qty + item.qty_free;
 
       int computedTabQty = 0;
-      if (unitType == UnitType.Tablet && packingQty > 0) {
+      if ((unitType == UnitType.Tablet ||unitType == UnitType.Strip) && packingQty > 0) {
         computedTabQty = totalQty * packingQty;
       }
 
-      return item.copyWith(tabQty: computedTabQty);
+      return item.copyWith(tabQty: computedTabQty,medType: unitType?.name);
     }).toList();
   }
 

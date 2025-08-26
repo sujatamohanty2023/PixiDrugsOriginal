@@ -4,6 +4,7 @@ class AppImages {
   static String PNGFolder = "assets/images/";
 
   static String AppIcon = "${PNGFolder}splash.jpg";
+  static String Splash = "${PNGFolder}splashscreen.png";
   static String Intro1 = "${PNGFolder}image1.jpg";
   static String Intro2 = "${PNGFolder}image2.jpg";
   static String Intro3 = "${PNGFolder}image3.jpg";

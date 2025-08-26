@@ -1,13 +1,11 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:open_filex/open_filex.dart';
 
+import '../constant/all.dart';
 import 'LedgerModel.dart';
 
-Future<void> generateAndSaveLedgerPdf(LedgerModel ledger) async {
+Future<void> generateAndSaveLedgerPdf(LedgerModel ledger, BuildContext context) async {
   final pdf = pw.Document();
   final last7 = (ledger.history ?? []).take(7).toList();
 
@@ -114,5 +112,7 @@ Future<void> generateAndSaveLedgerPdf(LedgerModel ledger) async {
   await file.writeAsBytes(bytes);
 
   // ✅ Open the PDF directly
-  await OpenFilex.open(file.path);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("PDF saved to Downloads and opened.")),
+  );
 }
