@@ -10,9 +10,9 @@ class Invoice {
   String? invoiceDate;
   String? sellerId;
   String? sellerName;
+  String? sellerPhone;
   String? sellerGstin;
   String? sellerAddress;
-  String? sellerPhone;
   String? userId;
   String? netAmount;
   List<InvoiceItem> items;
@@ -141,6 +141,12 @@ class InvoiceItem {
   String invoiceNo;
   String medType;
   int tabQty;
+  int? sellerId;
+  String? sellerName;
+  String? sellerPhone;
+  int? customerId;
+  String? customerName;
+  String? customerPhone;
 
 
   InvoiceItem({
@@ -170,6 +176,12 @@ class InvoiceItem {
     this.invoiceNo='',
     this.medType='',
     this.tabQty=0,
+    this.sellerId=0,
+    this.sellerName='',
+    this.sellerPhone='',
+    this.customerId=0,
+    this.customerName='',
+    this.customerPhone='',
   });
 
   InvoiceItem copyWith({
@@ -198,7 +210,13 @@ class InvoiceItem {
     UnitType? unitType,
     String? invoiceNo,
     String? medType,
-    int? tabQty
+    int? tabQty,
+    int? sellerId,
+    String? sellerName,
+    String? sellerPhone,
+    int? customerId,
+    String? customerName,
+    String? customerPhone,
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -226,6 +244,12 @@ class InvoiceItem {
       invoiceNo: invoiceNo??this.invoiceNo,
       medType: medType??this.medType,
       tabQty: tabQty??this.tabQty,
+      sellerId: sellerId??this.sellerId,
+      sellerName: sellerName??this.sellerName,
+      sellerPhone: sellerPhone??this.sellerPhone,
+      customerId: sellerId??this.customerId,
+      customerName: sellerName??this.customerName,
+      customerPhone: sellerPhone??this.customerPhone,
     );
   }
 
@@ -417,6 +441,12 @@ class InvoiceItem {
       invoiceNo: ApiParserUtils.parseString(normalized['invoice_no']),
       medType: ApiParserUtils.parseString(normalized['med_type']),
       tabQty: ApiParserUtils.parseInt(normalized['tab_qty']),
+      sellerId: ApiParserUtils.parseInt(normalized['seller_id']),
+      sellerName: ApiParserUtils.parseString(normalized['seller_name']),
+      sellerPhone: ApiParserUtils.parseString(normalized['seller_phone']),
+      customerId: ApiParserUtils.parseInt(normalized['customer_id']),
+      customerName: ApiParserUtils.parseString(normalized['customer_name']),
+      customerPhone: ApiParserUtils.parseString(normalized['customer_phone']),
     );
   }
 

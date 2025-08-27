@@ -263,6 +263,7 @@ class _CartTabState extends State<CartTab> {
                 ),
               ),
               const SizedBox(height: 10),
+
               Padding(
                 padding: const EdgeInsets.only(right: 15.0),
                 child: SingleChildScrollView(
@@ -270,16 +271,25 @@ class _CartTabState extends State<CartTab> {
                   child: Row(
                     children: [
                       const SizedBox(width: 8),
+                      buildActionButton(
+                        Icons.browse_gallery,
+                        'Pick Image',
+                        3,
+                      ),
+                      const SizedBox(width: 8),
+                      buildActionButton(
+                        Icons.qr_code_scanner,
+                        'Scan Barcode',
+                        2,
+                      ),
+                      const SizedBox(width: 8),
                       buildActionButton(Icons.edit, 'Add Manually', 1),
-                      const SizedBox(width: 8),
-                      buildActionButton(Icons.qr_code_scanner, 'Scan Barcode',2),
-                      const SizedBox(width: 8),
-                      buildActionButton(Icons.browse_gallery, 'Pick Image', 3),
                       const SizedBox(width: 8),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 10),
             ],
           ),

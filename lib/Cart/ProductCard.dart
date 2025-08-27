@@ -1,4 +1,7 @@
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/search/customerModel.dart';
+
+import '../search/sellerModel.dart';
 
 enum ProductCardMode { search, cart }
 
@@ -9,8 +12,12 @@ class ProductCard extends StatefulWidget {
   final bool saleCart;
   final VoidCallback? onRemove;
   final VoidCallback? onUpdate;
+  final bool returnStock;
+  final Function(Seller)? onSellerSelected;
+  final Function(CustomerModel)? onCustomerSelected;
+  final CartTypeSelection? cartTypeSelection;
 
-  const ProductCard({
+  ProductCard({
     super.key,
     required this.item,
     this.mode = ProductCardMode.search,
@@ -18,6 +25,9 @@ class ProductCard extends StatefulWidget {
     this.saleCart = false,
     this.onRemove,
     this.onUpdate,
+    this.returnStock = false,
+    this.onSellerSelected,this.onCustomerSelected,
+    this.cartTypeSelection=CartTypeSelection.Sale,
   });
 
   @override
@@ -163,6 +173,11 @@ class _ProductCardState extends State<ProductCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if(widget.returnStock)
+          widget.cartTypeSelection==CartTypeSelection.StockiestReturn?
+          MyTextfield.textStyle_w400('${widget.item.sellerName} / ${widget.item.sellerPhone}', 18, Colors.red):
+          MyTextfield.textStyle_w400('${widget.item.customerName} / ${widget.item.customerPhone}', 18, Colors.red),
+
         MyTextfield.textStyle_w600(widget.item.product, 18, Colors.black),
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
         MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!),
@@ -239,6 +254,33 @@ class _ProductCardState extends State<ProductCard> {
               return GestureDetector(
                 onTap: () {
                   cartCubit.addToCart(widget.item, 1, type: CartType.barcode);
+                  if(cartCubit.state.barcodeCartItems.length==1 && widget.returnStock){
+                    if(widget.onSellerSelected!=null) {
+                      final updatedSeller = Seller(
+                        id: widget.item.sellerId ?? 0,
+                        sellerName: widget.item.sellerName ?? '',
+                        phone: widget.item.sellerPhone ?? '',
+                        address: '',
+                        // If available in item, use it here
+                        gstNo: '',
+                      );
+
+                      // Call the parent callback
+                      widget.onSellerSelected?.call(updatedSeller);
+                    }
+                    if(widget.onCustomerSelected!=null) {
+                      final updatedCustomer = CustomerModel(
+                        id: widget.item.customerId ?? 0,
+                        name: widget.item.customerName ?? '',
+                        phone: widget.item.customerPhone ?? '',
+                        address: '',
+                      );
+
+                      // Call the parent callback
+                      widget.onCustomerSelected?.call(updatedCustomer);
+                    }
+                    Navigator.pop(context);
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

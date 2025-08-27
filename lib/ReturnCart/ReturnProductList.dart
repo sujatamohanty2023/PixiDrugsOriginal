@@ -4,15 +4,21 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../search/customerModel.dart';
 import '../search/sellerModel.dart';
 
-class ProductListPage extends StatefulWidget {
+class ReturnProductListPage extends StatefulWidget {
+  CartTypeSelection? cartTypeSelection;
   final int flag;
-  ProductListPage({super.key,required this.flag});
+  Seller? selectedSeller;
+  CustomerModel? selectedCustomer;
+  final Function(Seller)? onSellerSelected;
+  final Function(CustomerModel)? onCustomerSelected;
+  ReturnProductListPage({super.key,required this.cartTypeSelection, required this.flag,this.selectedSeller,this.selectedCustomer,
+    this.onSellerSelected,this.onCustomerSelected,});
 
   @override
-  State<ProductListPage> createState() => _ProductListPageState();
+  State<ReturnProductListPage> createState() => _ReturnProductListPageState();
 }
 
-class _ProductListPageState extends State<ProductListPage> {
+class _ReturnProductListPageState extends State<ReturnProductListPage> {
   final List<InvoiceItem> _products = [];
   List<InvoiceItem> _filteredProducts = [];
   Timer? _debounce;
@@ -35,14 +41,15 @@ class _ProductListPageState extends State<ProductListPage> {
       isLoading = true;
     });
     String? userId=await SessionManager.getParentingId();
-    if(widget.flag==1) {
-      context.read<ApiCubit>().fetchStockList(user_id: userId!);
-    }else if(widget.flag==2) {
-      context.read<ApiCubit>().expiredStockList(user_id: userId!);
-    }else if(widget.flag==3) {
-      context.read<ApiCubit>().expireSoonStockList(user_id: userId!);
-    }else if(widget.flag==4){
-        context.read<ApiCubit>().fetchStockList(user_id: userId!);
+    if(widget.flag==4){
+      if(widget.selectedSeller!=null || widget.selectedCustomer !=null) {
+        context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
+      }else{
+        widget.cartTypeSelection==CartTypeSelection.StockiestReturn?
+        context.read<ApiCubit>().fetchStockList(user_id: userId!):
+        context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',source: 'manual');
+
+      }
     }
   }
   void _onSearch() {
@@ -55,8 +62,14 @@ class _ProductListPageState extends State<ProductListPage> {
 
       if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
         String? userId = await SessionManager.getParentingId();
-        context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual');
-      } else {
+        if(widget.selectedSeller!=null || widget.selectedCustomer !=null) {
+          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
+        }else {
+          widget.cartTypeSelection == CartTypeSelection.StockiestReturn ?
+          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual', seller_id: widget.selectedSeller?.id.toString() ?? '')
+          : context.read<ApiCubit>().customerbarcode(code: query, storeId: userId!, source: 'manual');
+        }
+      }else {
         // Local filtering if not in search mode (flag != 4)
         setState(() {
           _filteredProducts = _products.where((product) {
@@ -84,50 +97,58 @@ class _ProductListPageState extends State<ProductListPage> {
       backgroundColor: AppColors.kPrimary,
       appBar: customAppBar(context, _searchController, _onclearTap,flag:widget.flag),
       body: BlocConsumer<ApiCubit, ApiState>(
-        listener: (context, state) {
-          if (state is StockListLoaded ||
-              state is ExpiredStockListLoaded ||
-              state is ExpireSoonStockListLoaded||
-              state is BarcodeScanLoaded) {
-            isLoading=false;
-            _products.clear();
-            if(widget.flag==4 && state is BarcodeScanLoaded){
-              _products.addAll(state.list);
-            }else {
-              if (state is StockListLoaded) {
-                _products.addAll(state.stockList);
-              } else if (state is ExpiredStockListLoaded) {
-                _products.addAll(state.stockList);
-              } else if (state is ExpireSoonStockListLoaded) {
-                _products.addAll(state.stockList);
+          listener: (context, state) {
+            if (state is StockListLoaded ||
+                state is BarcodeScanLoaded||
+                state is CustomerBarcodeScanLoaded) {
+              isLoading=false;
+              _products.clear();
+              if(state is BarcodeScanLoaded){
+                _products.addAll(state.list);
+              }if(state is CustomerBarcodeScanLoaded){
+                _products.addAll(state.list);
+              }else if (state is StockListLoaded) {
+                  _products.addAll(state.stockList);
+                  _filteredProducts = List.from(_products);
               }
-              _filteredProducts = List.from(_products);
             }
-          }
-        },
+          },
           builder: (context, state) {
             Widget content;
 
             if (state is StockListLoading ||
-                state is ExpiredStockListLoading ||
-                state is ExpireSoonStockListLoading||
-                state is BarcodeScanLoading) {
+                state is BarcodeScanLoading ||
+                state is CustomerBarcodeScanLoading) {
               content = const Center(
                 child: CircularProgressIndicator(color: AppColors.kPrimary),
               );
-            } else if (isLoading==false && widget.flag!=4 && _filteredProducts.isEmpty) {
-              content = _buildEmptyPage(flag: widget.flag, onAddProduct: _onAddProduct);
             }else {
               content = ListView.builder(
                 itemCount: widget.flag==4?_products.length:_filteredProducts.length,
                 itemBuilder: (context, index) =>
-                    widget.flag==4?Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ProductCard(
-                        item: _products[index],
-                        mode: ProductCardMode.search
-                      ),
-                    ):ProductTile(product: _filteredProducts[index]),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ProductCard(
+                      item: _products[index],
+                      mode: ProductCardMode.search,
+                      returnStock:true,
+                      cartTypeSelection:widget.cartTypeSelection,
+                      onSellerSelected: (updatedSeller) {
+                        // Notify grandparent if needed
+                        setState(() {
+                          widget.selectedSeller = updatedSeller;
+                          widget.onSellerSelected?.call(updatedSeller);
+                        });
+                      },
+                      onCustomerSelected: (updatedCustomer) {
+                        // Notify grandparent if needed
+                        setState(() {
+                          widget.selectedCustomer = updatedCustomer;
+                          widget.onCustomerSelected?.call(updatedCustomer);
+                        });
+                      }
+                  ),
+                ),
               );
             }
 
@@ -145,50 +166,14 @@ class _ProductListPageState extends State<ProductListPage> {
           }
 
       ),
-      floatingActionButton: widget.flag==1 &&_filteredProducts.isNotEmpty?SizedBox(
-        child: FloatingActionButton.extended(
-          backgroundColor: AppColors.kPrimary,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50)),
-          onPressed: _onAddProduct,
-          icon: const Icon(Icons.add,color: Colors.white,),
-          label: MyTextfield.textStyle_w800("ADD",16,AppColors.kWhiteColor,),
-        ),
-      ):SizedBox(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
-}
-Widget _buildEmptyPage({required int flag,required VoidCallback onAddProduct}) {
-  return  Container(
-    padding: EdgeInsets.only(top: 20),
-    decoration: BoxDecoration(
-      gradient: AppColors.myGradient,
-      borderRadius: BorderRadius.only(
-        topRight: Radius.circular(30),
-        topLeft: Radius.circular(30),
-      ),
-    ),
-    child: NoItemPage(
-      onTap: onAddProduct,
-      image: AppImages.no_expiry,
-      tittle: "Your list is Empty",
-      description: "Looks like you haven't added anything \nto your stock yet.",
-      button_tittle: flag==1?'Add Now':'',
-    ),
-  );
 }
 // ✅ Custom AppBar with search + barcode
 PreferredSizeWidget customAppBar(BuildContext context,
     TextEditingController searchController, VoidCallback onclearTap, {required int flag}) {
   var tittle='';
-  if(flag==1) {
-    tittle='My Stock';
-  }else if(flag==2) {
-    tittle='Expired Stock';
-  }else if(flag==3) {
-    tittle='ExpireSoon Stock';
-  }else if(flag==4) {
+  if(flag==4) {
     tittle='Search Product';
   }
   return PreferredSize(

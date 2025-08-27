@@ -1,4 +1,3 @@
-
 import 'package:PixiDrugs/ReturnCart/ReturnCartCustomer.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/search/customerModel.dart';
@@ -11,13 +10,18 @@ import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../Stock/ProductList.dart';
 import '../ReturnCart/ReturnCartStockiest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import 'ReturnProductList.dart';
 
 class ReturnCartTab extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
   dynamic returnModel;
   bool detail;
+
   ReturnCartTab({
-    Key? key, required this.cartTypeSelection, this.returnModel,this.detail=false
+    Key? key,
+    required this.cartTypeSelection,
+    this.returnModel,
+    this.detail = false,
   }) : super(key: key);
 
   @override
@@ -32,12 +36,13 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   Seller? selectedSeller;
   CustomerModel? selectedCustomer;
   List<InvoiceItem> searchResults = [];
-  String userId='';
+  String userId = '';
   final ImagePicker _picker = ImagePicker();
   String extractedBatchNumber = '';
-  bool edit =false;
+  bool edit = false;
   PurchaseReturnModel? stockiest_item;
   CustomerReturnsResponse? customer_item;
+
   @override
   void initState() {
     super.initState();
@@ -45,12 +50,14 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     _loadUserId();
     _searchController.addListener(_onSearch);
   }
+
   Future<void> _loadUserId() async {
     final id = await SessionManager.getParentingId();
     setState(() {
       userId = id ?? '';
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -58,33 +65,71 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         context.read<CartCubit>().clearCart(type: CartType.barcode);
         return true; // allow popping
       },
-      child:Scaffold(
+      child: Scaffold(
         backgroundColor: AppColors.kPrimary,
         body: BlocListener<ApiCubit, ApiState>(
           listener: (context, state) {
-            if (state is BarcodeScanLoaded && state.source=='scan') {
+            if (state is BarcodeScanLoaded && state.source == 'scan') {
               searchResults = state.list;
               if (searchResults.isNotEmpty) {
                 final cartCubit = context.read<CartCubit>();
-                cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
+                cartCubit.addToCart(
+                  searchResults.first,
+                  1,
+                  type: CartType.barcode,
+                );
+                if (widget.cartTypeSelection ==
+                    CartTypeSelection.StockiestReturn) {
+                  selectedSeller = Seller(
+                    id: searchResults.first.sellerId ?? 0,
+                    sellerName: searchResults.first.sellerName ?? '',
+                    phone: searchResults.first.sellerPhone ?? '',
+                    address: '',
+                    gstNo: '', // or from cart item if available
+                  );
+                } else {}
               } else {
-                AppUtils.showSnackBar(context,'No products found.');
+                AppUtils.showSnackBar(context, 'No products found.');
               }
             } else if (state is BarcodeScanError) {
-              AppUtils.showSnackBar(context,state.error);
-            }else if (state is SearchSellerLoaded) {
+              AppUtils.showSnackBar(context, state.error);
+            }
+            if (state is CustomerBarcodeScanLoaded && state.source == 'scan') {
+              searchResults = state.list;
+              if (searchResults.isNotEmpty) {
+                final cartCubit = context.read<CartCubit>();
+                cartCubit.addToCart(
+                  searchResults.first,
+                  1,
+                  type: CartType.barcode,
+                );
+                if (widget.cartTypeSelection ==
+                    CartTypeSelection.CustomerReturn) {
+                  selectedCustomer = CustomerModel(
+                    id: searchResults.first.customerId ?? 0,
+                    name: searchResults.first.customerName ?? '',
+                    phone: searchResults.first.customerPhone ?? '',
+                    address: '',
+                  );
+                } else {}
+              } else {
+                AppUtils.showSnackBar(context, 'No products found.');
+              }
+            } else if (state is CustomerBarcodeScanError) {
+              AppUtils.showSnackBar(context, state.error);
+            } else if (state is SearchSellerLoaded) {
               setState(() {
                 _detail_Seller.clear();
                 _detail_Seller.addAll(state.sellerList);
               });
-            }else if (state is SearchSellerError) {
+            } else if (state is SearchSellerError) {
               // AppUtils.showSnackBar(context,state.error);
-            }else if (state is SearchUserLoaded) {
+            } else if (state is SearchUserLoaded) {
               setState(() {
                 _detail_Customer.clear();
                 _detail_Customer.addAll(state.customerList);
               });
-            }else if (state is SearchUserError) {
+            } else if (state is SearchUserError) {
               // AppUtils.showSnackBar(context,state.error);
             }
           },
@@ -95,7 +140,10 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                 child: Builder(
                   builder: (_) {
                     final hasSearchText = _searchController.text.isNotEmpty;
-                    final hasSelection = selectedSeller != null || selectedCustomer != null || widget.returnModel!=null;
+                    final hasSelection =
+                        selectedSeller != null ||
+                        selectedCustomer != null ||
+                        widget.returnModel != null;
 
                     // 🔍 Show search results
                     if (hasSearchText && !hasSelection) {
@@ -105,7 +153,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
 
                     if (hasSelection) {
                       return _buildReturnContent(context);
-                    }else {
+                    } else {
                       return _buildReturnPage();
                     }
                   },
@@ -114,24 +162,42 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
             ],
           ),
         ),
-      )
+      ),
     );
   }
 
-  Widget buildActionButton(IconData icon, String label,int flag) {
-
+  Widget buildActionButton(IconData icon, String label, int flag) {
     return GestureDetector(
-      onTap: (){
-        if(flag==1) {
-          AppRoutes.navigateTo(context,ProductListPage(flag: 4,selectedSeller:selectedSeller,selectedCustomer:selectedCustomer));
-        }else if(flag==2) {
+      onTap: () {
+        if (flag == 1) {
+          print('API${selectedSeller?.sellerName}/${selectedCustomer?.name}.');
+          AppRoutes.navigateTo(
+            context,
+            ReturnProductListPage(
+              flag: 4,
+              cartTypeSelection: widget.cartTypeSelection,
+              selectedSeller: selectedSeller,
+              selectedCustomer: selectedCustomer,
+              onSellerSelected: (updatedSeller) {
+                setState(() {
+                  selectedSeller = updatedSeller;
+                });
+              },
+              onCustomerSelected: (updatedCustomer) {
+                setState(() {
+                  selectedCustomer = updatedCustomer;
+                });
+              },
+            ),
+          );
+        } else if (flag == 2) {
           _scanBarcode();
-        }else if(flag==3){
+        } else if (flag == 3) {
           scanBatchNumber();
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
           borderRadius: BorderRadius.circular(50),
@@ -139,40 +205,69 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppColors.kPrimary,size: 14,),
+            Icon(
+              icon,
+              color: AppColors.kPrimary,
+              size: 14,
+            ),
             const SizedBox(width: 1),
-            MyTextfield.textStyle_w600(label, 16, AppColors.kPrimary),
+            MyTextfield.textStyle_w600(
+              label,
+              16,
+              AppColors.kPrimary,
+            ),
           ],
         ),
       ),
     );
   }
+
   Widget _buildReturnContent(BuildContext context) {
-    final isStockist = widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
+    final isStockist =
+        widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
 
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
         return Container(
-            color: AppColors.kPrimary,
-            child: isStockist?ReturnCartStockiest(
-                key: ValueKey(edit),
-                cartTypeSelection:widget.cartTypeSelection,
-                purchaseReturnModel: widget.returnModel,
-                edit:edit,
-                detail:widget.detail,
-                returnDetail:widget.detail?null:selectedSeller!):
-            ReturnCartCustomer(
-                key: ValueKey(edit),
-                cartTypeSelection:widget.cartTypeSelection,
-                customerReturnModel: widget.returnModel,
-                edit:edit,
-                detail:widget.detail,
-                returnDetail:widget.detail?null:selectedCustomer!));
+          color: AppColors.kPrimary,
+          child:
+              isStockist
+                  ? ReturnCartStockiest(
+                    key: ValueKey(edit),
+                    cartTypeSelection: widget.cartTypeSelection,
+                    purchaseReturnModel: widget.returnModel,
+                    edit: edit,
+                    detail: widget.detail,
+                    returnDetail: widget.detail ? null : selectedSeller!,
+                    onSellerUpdated: (Seller seller) {
+                      setState(() {
+                        selectedSeller = seller;
+                      });
+                    },
+                  )
+                  : ReturnCartCustomer(
+                    key: ValueKey(edit),
+                    cartTypeSelection: widget.cartTypeSelection,
+                    customerReturnModel: widget.returnModel,
+                    edit: edit,
+                    detail: widget.detail,
+                    returnDetail: widget.detail ? null : selectedCustomer!,
+                    onCustomerUpdated: (CustomerModel customer) {
+                      setState(() {
+                        selectedCustomer = customer;
+                      });
+                    },
+                  ),
+        );
       },
     );
   }
+
   Widget _buildReturnPage() {
-    var name=widget.cartTypeSelection==CartTypeSelection.StockiestReturn?'stockist':'customer';
+    var name =
+        widget.cartTypeSelection == CartTypeSelection.StockiestReturn
+            ? 'stockist'
+            : 'customer';
     return Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -185,16 +280,17 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         onTap: _searchDetail,
         image: AppImages.empty_cart,
         tittle: "Enter Return Details",
-        description: "Search by $name name to process the return. and\n also search through invoice or bill no. ",
+        description:
+            "Search by $name name to process the return. and\n also search through invoice or bill no. ",
         button_tittle: '',
       ),
     );
   }
-  Future<void> _searchDetail() async {
 
-  }
+  Future<void> _searchDetail() async {}
+
   Widget _buildSearchBar() {
-    return  Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
@@ -210,30 +306,37 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search ${widget.cartTypeSelection == CartTypeSelection.StockiestReturn ? "stockist" : "customer"} name...',
-                  hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
+                  hintText:
+                      'Search ${widget.cartTypeSelection == CartTypeSelection.StockiestReturn ? "stockist" : "customer"} name...',
+                  hintStyle: MyTextfield.textStyle(
+                    16,
+                    Colors.grey,
+                    FontWeight.w300,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
             ),
-            _searchController.text.isNotEmpty?IconButton(
-              onPressed: () {
-                setState(() {
-                  _searchController.clear();
-                  selectedSeller = null;
-                  selectedCustomer = null;
-                  _detail_Seller = [];
-                  _detail_Customer = [];
-                });
-              },
-              icon: const Icon(Icons.clear_rounded,
-                  color: Colors.grey),
-            ):SizedBox(),
+            _searchController.text.isNotEmpty
+                ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _searchController.clear();
+                      selectedSeller = null;
+                      selectedCustomer = null;
+                      _detail_Seller = [];
+                      _detail_Customer = [];
+                    });
+                  },
+                  icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                )
+                : SizedBox(),
           ],
         ),
       ),
     );
   }
+
   void _onSearch() {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
 
@@ -246,10 +349,17 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
           selectedCustomer = null;
         });
 
-        if(widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
-          context.read<ApiCubit>().SearchSellerDetail(query: query,storeId: userId);
-        } else if(widget.cartTypeSelection == CartTypeSelection.CustomerReturn) {
-          context.read<ApiCubit>().SearchCustomerDetail(query: query,storeId: userId);
+        if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
+          context.read<ApiCubit>().SearchSellerDetail(
+            query: query,
+            storeId: userId,
+          );
+        } else if (widget.cartTypeSelection ==
+            CartTypeSelection.CustomerReturn) {
+          context.read<ApiCubit>().SearchCustomerDetail(
+            query: query,
+            storeId: userId,
+          );
         }
       }
     });
@@ -263,6 +373,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     _debounce?.cancel();
     super.dispose();
   }
+
   Widget _buildSearchResultList() {
     return Container(
       decoration: BoxDecoration(
@@ -272,11 +383,13 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
           topRight: Radius.circular(SizeConfig.screenWidth! * 0.07),
         ),
       ),
-      child:  _searchResultWidget(),
+      child: _searchResultWidget(),
     );
   }
+
   Widget _searchResultWidget() {
-    final isStockist = widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
+    final isStockist =
+        widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
     final list = isStockist ? _detail_Seller : _detail_Customer;
 
     print("Showing ${list.length} search results");
@@ -296,16 +409,24 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     return ListView.builder(
       itemCount: list.length,
       itemBuilder: (context, index) {
-        final displayName = isStockist
-            ? _detail_Seller[index].sellerName
-            : _detail_Customer[index].name;
-        final phone = isStockist
-            ? _detail_Seller[index].phone
-            : _detail_Customer[index].phone;
+        final displayName =
+            isStockist
+                ? _detail_Seller[index].sellerName
+                : _detail_Customer[index].name;
+        final phone =
+            isStockist
+                ? _detail_Seller[index].phone
+                : _detail_Customer[index].phone;
 
         return ListTile(
-          title: Text(displayName ?? '', style: TextStyle(color:AppColors.kPrimary)),
-          subtitle: Text(phone ?? '', style: TextStyle(color: AppColors.kPrimary)),
+          title: Text(
+            displayName ?? '',
+            style: TextStyle(color: AppColors.kPrimary),
+          ),
+          subtitle: Text(
+            phone ?? '',
+            style: TextStyle(color: AppColors.kPrimary),
+          ),
           onTap: () => _onDetailItemSelected(index),
         );
       },
@@ -334,14 +455,23 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
       );
       if (result.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId,
-            seller_id:selectedSeller?.id.toString()??'',
-            customer_id:selectedCustomer?.id.toString()??'');
+        widget.cartTypeSelection == CartTypeSelection.StockiestReturn
+            ? context.read<ApiCubit>().BarcodeScan(
+              code: result,
+              storeId: userId,
+              seller_id: selectedSeller?.id.toString() ?? '',
+              customer_id: selectedCustomer?.id.toString() ?? '',
+            )
+            : context.read<ApiCubit>().customerbarcode(
+              code: extractedBatchNumber,
+              storeId: userId,
+            );
       }
     } catch (e) {
-      AppUtils.showSnackBar(context,'Failed to scan barcode');
+      AppUtils.showSnackBar(context, 'Failed to scan barcode');
     }
   }
+
   Future<void> scanBatchNumber() async {
     try {
       final result = await Navigator.push(
@@ -355,13 +485,18 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
       //AppUtils.showSnackBar(context,'Failed to scan');
     }
   }
+
   Future<void> scanBatchNumberOld() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.camera,
+    );
     if (pickedFile == null) return;
 
     final inputImage = InputImage.fromFile(File(pickedFile.path));
     final textRecognizer = TextRecognizer();
-    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+    final RecognizedText recognizedText = await textRecognizer.processImage(
+      inputImage,
+    );
 
     final List<String> allLines = [];
 
@@ -413,7 +548,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     if (batchNumber != null && batchNumber.isNotEmpty) {
       _showManualEntryBottomSheet(batchNumber);
     } else {
-      AppUtils.showSnackBar(context,'Batch number not found');
+      AppUtils.showSnackBar(context, 'Batch number not found');
       _showManualEntryBottomSheet('');
     }
   }
@@ -421,20 +556,29 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   void _showManualEntryBottomSheet(String batchNumber) {
     showDialog(
       context: context,
-      builder: (_) => EditValueDialog(
-        title: 'Batch No.',
-        initialValue:batchNumber,
-        onSave: (value) {
-          setState(() {
-            extractedBatchNumber = value;
-          });
-          context.read<ApiCubit>().BarcodeScan(
-              code: extractedBatchNumber,
-              storeId: userId,
-              source: 'scan',seller_id:selectedSeller?.id.toString()??'',customer_id:selectedCustomer?.id.toString()??''
-          );
-        },
-      ),
+      builder:
+          (_) => EditValueDialog(
+            title: 'Batch No.',
+            initialValue: batchNumber,
+            onSave: (value) {
+              setState(() {
+                extractedBatchNumber = value;
+              });
+              widget.cartTypeSelection == CartTypeSelection.StockiestReturn
+                  ? context.read<ApiCubit>().BarcodeScan(
+                    code: extractedBatchNumber,
+                    storeId: userId,
+                    source: 'scan',
+                    seller_id: selectedSeller?.id.toString() ?? '',
+                    customer_id: selectedCustomer?.id.toString() ?? '',
+                  )
+                  : context.read<ApiCubit>().customerbarcode(
+                    code: extractedBatchNumber,
+                    storeId: userId,
+                    source: 'scan',
+                  );
+            },
+          ),
     );
   }
 
@@ -458,7 +602,9 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            context.read<CartCubit>().clearCart(type: CartType.barcode);
+                            context.read<CartCubit>().clearCart(
+                              type: CartType.barcode,
+                            );
                             Navigator.pop(context);
                           },
                           child: SvgPicture.asset(
@@ -478,7 +624,11 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                   ),
                   if (widget.returnModel != null)
                     IconButton(
-                      icon: const Icon(Icons.edit, color: AppColors.kWhiteColor, size: 30),
+                      icon: const Icon(
+                        Icons.edit,
+                        color: AppColors.kWhiteColor,
+                        size: 30,
+                      ),
                       onPressed: () {
                         setState(() {
                           edit = true;
@@ -490,9 +640,9 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
               ),
 
               if (!widget.detail) _buildSearchBar(),
-              if(selectedSeller != null || selectedCustomer != null || edit)
-              const SizedBox(height: 5),
-              if(selectedSeller != null || selectedCustomer != null || edit)
+              if (edit || !widget.detail) const SizedBox(height: 5),
+
+              if (edit || !widget.detail)
                 Padding(
                   padding: const EdgeInsets.only(right: 15.0),
                   child: SingleChildScrollView(
@@ -500,16 +650,25 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     child: Row(
                       children: [
                         const SizedBox(width: 8),
+                        buildActionButton(
+                          Icons.browse_gallery,
+                          'Pick Image',
+                          3,
+                        ),
+                        const SizedBox(width: 8),
+                        buildActionButton(
+                          Icons.qr_code_scanner,
+                          'Scan Barcode',
+                          2,
+                        ),
+                        const SizedBox(width: 8),
                         buildActionButton(Icons.edit, 'Add Manually', 1),
-                        const SizedBox(width: 8),
-                        buildActionButton(Icons.qr_code_scanner, 'Scan Barcode',2),
-                        const SizedBox(width: 8),
-                        buildActionButton(Icons.browse_gallery, 'Pick Image', 3),
                         const SizedBox(width: 8),
                       ],
                     ),
                   ),
                 ),
+
               const SizedBox(height: 10),
             ],
           ),

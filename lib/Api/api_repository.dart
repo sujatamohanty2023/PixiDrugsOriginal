@@ -108,6 +108,15 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
+  Future<Map<String, dynamic>> customerbarcode(String barcode, String storeId) {
+    return _safeApiCall(() => dio.get(
+      '${AppString.baseUrl}api/customer-returns/customerbarcode',
+      queryParameters: {
+        'barcode': barcode,
+        'store_id': storeId,
+      },
+    )).then((data) => Map<String, dynamic>.from(data));
+  }
   Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) {
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/checkout',

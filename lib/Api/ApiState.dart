@@ -94,6 +94,19 @@ class BarcodeScanError extends ApiState {
   BarcodeScanError(this.error);
 }
 //--------------------------------------------------------------------
+class CustomerBarcodeScanLoading extends ApiState {}
+
+class CustomerBarcodeScanLoaded extends ApiState {
+  final List<InvoiceItem> list;
+  final String source;
+  CustomerBarcodeScanLoaded({required this.list, this.source = 'scan'});
+}
+
+class CustomerBarcodeScanError extends ApiState {
+  final String error;
+  CustomerBarcodeScanError(this.error);
+}
+//--------------------------------------------------------------------
 class SearchSellerLoading extends ApiState {}
 
 class SearchSellerLoaded extends ApiState {

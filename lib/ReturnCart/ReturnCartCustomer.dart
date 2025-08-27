@@ -12,8 +12,10 @@ class ReturnCartCustomer extends StatefulWidget {
   CustomerModel? returnDetail;
   bool edit;
   bool detail;
+  final Function(CustomerModel)? onCustomerUpdated;
   ReturnCartCustomer({
-    Key? key, this.cartTypeSelection,required this.customerReturnModel,this.edit =false,this.detail=false, required this.returnDetail
+    Key? key, this.cartTypeSelection,required this.customerReturnModel,this.edit =false,this.detail=false,
+    required this.returnDetail,this.onCustomerUpdated
   }) : super(key: key);
 
   @override
@@ -70,6 +72,27 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
       address=widget.returnDetail?.address;
       personId=widget.returnDetail!.id;
       print('$name$phone$address');
+    }else if (widget.detail == false && widget.returnDetail == null) {
+      final cartState = context.read<CartCubit>().state;
+
+      if (cartState is CartLoaded && cartState.barcodeCartItems.isNotEmpty) {
+        final firstItem = cartState.barcodeCartItems.first;
+       /* name = firstItem.sellerName;
+        phone = firstItem.sellerPhone;
+        personId = firstItem.sellerId;*/
+
+        // Create seller model
+        final updatedCusomer = CustomerModel(
+          id: personId ?? 0,
+          name: name??'',
+          phone: phone??'',
+        );
+
+        // Update parent widget
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onCustomerUpdated?.call(updatedCusomer);
+        });
+      }
     }
   }
 

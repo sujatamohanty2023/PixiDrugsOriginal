@@ -11,8 +11,11 @@ class ReturnCartStockiest extends StatefulWidget {
   Seller? returnDetail;
   bool edit;
   bool detail;
+  final Function(Seller)? onSellerUpdated;
   ReturnCartStockiest({
-    Key? key, this.cartTypeSelection,this.purchaseReturnModel,this.edit =false,this.detail=false, this.returnDetail
+    Key? key, this.cartTypeSelection,this.purchaseReturnModel,this.edit =false,this.detail=false,
+    this.returnDetail,
+    this.onSellerUpdated,
   }) : super(key: key);
 
   @override
@@ -64,13 +67,36 @@ class _ReturnCartStockiestState extends State<ReturnCartStockiest> with WidgetsB
       selectedReason = widget.purchaseReturnModel?.reason;
     }
 
-    if(widget.detail==false){
+    if(widget.detail==false && widget.returnDetail!=null){
       name=widget.returnDetail?.sellerName;
       phone=widget.returnDetail?.phone;
       address=widget.returnDetail?.address;
       personId=widget.returnDetail!.id;
-      print('$name$phone$address');
+      print('$name$phone$address$personId');
+    }else if (widget.detail == false && widget.returnDetail == null) {
+      final cartState = context.read<CartCubit>().state;
+
+      if (cartState is CartLoaded && cartState.barcodeCartItems.isNotEmpty) {
+        final firstItem = cartState.barcodeCartItems.first;
+        name = firstItem.sellerName;
+        phone = firstItem.sellerPhone;
+        personId = firstItem.sellerId;
+
+        // Create seller model
+        final updatedSeller = Seller(
+          id: personId ?? 0,
+          sellerName: name??'',
+          phone: phone??'',
+          address: '', gstNo: '', // or from cart item if available
+        );
+
+        // Update parent widget
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onSellerUpdated?.call(updatedSeller);
+        });
+      }
     }
+
   }
 
   @override

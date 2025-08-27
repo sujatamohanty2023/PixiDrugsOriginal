@@ -118,11 +118,41 @@ class ApiCubit extends Cubit<ApiState> {
         emit(BarcodeScanError(response['message'] ?? 'No product found.'));
         return;
       }
-      final data = response['data']['data'] as List;
-      final list = data.map((json) => InvoiceItem.fromJson(json)).toList();
-      emit(BarcodeScanLoaded(list: list,source: source));
+
+      if (response['status'] == 'single' && response['data'] != null) {
+        final list = InvoiceItem.fromJson(response['data']);
+        emit(BarcodeScanLoaded(list: [list], source: source));
+      } else if (response['status'] == 'multiple' && response['data']?['data'] != null) {
+        final list = (response['data']['data'] as List)
+            .map((json) => InvoiceItem.fromJson(json))
+            .toList();
+        emit(BarcodeScanLoaded(list: list, source: source));
+      }
     } catch (e) {
       emit(BarcodeScanError('Error: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> customerbarcode({required String storeId,required String code,String source = 'scan'}) async {
+    try {
+      emit(CustomerBarcodeScanLoading());
+      final response = await apiRepository.customerbarcode(code,storeId);
+      if (response['status'] == 'not_found'|| response['status'] == 'not_found_for_customer') {
+        emit(CustomerBarcodeScanError(response['message'] ?? 'No product found.'));
+        return;
+      }
+
+      if (response['status'] == 'single' && response['data'] != null) {
+        final list = InvoiceItem.fromJson(response['data']);
+        emit(CustomerBarcodeScanLoaded(list: [list], source: source));
+      } else if (response['status'] == 'multiple' && response['data']?['data'] != null) {
+        final list = (response['data']['data'] as List)
+            .map((json) => InvoiceItem.fromJson(json))
+            .toList();
+        emit(CustomerBarcodeScanLoaded(list: list, source: source));
+      }
+    } catch (e) {
+      emit(CustomerBarcodeScanError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------

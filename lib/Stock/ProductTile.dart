@@ -11,11 +11,17 @@ class ProductTile extends StatelessWidget {
     final stock=  product!.qty+product!.qty_free;
     final bool isOutOfStock = stock<= 0;
     final DateTime now = DateTime.now();
-    final expiryDate = parseFlexibleExpiry(product!.expiry);
+    DateTime? expiryDate;
+    bool isExpired = false;
+    bool isExpiringSoon = false;
 
-    final bool isExpired = expiryDate.isBefore(now);
-    final bool isExpiringSoon =
-        !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
+    try {
+      expiryDate = parseFlexibleExpiry(product!.expiry);
+      isExpired = expiryDate.isBefore(now);
+      isExpiringSoon = !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
+    } catch (e) {
+      // Handle parsing error — expiryDate stays null
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
@@ -89,9 +95,7 @@ class ProductTile extends StatelessWidget {
                               : "Stock: $stock",16, isOutOfStock ? Colors.red : Colors.teal),
                           SizedBox(height: 2,),
                           if (!isOutOfStock)
-                            MyTextfield.textStyle_w400(
-                              "Ex. Date: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry))}",14,Colors.grey.shade700
-                            ),
+                            buildExpiryText(),
                         ],
                       ),
                     ),
@@ -137,6 +141,14 @@ class ProductTile extends StatelessWidget {
         ],
       ),
     );
+  }
+  Widget buildExpiryText() {
+    try {
+      final formattedExpiry = DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry));
+      return MyTextfield.textStyle_w400("Ex. Date: $formattedExpiry", 14, Colors.grey.shade700);
+    } catch (e) {
+      return MyTextfield.textStyle_w400("Ex. Date: ${product!.expiry}", 14, Colors.grey.shade700);
+    }
   }
   DateTime parseFlexibleExpiry(String input) {
     try {
