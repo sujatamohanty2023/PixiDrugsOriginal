@@ -133,10 +133,10 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> customerbarcode({required String storeId,required String code,String source = 'scan'}) async {
+  Future<void> customerbarcode({required String storeId,required String code,String source = 'scan',String customer_id=''}) async {
     try {
       emit(CustomerBarcodeScanLoading());
-      final response = await apiRepository.customerbarcode(code,storeId);
+      final response = await apiRepository.customerbarcode(code,storeId,customer_id);
       if (response['status'] == 'not_found'|| response['status'] == 'not_found_for_customer') {
         emit(CustomerBarcodeScanError(response['message'] ?? 'No product found.'));
         return;
@@ -236,13 +236,14 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchInvoiceList({required String user_id}) async {
+  Future<void> fetchInvoiceList({required String user_id,required int page}) async {
     try {
       emit(InvoiceListLoading());
-      final response = await apiRepository.invoiceList(user_id);
+      final response = await apiRepository.invoiceList(user_id,page);
       final data = response['data'] as List;
       final list = data.map((json) => Invoice.fromJson(json)).toList();
-      emit(InvoiceListLoaded(invoiceList: list));
+      final last_page = response['last_page'];
+      emit(InvoiceListLoaded(invoiceList: list,last_page: last_page));
     } catch (e) {
       emit(InvoiceListError('Error: $e'));
     }

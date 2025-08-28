@@ -7,7 +7,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import '../BarcodeScan/barcode_screen_page.dart';
 import '../BarcodeScan/batch_scanner_page.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
-import '../Stock/ProductList.dart';
 import '../ReturnCart/ReturnCartStockiest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 import 'ReturnProductList.dart';
@@ -40,8 +39,6 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   final ImagePicker _picker = ImagePicker();
   String extractedBatchNumber = '';
   bool edit = false;
-  PurchaseReturnModel? stockiest_item;
-  CustomerReturnsResponse? customer_item;
 
   @override
   void initState() {
@@ -69,32 +66,39 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
         backgroundColor: AppColors.kPrimary,
         body: BlocListener<ApiCubit, ApiState>(
           listener: (context, state) {
-            if (state is BarcodeScanLoaded && state.source == 'scan') {
+            if (state is BarcodeScanLoaded) {
               searchResults = state.list;
               if (searchResults.isNotEmpty) {
                 final cartCubit = context.read<CartCubit>();
-                cartCubit.addToCart(
-                  searchResults.first,
-                  1,
-                  type: CartType.barcode,
-                );
-                if (widget.cartTypeSelection ==
-                    CartTypeSelection.StockiestReturn) {
-                  selectedSeller = Seller(
-                    id: searchResults.first.sellerId ?? 0,
-                    sellerName: searchResults.first.sellerName ?? '',
-                    phone: searchResults.first.sellerPhone ?? '',
-                    address: '',
-                    gstNo: '', // or from cart item if available
+                if(cartCubit.state.barcodeCartItems.isEmpty || cartCubit.state.barcodeCartItems.first.sellerId==searchResults.first.sellerId) {
+                  cartCubit.addToCart(
+                    searchResults.first,
+                    1,
+                    type: CartType.barcode,
                   );
-                } else {}
+                  if (widget.cartTypeSelection ==
+                      CartTypeSelection.StockiestReturn) {
+                    setState(() {
+
+                      selectedSeller = Seller(
+                        id: searchResults.first.sellerId ?? 0,
+                        sellerName: searchResults.first.sellerName ?? '',
+                        phone: searchResults.first.sellerPhone ?? '',
+                        address: '',
+                        gstNo: '', // or from cart item if available
+                      );
+                    });
+                  }
+                }else{
+                  AppUtils.showSnackBar(context, 'Different Seller Item');
+                }
               } else {
                 AppUtils.showSnackBar(context, 'No products found.');
               }
             } else if (state is BarcodeScanError) {
               AppUtils.showSnackBar(context, state.error);
             }
-            if (state is CustomerBarcodeScanLoaded && state.source == 'scan') {
+            if (state is CustomerBarcodeScanLoaded ) {
               searchResults = state.list;
               if (searchResults.isNotEmpty) {
                 final cartCubit = context.read<CartCubit>();
@@ -140,18 +144,16 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                 child: Builder(
                   builder: (_) {
                     final hasSearchText = _searchController.text.isNotEmpty;
-                    final hasSelection =
-                        selectedSeller != null ||
-                        selectedCustomer != null ||
-                        widget.returnModel != null;
 
                     // 🔍 Show search results
-                    if (hasSearchText && !hasSelection) {
+                    if (hasSearchText) {
                       print("Showing search results...");
                       return _buildSearchResultList();
                     }
 
-                    if (hasSelection) {
+                    if ( selectedSeller != null ||
+                        selectedCustomer != null ||
+                        widget.returnModel != null) {
                       return _buildReturnContent(context);
                     } else {
                       return _buildReturnPage();
@@ -170,6 +172,24 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     return GestureDetector(
       onTap: () {
         if (flag == 1) {
+
+          if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn && edit && widget.returnModel != null) {
+              selectedSeller = Seller(
+                id: (widget.returnModel as PurchaseReturnModel).sellerId ?? 0,
+                sellerName: (widget.returnModel as PurchaseReturnModel).sellerName??'',
+                phone: (widget.returnModel as PurchaseReturnModel).phone ?? '',
+                address: '',
+                gstNo: '', // or from cart item if available
+              );
+          } else if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn && edit && widget.returnModel != null) {
+            selectedCustomer = CustomerModel(
+              id:(widget.returnModel as CustomerReturnsResponse).customer.id ?? 0,
+              name: (widget.returnModel as CustomerReturnsResponse).customer.name ?? '',
+              phone: (widget.returnModel as CustomerReturnsResponse).customer.phone ?? '',
+              address: '',
+            );
+          }
+
           print('API${selectedSeller?.sellerName}/${selectedCustomer?.name}.');
           AppRoutes.navigateTo(
             context,
@@ -238,7 +258,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     purchaseReturnModel: widget.returnModel,
                     edit: edit,
                     detail: widget.detail,
-                    returnDetail: widget.detail ? null : selectedSeller!,
+                    returnDetail: widget.detail?null:selectedSeller,
                     onSellerUpdated: (Seller seller) {
                       setState(() {
                         selectedSeller = seller;
@@ -251,7 +271,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     customerReturnModel: widget.returnModel,
                     edit: edit,
                     detail: widget.detail,
-                    returnDetail: widget.detail ? null : selectedCustomer!,
+                    returnDetail: widget.detail?null:selectedCustomer!,
                     onCustomerUpdated: (CustomerModel customer) {
                       setState(() {
                         selectedCustomer = customer;
@@ -459,11 +479,9 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
             ? context.read<ApiCubit>().BarcodeScan(
               code: result,
               storeId: userId,
-              seller_id: selectedSeller?.id.toString() ?? '',
-              customer_id: selectedCustomer?.id.toString() ?? '',
             )
             : context.read<ApiCubit>().customerbarcode(
-              code: extractedBatchNumber,
+              code: result,
               storeId: userId,
             );
       }
@@ -568,14 +586,10 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                   ? context.read<ApiCubit>().BarcodeScan(
                     code: extractedBatchNumber,
                     storeId: userId,
-                    source: 'scan',
-                    seller_id: selectedSeller?.id.toString() ?? '',
-                    customer_id: selectedCustomer?.id.toString() ?? '',
                   )
                   : context.read<ApiCubit>().customerbarcode(
                     code: extractedBatchNumber,
                     storeId: userId,
-                    source: 'scan',
                   );
             },
           ),

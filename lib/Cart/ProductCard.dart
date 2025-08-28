@@ -143,7 +143,6 @@ class _ProductCardState extends State<ProductCard> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
         ],
       ),
     );
@@ -180,7 +179,7 @@ class _ProductCardState extends State<ProductCard> {
 
         MyTextfield.textStyle_w600(widget.item.product, 18, Colors.black),
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
-        MyTextfield.textStyle_w200(widget.item.composition??'', 12, Colors.grey[600]!),
+        MyTextfield.textStyle_w200(widget.item.composition??'No Composition', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
         MyTextfield.textStyle_w600("${AppString.Rupees}${disPlayMrp?.toStringAsFixed(2)}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),

@@ -75,7 +75,7 @@ class AppUtils {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isError ? AppColors.error : AppColors.success,
               borderRadius: BorderRadius.circular(12),
@@ -91,14 +91,14 @@ class AppUtils {
               children: [
                 Icon(
                   isError ? Icons.error : Icons.check_circle,
-                  color:Colors.white,
+                  color:AppColors.kWhiteColor,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: MyTextfield.textStyle_w600(
                     message,
-                    AppUtils.size_16,
-                    Colors.white,
+                    AppUtils.size_14,
+                    AppColors.kWhiteColor,
                   ),
                 ),
               ],

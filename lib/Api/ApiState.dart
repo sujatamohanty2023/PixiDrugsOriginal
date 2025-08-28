@@ -188,7 +188,8 @@ class InvoiceListLoading extends ApiState {}
 
 class InvoiceListLoaded extends ApiState {
   final List<Invoice> invoiceList;
-  InvoiceListLoaded({required this.invoiceList});
+  final int last_page;
+  InvoiceListLoaded({required this.invoiceList,required this.last_page});
 }
 
 class InvoiceListError extends ApiState {

@@ -66,7 +66,7 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
       selectedReason = widget.customerReturnModel?.reason;
     }
 
-    if(widget.detail==false){
+    if(widget.detail==false && widget.returnDetail!=null){
       name=widget.returnDetail?.name;
       phone=widget.returnDetail?.phone;
       address=widget.returnDetail?.address;
@@ -77,9 +77,9 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
 
       if (cartState is CartLoaded && cartState.barcodeCartItems.isNotEmpty) {
         final firstItem = cartState.barcodeCartItems.first;
-       /* name = firstItem.sellerName;
-        phone = firstItem.sellerPhone;
-        personId = firstItem.sellerId;*/
+        name = firstItem.customerName;
+        phone = firstItem.customerPhone;
+        personId = firstItem.customerId;
 
         // Create seller model
         final updatedCusomer = CustomerModel(

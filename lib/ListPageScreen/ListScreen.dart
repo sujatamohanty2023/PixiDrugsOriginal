@@ -53,18 +53,38 @@ class _ListScreenState extends State<ListScreen>
   List<ExpenseResponse> expenseList= [];
   List<StaffModel> staffList= [];
 
+  int currentPage = 1;
+  bool isLoadingMore = false;
+  bool hasMoreData = true;
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _fetchRecord();
+    _scrollController.addListener(_onScroll);
+
+    if (widget.type == ListType.invoice && currentPage == 1) {
+      invoiceList.clear(); // Reset before refetching
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
+    _scrollController.dispose();
     super.dispose();
+  }
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 100 &&
+        !isLoadingMore &&
+        hasMoreData) {
+      isLoadingMore = true; // Move this here
+      _fetchRecord();
+    }
   }
 
   @override
@@ -85,12 +105,20 @@ class _ListScreenState extends State<ListScreen>
     _fetchRecord();
   }
 
-  Future<void> _fetchRecord() async {
+  Future<void> _fetchRecord({bool refresh = false}) async {
     final userId = await SessionManager.getParentingId();
     if (userId == null) return;
+
+    if (refresh) {
+      currentPage = 1;
+      hasMoreData = true;
+    }
+    if (isLoadingMore || !hasMoreData) return;
+    setState(() => isLoadingMore = true);
+
     switch (widget.type) {
       case ListType.invoice:
-        context.read<ApiCubit>().fetchInvoiceList(user_id: userId);
+        context.read<ApiCubit>().fetchInvoiceList(user_id: userId,page: currentPage);
         break;
       case ListType.sale:
         context.read<ApiCubit>().fetchSaleList(user_id: userId);
@@ -206,7 +234,11 @@ class _ListScreenState extends State<ListScreen>
               state is StaffListLoading;
 
           if (state is InvoiceListLoaded) {
-            invoiceList = state.invoiceList;
+            if (currentPage == 1) invoiceList.clear();
+            invoiceList.addAll(state.invoiceList);
+            hasMoreData = currentPage < state.last_page;
+            isLoadingMore = false; // Fix here
+            currentPage++;
           }else if (state is SaleListLoaded) {
             saleList = state.saleList;
           }else if (state is LedgerListLoaded) {
@@ -230,7 +262,7 @@ class _ListScreenState extends State<ListScreen>
                 _buildSearchBar(screenWidth),
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: _fetchRecord,
+                    onRefresh: ()=>_fetchRecord(refresh: true),
                     child: _buildListBody(isLoading),
                     color: AppColors.kPrimary,
                     backgroundColor: AppColors.kPrimaryLight,
@@ -250,6 +282,8 @@ class _ListScreenState extends State<ListScreen>
         return InvoiceListWidget(
             invoices: invoiceList,
             isLoading: isLoading,
+            isLoadingMore:isLoadingMore,
+            scrollController:_scrollController,
             searchQuery: searchQuery,
             onSearchChanged: (v) => setState(() => searchQuery = v),
             onAddPressed: _onAddInvoicePressed,

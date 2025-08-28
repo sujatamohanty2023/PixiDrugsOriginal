@@ -108,12 +108,13 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> customerbarcode(String barcode, String storeId) {
+  Future<Map<String, dynamic>> customerbarcode(String barcode, String storeId,String customer_id) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/customer-returns/customerbarcode',
       queryParameters: {
         'barcode': barcode,
         'store_id': storeId,
+        'customer_id':customer_id
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -166,13 +167,13 @@ class ApiRepository {
       queryParameters: {'invoice_id': invoiceId},
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> invoiceList(String userId) {
+  Future<Map<String, dynamic>> invoiceList(String userId,int page) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/invoicelist/',
       queryParameters: {
         'user_id': userId,
-        'page': 1,
-        'per_page': 20,
+        'page': page,
+        'per_page': 10,
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }

@@ -389,7 +389,7 @@ class InvoiceItem {
               normalized['product name'] ??
               normalized['description of goods'] ??
               normalized['product_name']??
-              normalized['item'] ??
+              normalized['item'] ??normalized['ITEM'] ??
               normalized['description'] ??
               normalized['item name & packing'] ??
               normalized['item name'] ??

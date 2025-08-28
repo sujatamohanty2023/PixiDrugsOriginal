@@ -42,13 +42,14 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
     });
     String? userId=await SessionManager.getParentingId();
     if(widget.flag==4){
-      if(widget.selectedSeller!=null || widget.selectedCustomer !=null) {
-        context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
-      }else{
-        widget.cartTypeSelection==CartTypeSelection.StockiestReturn?
-        context.read<ApiCubit>().fetchStockList(user_id: userId!):
-        context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',source: 'manual');
-
+      if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
+        if(widget.selectedSeller!=null) {
+          context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'');
+        }else{
+          context.read<ApiCubit>().fetchStockList(user_id: userId!);
+        }
+      }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
+        context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',source: 'manual',customer_id:widget.selectedCustomer?.id.toString()??'');
       }
     }
   }
@@ -62,12 +63,10 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
 
       if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
         String? userId = await SessionManager.getParentingId();
-        if(widget.selectedSeller!=null || widget.selectedCustomer !=null) {
-          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'',customer_id:widget.selectedCustomer?.id.toString()??'');
-        }else {
-          widget.cartTypeSelection == CartTypeSelection.StockiestReturn ?
-          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual', seller_id: widget.selectedSeller?.id.toString() ?? '')
-          : context.read<ApiCubit>().customerbarcode(code: query, storeId: userId!, source: 'manual');
+        if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
+          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'');
+        }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
+          context.read<ApiCubit>().customerbarcode(storeId: userId!,code:query,source: 'manual',customer_id:widget.selectedCustomer?.id.toString()??'');
         }
       }else {
         // Local filtering if not in search mode (flag != 4)
