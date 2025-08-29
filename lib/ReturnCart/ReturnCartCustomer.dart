@@ -7,14 +7,13 @@ import '../search/customerModel.dart';
 import 'ReturnItemTile.dart';
 
 class ReturnCartCustomer extends StatefulWidget {
-  CartTypeSelection? cartTypeSelection;
   CustomerReturnsResponse? customerReturnModel;
   CustomerModel? returnDetail;
   bool edit;
   bool detail;
   final Function(CustomerModel)? onCustomerUpdated;
   ReturnCartCustomer({
-    Key? key, this.cartTypeSelection,required this.customerReturnModel,this.edit =false,this.detail=false,
+    Key? key, required this.customerReturnModel,this.edit =false,this.detail=false,
     required this.returnDetail,this.onCustomerUpdated
   }) : super(key: key);
 
@@ -292,6 +291,7 @@ class _ReturnCartCustomerState extends State<ReturnCartCustomer> with WidgetsBin
       AppUtils.showSnackBar(context, 'Please Add return Item' );
       return;
     }
+    print('API returnModel=${cartState.barcodeCartItems.toString()}');
     final selectedItems = cartState.barcodeCartItems.
     map((item) => ReturnedItem(
       productId: item.id??0,

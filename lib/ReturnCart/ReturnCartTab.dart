@@ -2,12 +2,10 @@ import 'package:PixiDrugs/ReturnCart/ReturnCartCustomer.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/search/customerModel.dart';
 import 'package:PixiDrugs/search/sellerModel.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-
 import '../BarcodeScan/barcode_screen_page.dart';
 import '../BarcodeScan/batch_scanner_page.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
-import '../ReturnCart/ReturnCartStockiest.dart';
+import 'ReturnCartStockiest.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
 import 'ReturnProductList.dart';
 
@@ -36,9 +34,9 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   CustomerModel? selectedCustomer;
   List<InvoiceItem> searchResults = [];
   String userId = '';
-  final ImagePicker _picker = ImagePicker();
   String extractedBatchNumber = '';
   bool edit = false;
+  int clickFlag=0;
 
   @override
   void initState() {
@@ -70,7 +68,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
               searchResults = state.list;
               if (searchResults.isNotEmpty) {
                 final cartCubit = context.read<CartCubit>();
-                if(cartCubit.state.barcodeCartItems.isEmpty || cartCubit.state.barcodeCartItems.first.sellerId==searchResults.first.sellerId) {
+                if((clickFlag==2 || clickFlag==3) && (cartCubit.state.barcodeCartItems.isEmpty || cartCubit.state.barcodeCartItems.first.sellerId==searchResults.first.sellerId)) {
                   cartCubit.addToCart(
                     searchResults.first,
                     1,
@@ -89,7 +87,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                       );
                     });
                   }
-                }else{
+                }else if((clickFlag==2 || clickFlag==3) && cartCubit.state.barcodeCartItems.first.sellerId!=searchResults.first.sellerId){
                   AppUtils.showSnackBar(context, 'Different Seller Item');
                 }
               } else {
@@ -100,25 +98,30 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
             }
             if (state is CustomerBarcodeScanLoaded ) {
               searchResults = state.list;
-              if (searchResults.isNotEmpty) {
-                final cartCubit = context.read<CartCubit>();
+              final cartCubit = context.read<CartCubit>();
+            if(searchResults.isNotEmpty){
+              if ((clickFlag==2 || clickFlag==3) && cartCubit.state.cartItems.isEmpty && selectedCustomer==null) {
+                setState(() {
+                  for(var item in searchResults){
+                    var customer = CustomerModel(
+                      id: item.customerId ?? 0,
+                      name: item.customerName ?? '',
+                      phone: item.customerPhone ?? '',
+                      address: '',
+                    );
+                    _detail_Customer.add(customer);
+                  }
+                });
+              } else if ((clickFlag==2 || clickFlag==3)){
                 cartCubit.addToCart(
                   searchResults.first,
                   1,
                   type: CartType.barcode,
                 );
-                if (widget.cartTypeSelection ==
-                    CartTypeSelection.CustomerReturn) {
-                  selectedCustomer = CustomerModel(
-                    id: searchResults.first.customerId ?? 0,
-                    name: searchResults.first.customerName ?? '',
-                    phone: searchResults.first.customerPhone ?? '',
-                    address: '',
-                  );
-                } else {}
-              } else {
-                AppUtils.showSnackBar(context, 'No products found.');
               }
+            } else {
+                AppUtils.showSnackBar(context, 'No products found.');
+            }
             } else if (state is CustomerBarcodeScanError) {
               AppUtils.showSnackBar(context, state.error);
             } else if (state is SearchSellerLoaded) {
@@ -146,7 +149,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     final hasSearchText = _searchController.text.isNotEmpty;
 
                     // 🔍 Show search results
-                    if (hasSearchText) {
+                    if (hasSearchText || _detail_Customer.isNotEmpty) {
                       print("Showing search results...");
                       return _buildSearchResultList();
                     }
@@ -171,8 +174,8 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   Widget buildActionButton(IconData icon, String label, int flag) {
     return GestureDetector(
       onTap: () {
-        if (flag == 1) {
-
+        clickFlag=flag;
+        if (clickFlag == 1) {
           if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn && edit && widget.returnModel != null) {
               selectedSeller = Seller(
                 id: (widget.returnModel as PurchaseReturnModel).sellerId ?? 0,
@@ -194,7 +197,6 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
           AppRoutes.navigateTo(
             context,
             ReturnProductListPage(
-              flag: 4,
               cartTypeSelection: widget.cartTypeSelection,
               selectedSeller: selectedSeller,
               selectedCustomer: selectedCustomer,
@@ -210,9 +212,9 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
               },
             ),
           );
-        } else if (flag == 2) {
+        } else if (clickFlag == 2) {
           _scanBarcode();
-        } else if (flag == 3) {
+        } else if (clickFlag == 3) {
           scanBatchNumber();
         }
       },
@@ -267,7 +269,6 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                   )
                   : ReturnCartCustomer(
                     key: ValueKey(edit),
-                    cartTypeSelection: widget.cartTypeSelection,
                     customerReturnModel: widget.returnModel,
                     edit: edit,
                     detail: widget.detail,
@@ -463,6 +464,14 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
       } else {
         selectedCustomer = _detail_Customer[index];
         _detail_Customer = [];
+        if(searchResults.isNotEmpty) {
+          final cartCubit = context.read<CartCubit>();
+          cartCubit.addToCart(
+            searchResults[index],
+            1,
+            type: CartType.barcode,
+          );
+        }
       }
     });
   }
@@ -479,10 +488,12 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
             ? context.read<ApiCubit>().BarcodeScan(
               code: result,
               storeId: userId,
+              seller_id:selectedSeller!=null?selectedSeller!.id.toString():''
             )
             : context.read<ApiCubit>().customerbarcode(
               code: result,
               storeId: userId,
+              customer_id:selectedCustomer!=null?selectedCustomer!.id.toString():''
             );
       }
     } catch (e) {
@@ -504,73 +515,6 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     }
   }
 
-  Future<void> scanBatchNumberOld() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.camera,
-    );
-    if (pickedFile == null) return;
-
-    final inputImage = InputImage.fromFile(File(pickedFile.path));
-    final textRecognizer = TextRecognizer();
-    final RecognizedText recognizedText = await textRecognizer.processImage(
-      inputImage,
-    );
-
-    final List<String> allLines = [];
-
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        final lineText = line.text.trim();
-        allLines.add(lineText);
-        print('Recognized line: $lineText');
-      }
-    }
-
-    String? batchNumber;
-
-    final labelPattern = RegExp(
-      r'\b(?:b[\.\s]*no[\.\s]*|batch(?:\s+no[\.\s]*)?)[:\s]*([A-Za-z0-9\-\/]{4,})?',
-      caseSensitive: false,
-    );
-    final valuePattern = RegExp(r'^[A-Za-z0-9\-\/]{4,}$');
-
-    for (int i = 0; i < allLines.length; i++) {
-      final line = allLines[i];
-
-      final labelMatch = labelPattern.firstMatch(line);
-      if (labelMatch != null) {
-        // Case 1: Value is on the same line
-        final sameLineValue = labelMatch.group(1);
-        if (sameLineValue != null && sameLineValue.trim().isNotEmpty) {
-          batchNumber = sameLineValue.trim();
-          print("Batch number found on same line: $batchNumber");
-          break;
-        }
-
-        // Case 2: Look ahead in the next 1–3 lines
-        for (int j = 1; j <= 10 && (i + j) < allLines.length; j++) {
-          final nextLine = allLines[i + j].trim();
-          if (valuePattern.hasMatch(nextLine)) {
-            batchNumber = nextLine;
-            print("Batch number found in next lines: $batchNumber");
-            break;
-          }
-        }
-      }
-
-      if (batchNumber != null) break;
-    }
-
-    await textRecognizer.close();
-
-    if (batchNumber != null && batchNumber.isNotEmpty) {
-      _showManualEntryBottomSheet(batchNumber);
-    } else {
-      AppUtils.showSnackBar(context, 'Batch number not found');
-      _showManualEntryBottomSheet('');
-    }
-  }
-
   void _showManualEntryBottomSheet(String batchNumber) {
     showDialog(
       context: context,
@@ -584,13 +528,15 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
               });
               widget.cartTypeSelection == CartTypeSelection.StockiestReturn
                   ? context.read<ApiCubit>().BarcodeScan(
-                    code: extractedBatchNumber,
-                    storeId: userId,
-                  )
+                  code: extractedBatchNumber,
+                  storeId: userId,
+                  seller_id:selectedSeller!=null?selectedSeller!.id.toString():''
+              )
                   : context.read<ApiCubit>().customerbarcode(
-                    code: extractedBatchNumber,
-                    storeId: userId,
-                  );
+                  code: extractedBatchNumber,
+                  storeId: userId,
+                  customer_id:selectedCustomer!=null?selectedCustomer!.id.toString():''
+              );
             },
           ),
     );

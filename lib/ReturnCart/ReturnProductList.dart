@@ -6,12 +6,11 @@ import '../search/sellerModel.dart';
 
 class ReturnProductListPage extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
-  final int flag;
   Seller? selectedSeller;
   CustomerModel? selectedCustomer;
   final Function(Seller)? onSellerSelected;
   final Function(CustomerModel)? onCustomerSelected;
-  ReturnProductListPage({super.key,required this.cartTypeSelection, required this.flag,this.selectedSeller,this.selectedCustomer,
+  ReturnProductListPage({super.key,required this.cartTypeSelection, this.selectedSeller,this.selectedCustomer,
     this.onSellerSelected,this.onCustomerSelected,});
 
   @override
@@ -20,7 +19,6 @@ class ReturnProductListPage extends StatefulWidget {
 
 class _ReturnProductListPageState extends State<ReturnProductListPage> {
   final List<InvoiceItem> _products = [];
-  List<InvoiceItem> _filteredProducts = [];
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
   bool isLoading = true;
@@ -41,16 +39,14 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
       isLoading = true;
     });
     String? userId=await SessionManager.getParentingId();
-    if(widget.flag==4){
-      if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
-        if(widget.selectedSeller!=null) {
-          context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'');
-        }else{
-          context.read<ApiCubit>().fetchStockList(user_id: userId!);
-        }
-      }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
-        context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',source: 'manual',customer_id:widget.selectedCustomer?.id.toString()??'');
+    if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
+      if(widget.selectedSeller!=null) {
+        context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, seller_id:widget.selectedSeller?.id.toString()??'');
+      }else{
+        context.read<ApiCubit>().fetchStockList(user_id: userId!);
       }
+    }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
+      context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',customer_id:widget.selectedCustomer?.id.toString()??'');
     }
   }
   void _onSearch() {
@@ -61,21 +57,13 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       final query = _searchController.text.trim();
 
-      if (query.isNotEmpty && query.length>=3 && widget.flag == 4) {
+      if (query.isNotEmpty && query.length>=3) {
         String? userId = await SessionManager.getParentingId();
         if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
-          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual',seller_id:widget.selectedSeller?.id.toString()??'');
+          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, seller_id:widget.selectedSeller?.id.toString()??'');
         }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
-          context.read<ApiCubit>().customerbarcode(storeId: userId!,code:query,source: 'manual',customer_id:widget.selectedCustomer?.id.toString()??'');
+          context.read<ApiCubit>().customerbarcode(storeId: userId!,code:query,customer_id:widget.selectedCustomer?.id.toString()??'');
         }
-      }else {
-        // Local filtering if not in search mode (flag != 4)
-        setState(() {
-          _filteredProducts = _products.where((product) {
-            return product.product.toLowerCase().contains(query.toLowerCase()) ||
-                product.hsn.toLowerCase().contains(query.toLowerCase());
-          }).toList();
-        });
       }
     });
   }
@@ -94,7 +82,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBar(context, _searchController, _onclearTap,flag:widget.flag),
+      appBar: customAppBar(context, _searchController, _onclearTap),
       body: BlocConsumer<ApiCubit, ApiState>(
           listener: (context, state) {
             if (state is StockListLoaded ||
@@ -108,7 +96,6 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
                 _products.addAll(state.list);
               }else if (state is StockListLoaded) {
                   _products.addAll(state.stockList);
-                  _filteredProducts = List.from(_products);
               }
             }
           },
@@ -123,7 +110,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
               );
             }else {
               content = ListView.builder(
-                itemCount: widget.flag==4?_products.length:_filteredProducts.length,
+                itemCount: _products.length,
                 itemBuilder: (context, index) =>
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -170,11 +157,8 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
 }
 // ✅ Custom AppBar with search + barcode
 PreferredSizeWidget customAppBar(BuildContext context,
-    TextEditingController searchController, VoidCallback onclearTap, {required int flag}) {
-  var tittle='';
-  if(flag==4) {
-    tittle='Search Product';
-  }
+    TextEditingController searchController, VoidCallback onclearTap) {
+  var tittle='Search Product';
   return PreferredSize(
     preferredSize: const Size.fromHeight(120),
     child: Container(
@@ -188,7 +172,6 @@ PreferredSizeWidget customAppBar(BuildContext context,
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  flag==2 || flag==3|| flag==4?
                   GestureDetector(
                     onTap: (){
                       Navigator.pop(context);
@@ -199,7 +182,7 @@ PreferredSizeWidget customAppBar(BuildContext context,
                       height: 24,
                       color: AppColors.kWhiteColor,
                     ),
-                  ):SizedBox(),
+                  ),
                   const SizedBox(width: 10),
                   MyTextfield.textStyle_w600(tittle, SizeConfig.screenWidth! * 0.055, Colors.white)
                 ],

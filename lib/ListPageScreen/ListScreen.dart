@@ -53,31 +53,31 @@ class _ListScreenState extends State<ListScreen>
   List<ExpenseResponse> expenseList= [];
   List<StaffModel> staffList= [];
 
-  int currentPage = 1;
+  /*int currentPage = 1;
   bool isLoadingMore = false;
   bool hasMoreData = true;
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();*/
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _fetchRecord();
-    _scrollController.addListener(_onScroll);
+   /* _scrollController.addListener(_onScroll);
 
     if (widget.type == ListType.invoice && currentPage == 1) {
       invoiceList.clear(); // Reset before refetching
-    }
+    }*/
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _scrollController.dispose();
+    //_scrollController.dispose();
     super.dispose();
   }
-  void _onScroll() {
+  /*void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100 &&
         !isLoadingMore &&
@@ -85,7 +85,7 @@ class _ListScreenState extends State<ListScreen>
       isLoadingMore = true; // Move this here
       _fetchRecord();
     }
-  }
+  }*/
 
   @override
   void didChangeDependencies() {
@@ -109,16 +109,16 @@ class _ListScreenState extends State<ListScreen>
     final userId = await SessionManager.getParentingId();
     if (userId == null) return;
 
-    if (refresh) {
+    /*if (refresh) {
       currentPage = 1;
       hasMoreData = true;
     }
     if (isLoadingMore || !hasMoreData) return;
-    setState(() => isLoadingMore = true);
+    setState(() => isLoadingMore = true);*/
 
     switch (widget.type) {
       case ListType.invoice:
-        context.read<ApiCubit>().fetchInvoiceList(user_id: userId,page: currentPage);
+        context.read<ApiCubit>().fetchInvoiceList(user_id: userId,page: 1);
         break;
       case ListType.sale:
         context.read<ApiCubit>().fetchSaleList(user_id: userId);
@@ -234,11 +234,11 @@ class _ListScreenState extends State<ListScreen>
               state is StaffListLoading;
 
           if (state is InvoiceListLoaded) {
-            if (currentPage == 1) invoiceList.clear();
+           // if (currentPage == 1) invoiceList.clear();
             invoiceList.addAll(state.invoiceList);
-            hasMoreData = currentPage < state.last_page;
+          /*  hasMoreData = currentPage < state.last_page;
             isLoadingMore = false; // Fix here
-            currentPage++;
+            currentPage++;*/
           }else if (state is SaleListLoaded) {
             saleList = state.saleList;
           }else if (state is LedgerListLoaded) {
@@ -282,8 +282,8 @@ class _ListScreenState extends State<ListScreen>
         return InvoiceListWidget(
             invoices: invoiceList,
             isLoading: isLoading,
-            isLoadingMore:isLoadingMore,
-            scrollController:_scrollController,
+            //isLoadingMore:isLoadingMore,
+            //scrollController:_scrollController,
             searchQuery: searchQuery,
             onSearchChanged: (v) => setState(() => searchQuery = v),
             onAddPressed: _onAddInvoicePressed,

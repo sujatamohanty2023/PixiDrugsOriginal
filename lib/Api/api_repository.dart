@@ -173,7 +173,7 @@ class ApiRepository {
       queryParameters: {
         'user_id': userId,
         'page': page,
-        'per_page': 10,
+        'per_page': 20,
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }

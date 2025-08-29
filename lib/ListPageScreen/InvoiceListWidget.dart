@@ -9,8 +9,8 @@ class InvoiceListWidget extends StatelessWidget {
   final Function(Invoice invoice) onEditPressed;
   final Function(int id) onDeletePressed;
   String? role;
-  final bool isLoadingMore;
-  final ScrollController? scrollController;
+  //final bool isLoadingMore;
+ // final ScrollController? scrollController;
 
   InvoiceListWidget({
     required this.isLoading,
@@ -20,8 +20,8 @@ class InvoiceListWidget extends StatelessWidget {
     required this.onAddPressed,
     required this.onDeletePressed,
     required this.onEditPressed,
-    this.scrollController,
-    this.isLoadingMore = false,
+    //this.scrollController,
+    //this.isLoadingMore = false,
   });
   void loadUserData() async {
     role = await SessionManager.getRole();
@@ -57,9 +57,9 @@ class InvoiceListWidget extends StatelessWidget {
             button_tittle: 'Add Invoice',
           )
               : ListView.builder(
-            controller: scrollController,
+           // controller: scrollController,
             padding: EdgeInsets.zero,
-            itemCount: filteredInvoices.length + (isLoadingMore ? 1 : 0),
+            itemCount: filteredInvoices.length /*+ (isLoadingMore ? 1 : 0)*/,
             itemBuilder: (_, index) {
               final invoice = filteredInvoices[index];
               if (index >= filteredInvoices.length) {
