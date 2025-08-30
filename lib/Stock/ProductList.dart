@@ -152,7 +152,7 @@ class _ProductListPageState extends State<ProductListPage> {
               borderRadius: BorderRadius.circular(50)),
           onPressed: _onAddProduct,
           icon: const Icon(Icons.add,color: Colors.white,),
-          label: MyTextfield.textStyle_w800("ADD",16,AppColors.kWhiteColor,),
+          label: MyTextfield.textStyle_w400("ADD",SizeConfig.screenWidth! * 0.045,AppColors.kWhiteColor,),
         ),
       ):SizedBox(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -192,16 +192,15 @@ PreferredSizeWidget customAppBar(BuildContext context,
     tittle='Search Product';
   }
   return PreferredSize(
-    preferredSize: const Size.fromHeight(120),
+    preferredSize: const Size.fromHeight(90),
     child: Container(
       color: AppColors.kPrimary,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(left: 8.0),
               child: Row(
                 children: [
                   flag==2 || flag==3|| flag==4?

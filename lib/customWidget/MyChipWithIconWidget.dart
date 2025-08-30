@@ -21,18 +21,20 @@ class MyChipWithIconWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed ?? () {},
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(8),
+          gradient: AppColors.myGradient,
+          borderRadius: BorderRadius.circular(50),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: textColor),
-            const SizedBox(width: 5),
-            MyTextfield.textStyle_w600(text, AppUtils.size_16, textColor)
-          ],
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size:  SizeConfig.screenWidth! * 0.035, color: textColor),
+              const SizedBox(width: 5),
+              MyTextfield.textStyle_w600(text,  SizeConfig.screenWidth! * 0.035, textColor)
+            ],
+          ),
         ),
       ),
     );

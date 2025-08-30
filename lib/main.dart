@@ -29,15 +29,15 @@ void main() async {
     androidProvider:AndroidProvider.playIntegrity,
   );
 
-  runApp(const MyApp());
+  //runApp(const MyApp());
 
   //device-preview all screen
-  /*runApp(
+  runApp(
       DevicePreview(
         enabled: !kReleaseMode,
         builder: (context) => MyApp(), // Wrap your app
       ),
-  );*/
+  );
 }
 
 class MyApp extends StatefulWidget {

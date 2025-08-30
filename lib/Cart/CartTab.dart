@@ -63,37 +63,6 @@ class _CartTabState extends State<CartTab> {
       ),
     );
   }
-
-  Widget buildActionButton(IconData icon, String label,int flag) {
-
-    return GestureDetector(
-      onTap: (){
-        if(flag==1) {
-          AppRoutes.navigateTo(context,ProductListPage(flag: 4));
-        }else if(flag==2) {
-          _scanBarcode();
-        }else if(flag==3){
-          scanBatchNumber();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: AppColors.myGradient,
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppColors.kPrimary,size: 14,),
-            const SizedBox(width: 1),
-            MyTextfield.textStyle_w600(label, 16, AppColors.kPrimary),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Builds either cart or barcode cart content based on `widget.barcodeScan`
   Widget _buildCartContent(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
@@ -255,42 +224,60 @@ class _CartTabState extends State<CartTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(left: 10.0,bottom: 3),
                 child: Row(
                   children: [
                     MyTextfield.textStyle_w600('Sale Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
 
               Padding(
-                padding: const EdgeInsets.only(right: 15.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      buildActionButton(
-                        Icons.browse_gallery,
-                        'Pick Image',
-                        3,
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: MyChipWithIconWidget(
+                        color: AppColors.kPrimaryLight,
+                        icon: Icons.browse_gallery,
+                        text: 'Pick Image',
+                        textColor: AppColors.kPrimary,
+                        onPressed: () {
+                          scanBatchNumber();
+                        },
                       ),
-                      const SizedBox(width: 8),
-                      buildActionButton(
-                        Icons.qr_code_scanner,
-                        'Scan Barcode',
-                        2,
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: MyChipWithIconWidget(
+                        color: AppColors.kPrimaryLight,
+                        icon: Icons.qr_code_scanner,
+                        text: 'Scan Barcode',
+                        textColor: AppColors.kPrimary,
+                        onPressed: () {
+                          _scanBarcode();
+                        },
                       ),
-                      const SizedBox(width: 8),
-                      buildActionButton(Icons.edit, 'Add Manually', 1),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: MyChipWithIconWidget(
+                        color: AppColors.kPrimaryLight,
+                        icon: Icons.edit,
+                        text: 'Add Manually',
+                        textColor: AppColors.kPrimary,
+                        onPressed: () {
+                          AppRoutes.navigateTo(context, ProductListPage(flag: 4));
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 10),
+
+              const SizedBox(height: 5),
             ],
           ),
         ),

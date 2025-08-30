@@ -171,79 +171,6 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
     );
   }
 
-  Widget buildActionButton(IconData icon, String label, int flag) {
-    return GestureDetector(
-      onTap: () {
-        clickFlag=flag;
-        if (clickFlag == 1) {
-          if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn && edit && widget.returnModel != null) {
-              selectedSeller = Seller(
-                id: (widget.returnModel as PurchaseReturnModel).sellerId ?? 0,
-                sellerName: (widget.returnModel as PurchaseReturnModel).sellerName??'',
-                phone: (widget.returnModel as PurchaseReturnModel).phone ?? '',
-                address: '',
-                gstNo: '', // or from cart item if available
-              );
-          } else if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn && edit && widget.returnModel != null) {
-            selectedCustomer = CustomerModel(
-              id:(widget.returnModel as CustomerReturnsResponse).customer.id ?? 0,
-              name: (widget.returnModel as CustomerReturnsResponse).customer.name ?? '',
-              phone: (widget.returnModel as CustomerReturnsResponse).customer.phone ?? '',
-              address: '',
-            );
-          }
-
-          print('API${selectedSeller?.sellerName}/${selectedCustomer?.name}.');
-          AppRoutes.navigateTo(
-            context,
-            ReturnProductListPage(
-              cartTypeSelection: widget.cartTypeSelection,
-              selectedSeller: selectedSeller,
-              selectedCustomer: selectedCustomer,
-              onSellerSelected: (updatedSeller) {
-                setState(() {
-                  selectedSeller = updatedSeller;
-                });
-              },
-              onCustomerSelected: (updatedCustomer) {
-                setState(() {
-                  selectedCustomer = updatedCustomer;
-                });
-              },
-            ),
-          );
-        } else if (clickFlag == 2) {
-          _scanBarcode();
-        } else if (clickFlag == 3) {
-          scanBatchNumber();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          gradient: AppColors.myGradient,
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: AppColors.kPrimary,
-              size: 14,
-            ),
-            const SizedBox(width: 1),
-            MyTextfield.textStyle_w600(
-              label,
-              16,
-              AppColors.kPrimary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildReturnContent(BuildContext context) {
     final isStockist =
         widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
@@ -610,19 +537,38 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     child: Row(
                       children: [
                         const SizedBox(width: 8),
-                        buildActionButton(
-                          Icons.browse_gallery,
-                          'Pick Image',
-                          3,
+                        MyChipWithIconWidget(
+                          color: AppColors.kPrimaryLight,
+                          icon: Icons.browse_gallery,
+                          text: 'Pick Image',
+                          textColor: AppColors.kPrimary,
+                          onPressed: () {
+                            clickFlag=3;
+                            scanBatchNumber();
+                          },
                         ),
                         const SizedBox(width: 8),
-                        buildActionButton(
-                          Icons.qr_code_scanner,
-                          'Scan Barcode',
-                          2,
+                        MyChipWithIconWidget(
+                          color: AppColors.kPrimaryLight,
+                          icon: Icons.qr_code_scanner,
+                          text: 'Scan Barcode',
+                          textColor: AppColors.kPrimary,
+                          onPressed: () {
+                            clickFlag=2;
+                            _scanBarcode();
+                          },
                         ),
                         const SizedBox(width: 8),
-                        buildActionButton(Icons.edit, 'Add Manually', 1),
+                        MyChipWithIconWidget(
+                          color: AppColors.kPrimaryLight,
+                          icon: Icons.edit,
+                          text: 'Add Manually',
+                          textColor: AppColors.kPrimary,
+                          onPressed: () {
+                            clickFlag=1;
+                            AddManualClick();
+                          },
+                        ),
                         const SizedBox(width: 8),
                       ],
                     ),
@@ -633,6 +579,44 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
             ],
           ),
         ),
+      ),
+    );
+  }
+  void AddManualClick() {
+    if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn && edit && widget.returnModel != null) {
+      selectedSeller = Seller(
+        id: (widget.returnModel as PurchaseReturnModel).sellerId ?? 0,
+        sellerName: (widget.returnModel as PurchaseReturnModel).sellerName??'',
+        phone: (widget.returnModel as PurchaseReturnModel).phone ?? '',
+        address: '',
+        gstNo: '', // or from cart item if available
+      );
+    } else if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn && edit && widget.returnModel != null) {
+      selectedCustomer = CustomerModel(
+        id:(widget.returnModel as CustomerReturnsResponse).customer.id ?? 0,
+        name: (widget.returnModel as CustomerReturnsResponse).customer.name ?? '',
+        phone: (widget.returnModel as CustomerReturnsResponse).customer.phone ?? '',
+        address: '',
+      );
+    }
+
+    print('API${selectedSeller?.sellerName}/${selectedCustomer?.name}.');
+    AppRoutes.navigateTo(
+      context,
+      ReturnProductListPage(
+        cartTypeSelection: widget.cartTypeSelection,
+        selectedSeller: selectedSeller,
+        selectedCustomer: selectedCustomer,
+        onSellerSelected: (updatedSeller) {
+          setState(() {
+            selectedSeller = updatedSeller;
+          });
+        },
+        onCustomerSelected: (updatedCustomer) {
+          setState(() {
+            selectedCustomer = updatedCustomer;
+          });
+        },
       ),
     );
   }
