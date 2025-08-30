@@ -1,18 +1,17 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../constant/all.dart';
 
-class InvoiceListWidget extends StatelessWidget {
+class InvoiceListWidget extends StatefulWidget {
   final bool isLoading;
   final List<Invoice> invoices;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
-  final Function(Invoice invoice) onEditPressed;
-  final Function(int id) onDeletePressed;
-  String? role;
-  //final bool isLoadingMore;
- // final ScrollController? scrollController;
+  final Function(Invoice) onEditPressed;
+  final Function(int) onDeletePressed;
+  final bool isLoadingMore;
+  final ScrollController? scrollController;
 
-  InvoiceListWidget({
+  const InvoiceListWidget({
     required this.isLoading,
     required this.invoices,
     required this.searchQuery,
@@ -20,196 +19,191 @@ class InvoiceListWidget extends StatelessWidget {
     required this.onAddPressed,
     required this.onDeletePressed,
     required this.onEditPressed,
-    //this.scrollController,
-    //this.isLoadingMore = false,
-  });
-  void loadUserData() async {
-    role = await SessionManager.getRole();
+    this.scrollController,
+    this.isLoadingMore = false,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<InvoiceListWidget> createState() => _InvoiceListWidgetState();
+}
+
+class _InvoiceListWidgetState extends State<InvoiceListWidget> {
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
   }
+
+  Future<void> _loadUserRole() async {
+    role = await SessionManager.getRole();
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    loadUserData();
-    final filteredInvoices = invoices
-        .where((i) =>
-        i.sellerName!.toLowerCase().contains(searchQuery.toLowerCase()))
+    final filteredInvoices = widget.invoices
+        .where((i) => i.sellerName!
+        .toLowerCase()
+        .contains(widget.searchQuery.toLowerCase()))
         .toList();
+    final itemCount = filteredInvoices.length + (!widget.isLoading ? 1 : 0);
 
     return Stack(
       children: [
         Container(
           decoration: BoxDecoration(
             gradient: AppColors.myGradient,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(screenWidth * 0.07),
-              topRight: Radius.circular(screenWidth * 0.07),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(screenWidth * 0.07),
             ),
           ),
-          child: isLoading
-              ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-              : invoices.isEmpty
+          child: widget.isLoading
+              ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
+              : widget.invoices.isEmpty
               ? NoItemPage(
-            onTap: onAddPressed,
+            onTap: widget.onAddPressed,
             image: AppImages.no_invoice,
             tittle: 'Add an Invoice record.',
-            description:
-            "Please add your invoice details for better tracking.",
+            description: "Please add your invoice details for better tracking.",
             button_tittle: 'Add Invoice',
           )
               : ListView.builder(
-           // controller: scrollController,
+            controller: widget.scrollController,
             padding: EdgeInsets.zero,
-            itemCount: filteredInvoices.length /*+ (isLoadingMore ? 1 : 0)*/,
+            itemCount: itemCount,
             itemBuilder: (_, index) {
-              final invoice = filteredInvoices[index];
               if (index >= filteredInvoices.length) {
-                return buildBottomLoaderWithText();
+                return _buildBottomLoader();
               }
-              return buildInvoiceCard(context,invoice, screenWidth);
+              return _buildInvoiceCard(filteredInvoices[index], screenWidth,index);
             },
           ),
         ),
-        // FAB Positioned at bottom right
-        invoices.isNotEmpty?Positioned(
-          bottom: 16,
-          right: 16,
-          child: FloatingActionButton(
-            onPressed: onAddPressed,
-            backgroundColor: AppColors.kPrimary,
-            child: const Icon(Icons.add, color: Colors.white),
+        if (widget.invoices.isNotEmpty)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: widget.onAddPressed,
+              backgroundColor: AppColors.kPrimary,
+              child: Icon(Icons.add, color: Colors.white),
+            ),
           ),
-        ):SizedBox(),
-        ]
-    );
-  }
-  Widget buildBottomLoaderWithText() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircularProgressIndicator(strokeWidth: 2, color: AppColors.kPrimary),
-          SizedBox(height: 8),
-          Text("Loading more invoices...", style: TextStyle(color: Colors.grey)),
-        ],
-      ),
+      ],
     );
   }
 
-  Widget buildInvoiceCard(BuildContext context,Invoice invoice, double screenWidth) {
+  Widget _buildBottomLoader() => Padding(
+    padding: EdgeInsets.symmetric(vertical: 16),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularProgressIndicator(strokeWidth: 2, color: AppColors.kPrimary),
+        SizedBox(height: 8),
+        Text("Loading more invoices...", style: TextStyle(color: Colors.grey)),
+      ],
+    ),
+  );
+
+  Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(context, InvoiceSummaryPage(details: true,invoice: invoice));
-      },
+      onTap: () => AppRoutes.navigateTo(
+          context, InvoiceSummaryPage(details: true, invoice: invoice)),
       child: Card(
-        color: Colors.white,
-        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
+        margin: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.03),
+        ),
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
-        child: IntrinsicHeight(
+        child: Padding(
+          padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(screenWidth * 0.03),
-                  bottomLeft: Radius.circular(screenWidth * 0.03),
-                ),
+                borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(screenWidth * 0.03)),
                 child: Container(
                   width: screenWidth * 0.015,
                   color: AppColors.kPrimary,
                 ),
               ),
+              SizedBox(width: screenWidth * 0.02),
+              CircleAvatar(
+                radius: screenWidth * 0.08,
+                backgroundColor: AppColors.kPrimaryDark,
+                child: MyTextfield.textStyle_w600(
+                  _getInitials(invoice.sellerName!),
+                  screenWidth * 0.045,
+                  AppColors.kPrimary,
+                ),
+              ),
+              SizedBox(width: screenWidth * 0.03),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(screenWidth * 0.02),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: screenWidth * 0.08,
-                        backgroundColor: AppColors.kPrimaryDark,
-                        child:MyTextfield.textStyle_w600( getInitials(invoice.sellerName!),screenWidth * 0.045,AppColors.kPrimary) ),
-                      SizedBox(width: screenWidth * 0.03),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MyTextfield.textStyle_w800(
+                        invoice.sellerName!, screenWidth * 0.04, AppColors.kPrimary),
+                    SizedBox(height: screenWidth * 0.01),
+                    MyTextfield.textStyle_w400(
+                        'Invoice No. #${invoice.invoiceId!}',
+                        screenWidth * 0.035,
+                        Colors.grey.shade700),
+                    MyTextfield.textStyle_w400('Dt.${invoice.invoiceDate!}',
+                        screenWidth * 0.035, Colors.grey.shade700),
+                    SizedBox(height: screenWidth * 0.01),
+                    MyTextfield.textStyle_w600(
+                        "₹${invoice.netAmount!}", screenWidth * 0.049, Colors.green),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  MyTextfield.textStyle_w600('${index+1}', screenWidth * 0.049, Colors.green),
+                  PopupMenuButton<String>(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    color: AppColors.kWhiteColor,
+                    elevation: 10,
+                    onSelected: (value) {
+                      if (value == 'edit') widget.onEditPressed(invoice);
+                      if (value == 'delete') widget.onDeletePressed(invoice.id!);
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
                           children: [
-                            MyTextfield.textStyle_w800(invoice.sellerName!,screenWidth * 0.04,AppColors.kPrimary),
-                            SizedBox(height: screenWidth * 0.01),
-                            MyTextfield.textStyle_w400('Invoice No. #${invoice.invoiceId!}',screenWidth * 0.035,Colors.grey.shade700),
-                            MyTextfield.textStyle_w400('Dt.${invoice.invoiceDate!}',screenWidth * 0.035,Colors.grey.shade700),
-                            SizedBox(height: screenWidth * 0.01),
-                            MyTextfield.textStyle_w600("₹${invoice.netAmount!}",screenWidth * 0.049,Colors.green),
+                            SvgPicture.asset(AppImages.edit,
+                                height: 18, color: AppColors.kPrimary),
+                            SizedBox(width: 8),
+                            MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
                           ],
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          PopupMenuButton<String>(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16), // Rounded shape
-                            ),
-                            color: AppColors.kWhiteColor, // so gradient shows
-                            elevation: 10,
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                onEditPressed(invoice);
-                              } else if (value == 'delete') {
-                                onDeletePressed(invoice.id!);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              PopupMenuItem(value: 'edit',
-                                  child:Row(
-                                    children: [
-                                      SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
-                                      SizedBox(width: 8),
-                                      MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
-                                    ],
-                                  )),
-                              if(role=='owner')
-                              PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                                        AppImages.delete,
-                                        height: 18,
-                                        width: 18,
-                                        color: AppColors.kRedColor,
-                                      ),
-                                      SizedBox(width: 8),
-                                      MyTextfield.textStyle_w600('Delete', 13,AppColors.kRedColor),
-                                    ],
-                                  )
-                              ),
+                      if (role == 'owner')
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(AppImages.delete,
+                                  height: 18, width: 18, color: AppColors.kRedColor),
+                              SizedBox(width: 8),
+                              MyTextfield.textStyle_w600(
+                                  'Delete', 13, AppColors.kRedColor),
                             ],
-                            icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                           ),
-                          SizedBox(height: screenWidth * 0.015),
-                          /*Container(
-                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
-                            decoration: BoxDecoration(
-                              //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
-                              color: Colors.green.shade100,
-                              borderRadius: BorderRadius.circular(screenWidth * 0.01),
-                            ),
-                            child: Text(
-                              //invoice.status,
-                              'Paid',
-                              style: TextStyle(
-                                //color: invoice.status == "Paid" ? Colors.green : Colors.red,
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.03,
-                              ),
-                            ),
-                          ),*/
-                        ],
-                      ),
+                        ),
                     ],
+                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -218,8 +212,7 @@ class InvoiceListWidget extends StatelessWidget {
     );
   }
 
-  String getInitials(String name) {
-    final parts = name.trim().split(' ');
-    return parts.take(2).map((e) => e[0].toUpperCase()).join();
+  String _getInitials(String name) {
+    return name.trim().split(' ').take(2).map((e) => e[0].toUpperCase()).join();
   }
 }

@@ -5,6 +5,7 @@ import '../Dialog/update_bottom_sheet.dart';
 import '../Profile/contact_us.dart';
 import '../ReturnCart/ReturnCartTab.dart';
 import '../login/mobileLoginScreen.dart';
+import 'YoutubeVideoListPage.dart';
 
 class DashboardItem {
   final String title;
@@ -225,11 +226,11 @@ class _HomeTabState extends State<HomeTab> {
     super.dispose();
   }
 
-  Future<void> _onNotificationTap() async {
-    AppUtils.showSnackBar(context, "Notification tapped");
+  Future<void> _onYouTubeTap() async {
+    AppRoutes.navigateTo(context, YoutubeVideoListPage());
   }
 
-  PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onNotificationTap) {
+  PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onYouTubeTap) {
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(80),
@@ -268,11 +269,10 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ),
             GestureDetector(
-              onTap: onNotificationTap,
+              onTap: onYouTubeTap,
               child: SvgPicture.asset(
-                AppImages.notification,
-                height: 24,
-                color: AppColors.kWhiteColor,
+                AppImages.youtube,
+                height: 30,
               ),
             ),
           ],
@@ -288,7 +288,7 @@ class _HomeTabState extends State<HomeTab> {
 
     return Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBarHome(context, _onNotificationTap),
+      appBar: customAppBarHome(context, _onYouTubeTap),
       body: Container(
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
