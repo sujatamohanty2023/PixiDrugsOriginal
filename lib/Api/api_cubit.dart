@@ -13,6 +13,7 @@ import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../Staff/StaffModel.dart';
 import '../StockReturn/PurchaseReturnModel.dart';
+import '../report/reportResponse.dart';
 import 'api_repository.dart';
 
 class ApiCubit extends Cubit<ApiState> {
@@ -581,6 +582,17 @@ class ApiCubit extends Cubit<ApiState> {
       emit(StaffAddLoaded(message: message,status:status ));
     } catch (e) {
       emit(StaffAddError('Error: $e'));
+    }
+  }
+  //------------------------------------------------------------------------------------
+  Future<void> report({required String store_id,required String range,}) async {
+    try {
+      emit(ReportLoading());
+      final response = await apiRepository.ReportApi(storeId: store_id,range:range);
+      final report = Report.fromJson(response);
+      emit(ReportLoaded(report: report));
+    } catch (e) {
+      emit(ReportError('Error: $e'));
     }
   }
 }

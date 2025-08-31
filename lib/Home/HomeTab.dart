@@ -5,6 +5,7 @@ import '../Dialog/update_bottom_sheet.dart';
 import '../Profile/contact_us.dart';
 import '../ReturnCart/ReturnCartTab.dart';
 import '../login/mobileLoginScreen.dart';
+import '../report/report_page.dart';
 import 'YoutubeVideoListPage.dart';
 
 class DashboardItem {
@@ -101,6 +102,12 @@ class _HomeTabState extends State<HomeTab> {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
       }),
       DashboardItem(title: "Sale Return List", desc:"View returns received from customers", icon:AppImages.customer_return,onTap:  () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
+      }),
+      DashboardItem(title: "Top Creditors", desc:"View returns made to suppliers", icon:AppImages.creditor,onTap:  () {
+        AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
+      }),
+      DashboardItem(title: "Top Debitors", desc:"View returns received from customers", icon:AppImages.debitor,onTap:  () {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
       }),
     ];
@@ -233,10 +240,10 @@ class _HomeTabState extends State<HomeTab> {
   PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onYouTubeTap) {
 
     return PreferredSize(
-      preferredSize: const Size.fromHeight(80),
+      preferredSize: const Size.fromHeight(65),
       child: Container(
         color: AppColors.kPrimary,
-        padding: const EdgeInsets.only(top: 15.0, left: 12, right: 12),
+        padding: const EdgeInsets.only(top: 22.0, left: 12, right: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -338,7 +345,7 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),*/
                 SizedBox(
-                  height: screenHeight * 0.25,
+                  height: screenHeight * 0.18,
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: bannerList.length,
@@ -356,7 +363,11 @@ class _HomeTabState extends State<HomeTab> {
                     },
                   ),
                 ),
+
                 const SizedBox(height: 5),
+                const ReportPage(),
+                const SizedBox(height: 10),
+
                 MyTextfield.textStyle_w800("My DashBoard", SizeConfig.screenWidth! * 0.055, Colors.black87),
                 const SizedBox(height: 10),
                 GridView.builder(
@@ -364,9 +375,9 @@ class _HomeTabState extends State<HomeTab> {
                   shrinkWrap: true, // Makes GridView take only needed height
                   itemCount: dashboardItems.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
                     childAspectRatio: 0.95,
                   ),
                   itemBuilder: (context, index) {
@@ -431,49 +442,55 @@ class _HomeTabState extends State<HomeTab> {
     required String tasks,
     required String icon,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.myGradient,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(width: 1, color: AppColors.kPrimaryLight),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.kPrimaryDark,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SvgPicture.asset(icon, height: 40, width: 40, color: AppColors.kPrimary),
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(width: 1, color: AppColors.kPrimaryLight),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16,bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.kPrimaryDark,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: SvgPicture.asset(icon, height: 40, width: 40, color: AppColors.kPrimary),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    //MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.043, AppColors.kPrimary),
+                    //MyTextfield.textStyle_w300(tasks, SizeConfig.screenWidth! * 0.030, AppColors.kPrimary.withOpacity(0.6)),
+                  ],
+                ),
+              ),
+              /*Positioned(
+                bottom: 0,
+                right: 0,
+                child: ClipPath(
+                  clipper: ArrowCornerClipper(),
+                  child: Container(
+                    width: 55,
+                    height: 35,
+                    color: AppColors.kPrimary,
+                    child: const Icon(Icons.arrow_forward, size: 22, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 5),
-                MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.043, AppColors.kPrimary),
-                MyTextfield.textStyle_w300(tasks, SizeConfig.screenWidth! * 0.030, AppColors.kPrimary.withOpacity(0.6)),
-              ],
-            ),
+              ),*/
+            ],
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: ClipPath(
-              clipper: ArrowCornerClipper(),
-              child: Container(
-                width: 55,
-                height: 35,
-                color: AppColors.kPrimary,
-                child: const Icon(Icons.arrow_forward, size: 22, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+        SizedBox(height: 5,),
+        MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.035, AppColors.kPrimary),
+      ],
     );
   }
   void _showUpdateBottomSheet(BuildContext context) {

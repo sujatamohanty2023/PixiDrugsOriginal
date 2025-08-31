@@ -43,6 +43,8 @@ class AppImages {
   static String edit = "${svgFolder}edit.svg";
   static String camera = "${svgFolder}camera.svg";
   static String youtube = "${svgFolder}youtube.svg";
+  static String creditor = "${svgFolder}creditor.svg";
+  static String debitor = "${svgFolder}debitor.svg";
   static String stockiest_return = "${svgFolder}stockiest_return.svg";
   static String customer_return = "${svgFolder}customer_return.svg";
 

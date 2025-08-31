@@ -2,6 +2,7 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/report/reportResponse.dart';
 
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
@@ -499,4 +500,16 @@ class StaffListLoaded extends ApiState {
 class StaffListError extends ApiState {
   final String error;
   StaffListError(this.error);
+}
+//--------------------------------------------------------------------
+class ReportLoading extends ApiState {}
+
+class ReportLoaded extends ApiState {
+  Report report;
+  ReportLoaded({required this.report});
+}
+
+class ReportError extends ApiState {
+  final String error;
+  ReportError(this.error);
 }

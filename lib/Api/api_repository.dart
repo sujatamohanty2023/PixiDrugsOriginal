@@ -358,6 +358,21 @@ class ApiRepository {
       options: Options(headers: {'Content-Type': 'application/json'}),
     ));
   }
+  Future<Map<String, dynamic>> ReportApi({
+    required String storeId,required String range
+  }) {
+    final params = {
+      'store_id': storeId,
+      'page': 1,
+      'range': range,
+      'from_date': '',
+      'to_date': ''
+    };
 
+    return _safeApiCall(() => dio.get(
+      '${AppString.baseUrl}api/dashboardstats',
+      queryParameters: params,
+      options: Options(headers: {'Content-Type': 'application/json'}),
+    ));
+  }
 }
-
