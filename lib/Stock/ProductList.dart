@@ -293,7 +293,7 @@ PreferredSizeWidget customAppBar(
                   const SizedBox(width: 10),
                   MyTextfield.textStyle_w600(
                     getTitle(flag),
-                    SizeConfig.screenWidth! * 0.055,
+                    SizeConfig.screenWidth! * 0.045,
                     Colors.white,
                   ),
                 ],
