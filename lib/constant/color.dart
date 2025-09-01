@@ -5,6 +5,8 @@ class AppColors {
   static const kPrimaryDark = Color(0xFFC4DAF6);
   static const loginbg = Color(0xFF173C6E);
   static const kPrimary = Color(0xFF062A49);
+  static const secondaryColor = Color(0xff1ca4ac);
+  static const secondaryColorLight = Color(0xffdcf3f4);
 
   static const kWhiteColor = Color(0xFFFFFFFF);
   static const kgrey = Color(0xFFC2C3C3);

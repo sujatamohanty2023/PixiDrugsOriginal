@@ -69,8 +69,7 @@ class ApiRepository {
   Future<Map<String, dynamic>> EditUserProfile(
       String userId,
       String name,
-      String email,
-      String phoneNumber,
+      String ownerName,
       String gender,
       String dob,
       String profilePicture,
@@ -80,8 +79,7 @@ class ApiRepository {
       queryParameters: {
         'user_id': userId,
         'name': name,
-        'email': email,
-        'phone_number': phoneNumber,
+        'owner_name': ownerName,
         'gander': gender,
         'dob': dob,
         'profile_picture': profilePicture,
@@ -177,11 +175,15 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<List<dynamic>> stockList(String userId, String apiName) {
+  Future<Map<String, dynamic>> stockList(String userId, String apiName,int page,String query) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/$apiName/',
-      queryParameters: {'user_id': userId},
-    )).then((data) => List<dynamic>.from(data));
+      queryParameters: {
+        'user_id': userId,
+        'page': page,
+        'per_page': 10,
+        'search':query},
+    )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> searchDetail(String query, String storeId,String apiName) {
     return _safeApiCall(() => dio.get(

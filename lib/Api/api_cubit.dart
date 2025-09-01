@@ -76,15 +76,14 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> updateUserData(
       {required String user_id,
       required String name,
-      required String email,
-      required String phone_number,
+      required String ownerName,
       required String gander,
       required String dob,
       required String profile_picture}) async {
     try {
       emit(EditProfileLoading());
       final response = await apiRepository.EditUserProfile(
-          user_id, name, email, phone_number, gander, dob, profile_picture);
+          user_id, name,ownerName, gander, dob, profile_picture);
       final data = response['user'];
       final message = response['message'];
       final model = UserProfile.fromJson(data);
@@ -250,34 +249,40 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchStockList({required String user_id}) async {
+  Future<void> fetchStockList({required String user_id,required int page,required String query}) async {
     try {
       emit(StockListLoading());
-      final response = await apiRepository.stockList(user_id,'stocklist');
-      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
-      emit(StockListLoaded(stockList: list));
+      final response = await apiRepository.stockList(user_id,'stocklist',page,query);
+      final stocks = response['stocks'] as List;
+      final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
+      final last_page = response['pagination']['last_page'];
+      emit(StockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
       emit(StockListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> expiredStockList({required String user_id}) async {
+  Future<void> expiredStockList({required String user_id,required int page,required String query}) async {
     try {
       emit(ExpiredStockListLoading());
-      final response = await apiRepository.stockList(user_id,'expired');
-      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
-      emit(ExpiredStockListLoaded(stockList: list));
+      final response = await apiRepository.stockList(user_id,'expired',page,query);
+      final stocks = response['stocks'] as List;
+      final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
+      final last_page = response['pagination']['last_page'];
+      emit(ExpiredStockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
       emit(ExpiredStockListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> expireSoonStockList({required String user_id}) async {
+  Future<void> expireSoonStockList({required String user_id,required int page,required String query}) async {
     try {
       emit(ExpireSoonStockListLoading());
-      final response = await apiRepository.stockList(user_id,'expiring');
-      final list = response.map((json) => InvoiceItem.fromJson(json)).toList();
-      emit(ExpireSoonStockListLoaded(stockList: list));
+      final response = await apiRepository.stockList(user_id,'expiring',page,query);
+      final stocks = response['stocks'] as List;
+      final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
+      final last_page = response['pagination']['last_page'];
+      emit(ExpireSoonStockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
       emit(ExpireSoonStockListError('Error: $e'));
     }

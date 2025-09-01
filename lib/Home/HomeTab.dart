@@ -73,7 +73,7 @@ class _HomeTabState extends State<HomeTab> {
       DashboardItem(title: "Expired Product",desc: "View expired items", icon:AppImages.expired,onTap:  () {
         Navigator.pushNamed(context, '/stockList', arguments: 2);
       }),
-      DashboardItem(title: "Expire Soon", desc:"Track nearing expiry your product", icon:AppImages.notification,onTap:  () {
+      DashboardItem(title: "Expire Soon", desc:"Track nearing expiry your product", icon:AppImages.expire_soon,onTap:  () {
         Navigator.pushNamed(context, '/stockList', arguments: 3);
       }),
       DashboardItem(title: "Stockist Return",desc: "Return products back to stockist", icon:AppImages.purchase_return, onTap: () {
@@ -98,7 +98,7 @@ class _HomeTabState extends State<HomeTab> {
         );*/
         _newSaleEntry('Start New Customer Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.CustomerReturn);
       }),
-      DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stockiest_return,onTap:  () {
+      DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stock_return,onTap:  () {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
       }),
       DashboardItem(title: "Sale Return List", desc:"View returns received from customers", icon:AppImages.customer_return,onTap:  () {
@@ -368,7 +368,7 @@ class _HomeTabState extends State<HomeTab> {
                 const ReportPage(),
                 const SizedBox(height: 10),
 
-                MyTextfield.textStyle_w800("My DashBoard", SizeConfig.screenWidth! * 0.055, Colors.black87),
+                MyTextfield.textStyle_w800("My DashBoard", 18, Colors.black87),
                 const SizedBox(height: 10),
                 GridView.builder(
                   physics: NeverScrollableScrollPhysics(), // Prevents scroll conflict
@@ -446,10 +446,18 @@ class _HomeTabState extends State<HomeTab> {
       children: [
         Container(
           decoration: BoxDecoration(
-            gradient: AppColors.myGradient,
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.kPrimary,
+                  AppColors.secondaryColor,
+                ],
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(width: 1, color: AppColors.kPrimaryLight),
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
+            border: Border.all(width: 0.5, color: AppColors.secondaryColor),
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
           ),
           child: Stack(
             children: [
@@ -460,10 +468,10 @@ class _HomeTabState extends State<HomeTab> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: AppColors.kPrimaryDark,
+                      backgroundColor: AppColors.kWhiteColor,
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: SvgPicture.asset(icon, height: 40, width: 40, color: AppColors.kPrimary),
+                        child: SvgPicture.asset(icon, height: 40, width: 40),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -489,7 +497,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ),
         SizedBox(height: 5,),
-        MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.035, AppColors.kPrimary),
+        MyTextfield.textStyle_w600(title, 14, AppColors.kPrimary),
       ],
     );
   }

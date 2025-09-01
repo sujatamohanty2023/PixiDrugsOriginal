@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import 'ExpenseResponse.dart';
@@ -12,20 +13,31 @@ class Addexpensescreen extends StatefulWidget {
 }
 
 class _AddexpensescreenState extends State<Addexpensescreen> {
-  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   bool edit=false;
-
+  List<String> category = [
+    'Select Expense Category',
+    'Staff Salaries',
+    'Rent',
+    'Medicine Purchase',
+    'Fuel',
+    'Electric Bill',
+    'Office Expenses',
+    'GST Payments',
+    'Food',
+    'Medicine Purchase',
+  ];
+  String? selectedCategory='Select Expense Category';
   @override
   void initState() {
     super.initState();
     if(widget.expenseResponse !=null) {
       selectedDate = DateTime.parse(widget.expenseResponse!.expanseDate);
-      _titleController.text = widget.expenseResponse!.title;
       _amountController.text = widget.expenseResponse!.amount;
       _noteController.text = widget.expenseResponse!.note;
+      selectedCategory=widget.expenseResponse?.title??'Select Expense Category';
     }
   }
   Future<void> _pickDate() async {
@@ -46,26 +58,24 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
     }
   }
   Future<void> _saveExpense() async {
-    String title = _titleController.text.trim();
     String amount = _amountController.text.trim();
     String note = _noteController.text.trim();
-
-    if (title.isEmpty || amount.isEmpty) {
-      AppUtils.showSnackBar(context,"Please fill Title and Amount");
+    if (selectedCategory == null || selectedCategory == 'Select Expense Category') {
+      AppUtils.showSnackBar(context, 'Please Select Expense Category');
       return;
     }
     final userId = await SessionManager.getParentingId() ?? '';
     if(edit && widget.expenseResponse !=null){
       context.read<ApiCubit>().ExpenseEdit(id:widget.expenseResponse!.id.toString(),
           store_id:userId,
-          title:title,
+          title:selectedCategory!,
           amount:amount,
           expanse_date:DateFormat('yyyy-MM-dd').format(selectedDate),
           note:note
       );
     }else {
       context.read<ApiCubit>().ExpenseAdd(store_id:userId,
-          title:title,
+          title:selectedCategory!,
           amount:amount,
           expanse_date:DateFormat('yyyy-MM-dd').format(selectedDate),
           note:note
@@ -159,12 +169,42 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 6),
                           MyTextfield.textStyle_w400("Title", AppUtils.size_16, Colors.black),
                           SizedBox(height: 6),
-                          MyEdittextfield(
-                            controller: _titleController,
-                            hintText: "Enter title",
-                            readOnly: !edit && widget.expenseResponse!=null,
+                          DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            value: selectedCategory,
+                            items: category.map((reason) {
+                              return DropdownMenuItem<String>(
+                                value: reason,
+                                child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
+                              );
+                            }).toList(),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                              ),
+                            ),
+                            onChanged: (  edit || widget.expenseResponse==null)
+                                ? (value) {
+                              setState(() {
+                                selectedCategory = value;
+                              });
+                            }: null,
+                            hint: const Text("Select Expense Category"),
                           ),
                           SizedBox(height: 14),
 
@@ -204,11 +244,11 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                           ),
                           SizedBox(height: 14),
 
-                          MyTextfield.textStyle_w400("Note", AppUtils.size_16, Colors.black),
+                          MyTextfield.textStyle_w400("Description", AppUtils.size_16, Colors.black),
                           SizedBox(height: 6),
                           MyEdittextfield(
                             controller: _noteController,
-                            hintText: "Write a note",
+                            hintText: "Write a description",
                             maxLines: 3,
                             readOnly: !edit && widget.expenseResponse!=null,
                           ),

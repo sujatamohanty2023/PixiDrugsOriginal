@@ -3,12 +3,15 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  UserProfile? user;
+  EditProfileScreen({required this.user});
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  TextEditingController nameController = TextEditingController();
+  TextEditingController storeNameController = TextEditingController();
+  TextEditingController ownerNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController gstController = TextEditingController();
@@ -18,6 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool image_changed = false;
   String _imageFile = '';
   String _UploadUrl = '';
+  UserProfile? user;
   void _setSelectedImage(List<File> file) {
     setState(() {
       image_changed = true;
@@ -28,28 +32,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProfileData();
-  }
-
-  // Load the saved profile data from SharedPreferences
-  void _loadProfileData() async {
-    String? userId = await SessionManager.getParentingId();
-    context.read<ApiCubit>().GetUserData(userId: userId!);
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is UserProfileLoaded) {
-        nameController.text = state.userModel.user.name;
-        emailController.text = state.userModel.user.email;
-        phoneController.text = state.userModel.user.phoneNumber;
-        gstController.text = state.userModel.user.phoneNumber;
-        regController.text = state.userModel.user.phoneNumber;
-        addressController.text = state.userModel.user.phoneNumber;
-        String imageUrl = state.userModel.user.profilePicture;
-        setState(() {
-          _imageFile = imageUrl;
-        });
-      } else if (state is UserProfileError) {
-       AppUtils.showSnackBar(context,'Failed: ${state.error}');
-      }
+    user=widget.user;
+    setState(() {
+      _imageFile = user!.profilePicture;
+      storeNameController.text = user!.name;
+      ownerNameController.text = user!.ownerName;
+      emailController.text = user!.email;
+      phoneController.text = user!.phoneNumber;
+      gstController.text = user!.gstin;
+      regController.text = user!.license;
+      addressController.text = user!.address;
+      String imageUrl = user!.profilePicture;
     });
   }
 
@@ -88,9 +81,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? userId = await SessionManager.getParentingId();
     context.read<ApiCubit>().updateUserData(
         user_id: userId!,
-        name: nameController.text.isEmpty ? '' : nameController.text,
-        email: emailController.text.isEmpty ? '' : emailController.text,
-        phone_number: phoneController.text.isEmpty ? '' : phoneController.text,
+        name: storeNameController.text.isEmpty ? '' : storeNameController.text,
+        ownerName: ownerNameController.text.isEmpty ? '' : ownerNameController.text,
         gander:'',
         dob: '',
         profile_picture: profile_url);
@@ -170,17 +162,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 SizedBox(height: screenHeight * 0.015),
                 // Name input field
-                MyTextfield.textStyle_w600(AppString.name, 18, Colors.black),
+                MyTextfield.textStyle_w600(AppString.storeName, 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
-                    hintText: AppString.enterName, controller: nameController),
+                    hintText: 'Enter ${AppString.storeName}', controller: storeNameController),
                 SizedBox(height: screenHeight * 0.015),
-                // Email input field
+                MyTextfield.textStyle_w600(AppString.ownerName, 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    hintText: 'Enter ${AppString.ownerName}',
+                    controller: ownerNameController),
+                SizedBox(height: 8),
                 MyTextfield.textStyle_w600(AppString.email, 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: AppString.enterEmail,
-                    controller: emailController),
+                    controller: emailController,readOnly: true),
                 SizedBox(height: 8),
                 // Phone number input field
                 MyTextfield.textStyle_w600(AppString.phone, 18, Colors.black),
@@ -188,7 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 MyEdittextfield(
                     controller: phoneController,
                     hintText: AppString.enterNumber,
-                    keyboardType: TextInputType.phone),
+                    keyboardType: TextInputType.phone,readOnly: true,),
                 SizedBox(height: 8),
                 // Phone number input field
                 MyTextfield.textStyle_w600('GSTIN', 18, Colors.black),
@@ -206,11 +203,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     keyboardType: TextInputType.text),
                 SizedBox(height: 8),
                 // Phone number input field
-                MyTextfield.textStyle_w600(AppString.address, 18, Colors.black),
+                MyTextfield.textStyle_w600(AppString.storeAddress, 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: addressController,
-                    hintText: AppString.enterAddress,
+                    hintText: 'Enter ${AppString.storeAddress}',
                     keyboardType: TextInputType.text,maxLines: 3 ,),
                 SizedBox(height: screenHeight * 0.015),
                 // Update button

@@ -24,6 +24,7 @@ class AppImages {
   static String sale = "${svgFolder}sale.svg";
   static String sale_list = "${svgFolder}sale_list.svg";
   static String expired = "${svgFolder}expired.svg";
+  static String expire_soon = "${svgFolder}expire_soon.svg";
   static String notification = "${svgFolder}notification.svg";
   static String home = "${svgFolder}home.svg";
   static String scan_cart = "${svgFolder}scan_cart.svg";
@@ -45,7 +46,7 @@ class AppImages {
   static String youtube = "${svgFolder}youtube.svg";
   static String creditor = "${svgFolder}creditor.svg";
   static String debitor = "${svgFolder}debitor.svg";
-  static String stockiest_return = "${svgFolder}stockiest_return.svg";
+  static String stock_return = "${svgFolder}stock_return.svg";
   static String customer_return = "${svgFolder}customer_return.svg";
 
 }

@@ -1,8 +1,4 @@
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:flutter/material.dart';
-import '../Api/api_cubit.dart';
-import '../constant/color.dart';
-import '../customWidget/MyTextField.dart';
 import 'DashboardCardModel.dart';
 
 class ReportPage extends StatefulWidget {
@@ -91,7 +87,7 @@ class _ReportPageState extends State<ReportPage> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 2.5,
                 children: [
-                  ...cards.map((item) => _buildCard(item.title, item.amount,AppColors.kPrimary)).toList(),
+                  ...cards.map((item) => _buildCard(item.title, item.amount,item.color)).toList(),
                 ],
               );
             },
@@ -156,7 +152,7 @@ class _ReportPageState extends State<ReportPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MyTextfield.textStyle_w300(title, 14,colorValue),
+              MyTextfield.textStyle_w400(title.toUpperCase(), 14,colorValue),
               Icon(Icons.arrow_forward_ios, size: 14,color: colorValue),
             ],
           ),

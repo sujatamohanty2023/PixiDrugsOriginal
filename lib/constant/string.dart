@@ -15,12 +15,11 @@ class AppString {
   static String Thank_you = "Thank You!";
   static String Done = "Done";
 
-  static String enterName = 'Enter your name';
-  static String name = "Name";
+  static String storeName = "Store Name";
+  static String ownerName = 'Owner Name';
   static String email = 'Email';
   static String phone = 'Phone';
-  static String address = 'Address';
-  static String enterAddress = 'Enter your Address';
+  static String storeAddress = 'Store Address';
   static String enterNumber = 'Enter your phone number';
   static String enterGst = 'Enter your GSTIN NO.';
   static String enterRegNo = 'Enter your Licence NO.';

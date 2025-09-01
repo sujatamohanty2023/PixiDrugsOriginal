@@ -108,7 +108,7 @@ void AddPurchaseBottomSheet(
                     context,
                     icon: Icons.picture_as_pdf,
                     iconColor: Colors.redAccent,
-                    title: "Pick PDF",
+                    title: "Upload PDF file",
                     subtitle: "Upload a single or multi-page PDF",
                     onTap: () async {
                       try {
@@ -135,6 +135,7 @@ void AddPurchaseBottomSheet(
                       }
                     },
                   ),
+                SizedBox(height: 15,)
               ],
             ),
           ),

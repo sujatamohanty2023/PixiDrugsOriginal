@@ -202,7 +202,8 @@ class StockListLoading extends ApiState {}
 
 class StockListLoaded extends ApiState {
   final List<InvoiceItem> stockList;
-  StockListLoaded({required this.stockList});
+  final int last_page;
+  StockListLoaded({required this.stockList,required this.last_page});
 }
 
 class StockListError extends ApiState {
@@ -214,7 +215,8 @@ class ExpiredStockListLoading extends ApiState {}
 
 class ExpiredStockListLoaded extends ApiState {
   final List<InvoiceItem> stockList;
-  ExpiredStockListLoaded({required this.stockList});
+  final int last_page;
+  ExpiredStockListLoaded({required this.stockList,required this.last_page});
 }
 
 class ExpiredStockListError extends ApiState {
@@ -226,7 +228,8 @@ class ExpireSoonStockListLoading extends ApiState {}
 
 class ExpireSoonStockListLoaded extends ApiState {
   final List<InvoiceItem> stockList;
-  ExpireSoonStockListLoaded({required this.stockList});
+  final int last_page;
+  ExpireSoonStockListLoaded({required this.stockList,required this.last_page});
 }
 
 class ExpireSoonStockListError extends ApiState {

@@ -43,7 +43,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
       if(widget.selectedSeller!=null) {
         context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, seller_id:widget.selectedSeller?.id.toString()??'');
       }else{
-        context.read<ApiCubit>().fetchStockList(user_id: userId!);
+        context.read<ApiCubit>().fetchStockList(user_id: userId!,page: 1,query:_searchController.text.toString());
       }
     }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
       context.read<ApiCubit>().customerbarcode(storeId: userId!,code: '',customer_id:widget.selectedCustomer?.id.toString()??'');

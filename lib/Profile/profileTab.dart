@@ -19,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
     String? email = '';
     String? image = '';
     String? role = '';
+    UserProfile? user;
 
     @override
     void initState() {
@@ -54,6 +55,7 @@ class ProfileScreen extends StatefulWidget {
           .listen((state) {
         if (state is UserProfileLoaded) {
           setState(() {
+            user=state.userModel.user;
             name = state.userModel.user.name;
             email = state.userModel.user.email;
             image = state.userModel.user.profilePicture;
@@ -125,7 +127,7 @@ class ProfileScreen extends StatefulWidget {
                       if(role=='owner')
                         GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, EditProfileScreen());
+                          AppRoutes.navigateTo(context, EditProfileScreen(user:user));
                         },
                         child: _buildMenuItem(
                             Icons.edit, "Edit Profile", Colors.blue),
@@ -135,7 +137,7 @@ class ProfileScreen extends StatefulWidget {
                         onTap: () {
                           AppRoutes.navigateTo(context, ListScreen(type:ListType.staff));
                         },
-                        child: _buildMenuItem(Icons.person, "Staff List",
+                        child: _buildMenuItem(Icons.person, "Staff Management",
                             Colors.purpleAccent),
                       ),
                       if(role=='owner')
@@ -143,7 +145,7 @@ class ProfileScreen extends StatefulWidget {
                         onTap: () {
                           AppRoutes.navigateTo(context, ListScreen(type:ListType.expense));
                         },
-                        child: _buildMenuItem(Icons.add_chart, "Add Expense",
+                        child: _buildMenuItem(Icons.add_chart, "Store Expenses",
                             Colors.cyan),
                       ),
                       if(role=='owner')

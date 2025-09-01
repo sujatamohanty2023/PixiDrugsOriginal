@@ -3,7 +3,6 @@ import 'package:PixiDrugs/constant/all.dart';
 
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;
-
   ProductTile({super.key, required this.product});
 
   @override
