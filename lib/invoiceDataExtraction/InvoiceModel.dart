@@ -334,7 +334,7 @@ class InvoiceItem {
 
   /// Parse total amount as string, try multiple possible keys
   static String parseTotal(Map<String, String> normalized) {
-    List<String> keys = ['TOTAL','total','Amount','amount','Net Amount','net amount','netamt.','net amt.','line_total','net amt',];
+    List<String> keys = ['TOTAL','total','Amount','amount','Net Amount','net amount','netamt.','net amt.','line_total','net amt','price'];
     for (var key in keys) {
       if (normalized.containsKey(key)) {
         final val = normalized[key];
@@ -360,15 +360,15 @@ class InvoiceItem {
             normalized['% gst'] ??
             normalized['%']
     );
-
-    final gstValue = parseCombinedGst(rawGstString);
+    //final gstValue = parseCombinedGst(rawGstString);
+    final gstValue = rawGstString;
 
     final mrpValue = parseNumberFromString(normalized['mrp'] ??normalized['m.r.p'] ??normalized['MRP'] ?? normalized['maximum_retail_price']);
     final rateValue =
-    parseNumberFromString(normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
+    parseNumberFromString(normalized['UNIT_PRICE'] ??normalized['rate'] ?? normalized['price'] ?? normalized['unit price']??normalized['unit_price']);
     final taxableValue = parseNumberFromString(normalized['taxable']??normalized['amount']??normalized['p.t.r']??normalized['P.T.R']);
     final discountValue =
-    parseNumberFromString(normalized['disc'] ??normalized['disc%'] ??normalized['Disc.']??normalized['disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['dis. %']?? normalized['Dis. %'] ?? normalized['discount']);
+    parseNumberFromString(normalized['disc'] ??normalized['disc%'] ??normalized['Disc']??normalized['Disc.']??normalized['disc.'] ?? normalized['dis']  ?? normalized['dis.'] ?? normalized['dis. %']?? normalized['Dis. %'] ?? normalized['discount']);
 
     final qtyRaw =  ApiParserUtils.parseString(
         normalized['quantity'] ?? normalized['qty']??normalized['qty+free']??normalized['qty.'],defaultValue: '0'
@@ -379,7 +379,7 @@ class InvoiceItem {
     return InvoiceItem(
       id: parseId(normalized['id']),
       hsn:  ApiParserUtils.parseString(
-          normalized['Product_Code']??
+              normalized['product_code']??
               normalized['hsn_code'] ??
               normalized['hsn']??
               normalized['HSN/SAC'] ??
@@ -389,7 +389,8 @@ class InvoiceItem {
               normalized['product name'] ??
               normalized['description of goods'] ??
               normalized['product_name']??
-              normalized['item'] ??normalized['ITEM'] ??
+              normalized['item']??
+              normalized['ITEM'] ??
               normalized['description'] ??
               normalized['item name & packing'] ??
               normalized['item name'] ??
@@ -429,7 +430,7 @@ class InvoiceItem {
           normalized['qty_free'] ??
               normalized['free_qty'] ??
               normalized['free']??qtyFree),
-      gst: gstValue.toStringAsFixed(2),
+      gst: gstValue,
       //total:parseTotal(normalized),
       total:ApiParserUtils.parseString(
           normalized['TOTAL'] ??

@@ -1,6 +1,9 @@
 import 'package:aws_common/aws_common.dart';
 import 'package:aws_signature_v4/aws_signature_v4.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:http_parser/http_parser.dart';
+
+import '../AIResponse/InvoiceResponse.dart';
 
 class AddPurchaseBill extends StatefulWidget {
   final List<String> paths;
@@ -67,7 +70,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       if (widget.paths.isEmpty && widget.invoice1 != null) {
         loadedInvoice = widget.invoice1;
       } else if (widget.paths.isNotEmpty) {
-        loadedInvoice = await _readMultipleInvoices(widget.paths);
+        //loadedInvoice = await _readMultipleInvoicesAWS(widget.paths);
+        loadedInvoice=await _readMultipleInvoicesAI(widget.paths);
       } else {
         loadedInvoice = widget.invoice1 ?? Invoice(items: [InvoiceItem()]);
       }
@@ -105,7 +109,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       }
     }
   }
-  Future<Invoice> _readMultipleInvoices(List<String> paths) async {
+  Future<Invoice> _readMultipleInvoicesAWS(List<String> paths) async {
     final allItems = <InvoiceItem>[];
     final allInvoices = <Invoice>[];
     final invoiceIds = <String>{};
@@ -116,9 +120,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         final jsonData = await analyzeDocumentWithTextract(bytes);
         final parser = AnalyzeExpenseParser(jsonData);
         final invoiceData = parser.parse();
-
-        printInvoiceData(invoiceData);
-
+        print('invoiceData=${invoiceData.toString()}');
         final invoice = Invoice.fromJson(invoiceData);
 
         allInvoices.add(invoice);
@@ -147,28 +149,130 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         items: allItems);
     return updatedInvoice;
   }
+    Future<Invoice> _readMultipleInvoicesAI(List<String> paths) async {
+    final allItems = <InvoiceItem>[];
+    final allInvoices = <Invoice>[];
+    final invoiceIds = <String>{};
+    List<MultipartFile> multipartFiles = [];
 
-  void printInvoiceData(Map<String, dynamic> invoiceData) {
-    invoiceData.forEach((key, value) {
-      if (key == 'items' && value is List) {
-        print('$key:');
-        for (var i = 0; i < value.length; i++) {
-          print('  Item ${i + 1}:');
-          final item = value[i];
-          if (item is Map) {
-            item.forEach((itemKey, itemValue) {
-              print('    $itemKey: $itemValue');
-            });
-          } else {
-            print('    $item');
+    for (String path in paths) {
+      multipartFiles.add(await createMultipartFile(path));
+      try {
+        var formData = FormData.fromMap({
+          'files': multipartFiles,
+          'requirement':
+          'Analyze this document and provide a detailed summary with key insights, main points, and actionable recommendations.',
+        });
+
+        var dio = Dio();
+        var response = await dio.post(
+          'https://pixi.dexcy.in/api/process',
+          data: formData,
+        );
+
+        if (response.statusCode == 200) {
+          print("Data: ${response.data['data'].toString()}");
+          final List<InvoiceData> data = (response.data['data'] as List)
+              .map((x) => InvoiceData.fromJson(x))
+              .toList();
+          for(var item in data) {
+            final invoice = convertFromOcrInvoiceData(item);
+            allInvoices.add(invoice);
+            if (invoice.invoiceId != null && invoice.invoiceId!.isNotEmpty) {
+              invoiceIds.add(invoice.invoiceId!);
+            }
           }
-          print('');
         }
-      } else {
-        print('$key: $value\n');
+      } catch (e) {
+        print("❌ Error processing $path: $e");
       }
-    });
+    }
+
+    // Check if all invoice IDs are the same
+    if (invoiceIds.length > 1) {
+      print("⚠ Error: Multiple different invoice IDs found: $invoiceIds");
+      AppUtils.showSnackBar(context, 'Multiple different invoice IDs found');
+      // You could throw an exception, return empty, or handle differently
+      return Invoice(items: []);
+    }
+
+    // Merge items from invoices (since all IDs match)
+    for (final inv in allInvoices) {
+      allItems.addAll(inv.items);
+    }
+    final updatedInvoice = allInvoices.first.copyWith(
+        items: allItems);
+    return updatedInvoice;
   }
+  Future<MultipartFile> createMultipartFile(String path) async {
+    String extension = path.split('.').last.toLowerCase();
+    MediaType contentType;
+
+    switch (extension) {
+      case 'pdf':
+        contentType = MediaType('application', 'pdf');
+        break;
+      case 'jpg':
+      case 'jpeg':
+        contentType = MediaType('image', 'jpeg');
+        break;
+      case 'png':
+        contentType = MediaType('image', 'png');
+        break;
+      default:
+        contentType = MediaType('application', 'octet-stream');
+    }
+
+    return await MultipartFile.fromFile(
+      path,
+      filename: path.split('/').last,
+      contentType: contentType,
+    );
+  }
+
+  Invoice convertFromOcrInvoiceData(InvoiceData data) {
+    List<InvoiceItem> items = data.item.map((item) {
+      final double gst = ((item.cgstRate ?? 0) + (item.sgstRate ?? 0) + (item.igstRate ?? 0)) * 100;
+      final String gstFormatted = gst % 1 == 0
+          ? '${gst.toInt()}%'
+          : '${gst.toStringAsFixed(1)}%';
+    print('gst=$gstFormatted');
+      return InvoiceItem(
+        hsn: item.hsn ?? '',
+        product: item.description ?? '',
+        packing: item.pack ?? '',
+        batch: item.batch ?? '',
+        expiry: item.expiry ?? '',
+        mrp: (item.mrp ?? 0).toStringAsFixed(2),
+        rate: (item.rate ?? 0).toStringAsFixed(2),
+        taxable: (item.taxableAmount ?? 0).toStringAsFixed(2),
+        discount: (item.discountAmount ?? 0).toStringAsFixed(2),
+        qty: item.qty ?? 0,
+        qty_free: item.freeQty ?? 0,
+        gst: gstFormatted,
+        total: (item.lineTotal ?? 0).toStringAsFixed(2),
+        discountType: DiscountType.percent,
+        sellerName: data.seller.name ?? '',
+        sellerPhone: data.seller.phone ?? '',
+      );
+    }).toList();
+
+    double totalAmount = items.fold(0.0, (sum, item) {
+      return sum + (double.tryParse(item.total ?? '0') ?? 0.0);
+    });
+
+    return Invoice(
+      invoiceId: data.invoice.invoiceNumber ?? '',
+      invoiceDate: data.invoice.invoiceDate ?? '',
+      sellerName: data.seller.name ?? '',
+      sellerGstin: data.seller.gstin ?? '',
+      sellerAddress: data.seller.address ?? '',
+      sellerPhone: data.seller.phone ?? '',
+      netAmount: totalAmount.toStringAsFixed(2),
+      items: items,
+    );
+  }
+
 
   Future<Uint8List> fileToBytes(String filePath) async {
     final file = File(filePath);
@@ -232,9 +336,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   }
   String normalizeGst(String? gst) {
     if (gst == null || gst.isEmpty) return '0%';
-    double gstDouble = double.tryParse(gst) ?? 0;
-    int gstInt = gstDouble.toInt();
-    return '$gstInt%';
+    return '${gst.replaceAll('%', '')}%';
   }
   void _populateControllers() {
     productNameController.text= product?.product ?? '';
@@ -475,8 +577,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    //Expanded(child: _dropdownField("GST", ["0%", "6%", "12%","9%", "18%"], gstRateController.text)),
-                    Expanded(child: _formField("GST", gstRateController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
+                    Expanded(child: _dropdownField("GST", ["0%", "3%","5%", "12%","18%","28%"], gstRateController.text)),
+                    //Expanded(child: _formField("GST", gstRateController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
                     const SizedBox(width: 12),
                     Expanded(child: _formField("Total", totalController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
                   ],
@@ -633,6 +735,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   }
 
   Widget _dropdownField(String label, List<String> items, String selectedValue) {
+   /* if (gstRateController.text.isNotEmpty && !items.contains(gstRateController.text)) {
+      label=items.first;
+    }*/
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -670,7 +775,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           style:MyTextfield.textStyle( 14,AppColors.kBlackColor800,FontWeight.w300),
           items: items.map((e) => DropdownMenuItem(
             value: e,
-            child:  MyTextfield.textStyle_w600(e, AppUtils.size_14, AppColors.kGreyColor800)
+            child:  MyTextfield.textStyle_w600(e, AppUtils.size_14, Colors.black)
           )).toList(),
           onChanged: (value) {
             gstRateController.text = value!;

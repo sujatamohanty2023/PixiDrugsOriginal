@@ -162,53 +162,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 SizedBox(height: screenHeight * 0.015),
                 // Name input field
-                MyTextfield.textStyle_w600(AppString.storeName, 18, Colors.black),
+                MyTextfield.textStyle_w600('Name of the store', 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: 'Enter ${AppString.storeName}', controller: storeNameController),
                 SizedBox(height: screenHeight * 0.015),
-                MyTextfield.textStyle_w600(AppString.ownerName, 18, Colors.black),
+                MyTextfield.textStyle_w600('Name of Owner/Proprietor', 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: 'Enter ${AppString.ownerName}',
                     controller: ownerNameController),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600(AppString.email, 18, Colors.black),
+                MyTextfield.textStyle_w600('Address Of Store', 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                  controller: addressController,
+                  hintText: 'Enter ${AppString.storeAddress}',
+                  keyboardType: TextInputType.text,maxLines: 3 ,),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w600('Mobile no. of Owner', 18, Colors.black),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                  controller: phoneController,
+                  hintText: AppString.enterNumber,
+                  keyboardType: TextInputType.phone,readOnly: true,),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w600('Email Id. of Owner/Store', 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: AppString.enterEmail,
                     controller: emailController,readOnly: true),
                 SizedBox(height: 8),
-                // Phone number input field
-                MyTextfield.textStyle_w600(AppString.phone, 18, Colors.black),
-                SizedBox(height: 8),
-                MyEdittextfield(
-                    controller: phoneController,
-                    hintText: AppString.enterNumber,
-                    keyboardType: TextInputType.phone,readOnly: true,),
-                SizedBox(height: 8),
-                // Phone number input field
-                MyTextfield.textStyle_w600('GSTIN', 18, Colors.black),
+                MyTextfield.textStyle_w600('GST NO. of Store', 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: gstController,
                     hintText: AppString.enterGst,
                     keyboardType: TextInputType.text),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('Licence No', 18, Colors.black),
+                MyTextfield.textStyle_w600('Licence No. of Store', 18, Colors.black),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: regController,
                     hintText: AppString.enterRegNo,
                     keyboardType: TextInputType.text),
-                SizedBox(height: 8),
-                // Phone number input field
-                MyTextfield.textStyle_w600(AppString.storeAddress, 18, Colors.black),
-                SizedBox(height: 8),
-                MyEdittextfield(
-                    controller: addressController,
-                    hintText: 'Enter ${AppString.storeAddress}',
-                    keyboardType: TextInputType.text,maxLines: 3 ,),
                 SizedBox(height: screenHeight * 0.015),
                 // Update button
                 /// **Bottom-Aligned Update Button**

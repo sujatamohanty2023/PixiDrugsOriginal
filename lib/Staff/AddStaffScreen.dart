@@ -27,6 +27,20 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
   String? selectedGender;
   String? status;
   bool edit = false;
+  List<String> postofStaff = [
+    'Select Post',
+    'Manager',
+    'Pharmacist',
+    'Sales person',
+  ];
+  String? selectedPost='Select Post';
+  String? _selectedPermission;
+
+  final List<String> permissions = [
+    'Stock uploading',
+    'Sell medicines',
+    'Manage and edit expenses',
+  ];
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -204,10 +218,10 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildTextField(
-                                nameController, 'Staff Name', TextInputType.name),
+                                nameController, 'Name of Staff', TextInputType.name),
                             const SizedBox(height: 15),
                             _buildTextField(
-                                mobileController, 'Phone Number', TextInputType
+                                mobileController, 'Mobile No. of Staff', TextInputType
                                 .phone,
                                 validator: (value) {
                                   if (value == null || value.isEmpty)
@@ -218,7 +232,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                                 }),
                             const SizedBox(height: 15),
                             _buildTextField(
-                              emailController, 'Email', TextInputType
+                              emailController, 'Email Id. of Staff', TextInputType
                                 .emailAddress,),
                             const SizedBox(height: 15),
                             Row(
@@ -269,11 +283,62 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                             ),
                             const SizedBox(height: 15),
                             _buildTextField(
-                                addressController, 'Address', TextInputType.text,
+                                addressController, 'Address of Staff', TextInputType.text,
                                 maxLines: 3),
-
                             const SizedBox(height: 15),
-                            MyTextfield.textStyle_w400("Status", 14, Colors
+                            MyTextfield.textStyle_w600("Post of Staff", AppUtils.size_16, Colors.black),
+                            SizedBox(height: 6),
+                            DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              value: selectedPost,
+                              items: postofStaff.map((reason) {
+                                return DropdownMenuItem<String>(
+                                  value: reason,
+                                  child: MyTextfield.textStyle_w300(reason,16,Colors.grey),
+                                );
+                              }).toList(),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                filled: true,
+                                fillColor: Colors.white,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
+                                ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                                ),
+                              ),
+                              onChanged: (  edit || widget.staff==null)
+                                  ? (value) {
+                                setState(() {
+                                  selectedPost = value;
+                                });
+                              }: null,
+                              hint: const Text("Select Post"),
+                            ),
+                            const SizedBox(height: 15),
+                            MyTextfield.textStyle_w600("Do you want to allow this staff for", AppUtils.size_16, Colors.black),
+                            SizedBox(height: 6),
+                            ...permissions.map((permission) {
+                              return RadioListTile<String>(
+                                title: MyTextfield.textStyle_w300(permission,AppUtils.size_16, Colors.black),
+                                value: permission,
+                                groupValue: _selectedPermission,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedPermission = value;
+                                  });
+                                },
+                              );
+                            }).toList(),
+                            const SizedBox(height: 15),
+                            MyTextfield.textStyle_w600("Status", 14, Colors
                                 .black),
                             SizedBox(height: 8),
                             Row(

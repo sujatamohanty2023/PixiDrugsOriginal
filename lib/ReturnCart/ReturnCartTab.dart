@@ -111,6 +111,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
                     );
                     _detail_Customer.add(customer);
                   }
+
                 });
               } else if ((clickFlag==2 || clickFlag==3)){
                 cartCubit.addToCart(
@@ -336,8 +337,7 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
   }
 
   Widget _searchResultWidget() {
-    final isStockist =
-        widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
+    final isStockist = widget.cartTypeSelection == CartTypeSelection.StockiestReturn;
     final list = isStockist ? _detail_Seller : _detail_Customer;
 
     print("Showing ${list.length} search results");
@@ -346,36 +346,40 @@ class _ReturnCartTabState extends State<ReturnCartTab> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'No results found',
-            style: TextStyle(color: AppColors.kPrimary, fontSize: 16),
-          ),
+          child:MyTextfield.textStyle_w600('No results found', SizeConfig.screenWidth! * 0.055,AppColors.kPrimary)
         ),
       );
     }
 
     return ListView.builder(
       itemCount: list.length,
+      padding: const EdgeInsets.all(12.0),
       itemBuilder: (context, index) {
-        final displayName =
-            isStockist
-                ? _detail_Seller[index].sellerName
-                : _detail_Customer[index].name;
-        final phone =
-            isStockist
-                ? _detail_Seller[index].phone
-                : _detail_Customer[index].phone;
+        final displayName = isStockist
+            ? _detail_Seller[index].sellerName
+            : _detail_Customer[index].name;
+        final phone = isStockist
+            ? _detail_Seller[index].phone
+            : _detail_Customer[index].phone;
 
-        return ListTile(
-          title: Text(
-            displayName ?? '',
-            style: TextStyle(color: AppColors.kPrimary),
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 4.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          subtitle: Text(
-            phone ?? '',
-            style: TextStyle(color: AppColors.kPrimary),
+          child: ListTile(
+            title: MyTextfield.textStyle_w600( displayName ?? '', SizeConfig.screenWidth! * 0.035,AppColors.kPrimary),
+            subtitle: MyTextfield.textStyle_w400( phone ?? '', SizeConfig.screenWidth! * 0.025,Colors.green),
+            onTap: () => _onDetailItemSelected(index),
           ),
-          onTap: () => _onDetailItemSelected(index),
         );
       },
     );

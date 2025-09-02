@@ -130,7 +130,7 @@ class ProfileScreen extends StatefulWidget {
                           AppRoutes.navigateTo(context, EditProfileScreen(user:user));
                         },
                         child: _buildMenuItem(
-                            Icons.edit, "Edit Profile", Colors.blue),
+                            Icons.edit, "Owner Profile", Colors.blue),
                       ),
                       if(role=='owner')
                       GestureDetector(
@@ -145,16 +145,31 @@ class ProfileScreen extends StatefulWidget {
                         onTap: () {
                           AppRoutes.navigateTo(context, ListScreen(type:ListType.expense));
                         },
-                        child: _buildMenuItem(Icons.add_chart, "Store Expenses",
+                        child: _buildMenuItem(Icons.add_chart, "Expenses Management",
                             Colors.cyan),
                       ),
-                      if(role=='owner')
                       GestureDetector(
                         onTap: () {
-
+                          String message = "Check out this awesome app!";
+                          Share.share(message);
                         },
                         child: _buildMenuItem(
-                            Icons.note_add, "Report", Colors.orange),
+                            Icons.share, "Share/Invite Friends", Colors.cyan),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          RateUs();
+                        },
+                        child: _buildMenuItem(
+                            Icons.star, "Rate our App", Colors.yellow),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          AppRoutes.navigateTo(
+                              context, ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/);
+                        },
+                        child: _buildMenuItem(
+                            Icons.call, "Contact/Support", Colors.green),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -163,14 +178,6 @@ class ProfileScreen extends StatefulWidget {
                         },
                         child: _buildMenuItem(
                             Icons.info, "About Us", Colors.pink),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          AppRoutes.navigateTo(
-                              context, ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/);
-                        },
-                        child: _buildMenuItem(
-                            Icons.call, "Contact Us", Colors.green),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -189,21 +196,6 @@ class ProfileScreen extends StatefulWidget {
                         child: _buildMenuItem(
                             Icons.description, "Terms & Conditions",
                             Colors.purple),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          String message = "Check out this awesome app!";
-                          Share.share(message);
-                        },
-                        child: _buildMenuItem(
-                            Icons.share, "Share/Invite Friends", Colors.cyan),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          RateUs();
-                        },
-                        child: _buildMenuItem(
-                            Icons.star, "Rating our App", Colors.yellow),
                       ),
                       GestureDetector(
                         onTap: () {
