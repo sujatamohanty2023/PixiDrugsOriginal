@@ -3,8 +3,12 @@ import 'package:PixiDrugs/BarcodeScan/utilScanner/ScanLinePainter.dart';
 import 'package:PixiDrugs/BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
+import '../AIResponse/BatchInfoResponse.dart';
 import '../constant/all.dart';
+import 'package:image/image.dart' as img;
 
 class BatchScannerPage extends StatefulWidget {
   const BatchScannerPage({super.key});
@@ -44,7 +48,9 @@ class _BatchScannerPageState extends State<BatchScannerPage>
   void _startTimeout() {
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(const Duration(seconds: 5), () {
-      if (!_found && !_showedManualEntry) _showManualEntryBottomSheet();
+      if (!_found && !_showedManualEntry) {
+        //_showManualEntryBottomSheet();
+      }
     });
   }
 
@@ -92,7 +98,8 @@ class _BatchScannerPageState extends State<BatchScannerPage>
         return;
       }
 
-      await scanBatchNumber(inputImage);
+      //await scanBatchNumber(inputImage);
+      await scanBatchNumberAI(image);
     } catch (e) {
       print("Batch OCR error: $e");
     } finally {
@@ -165,6 +172,59 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     }
 
     return nv21;
+  }
+  Future<File?> convertYUV420ToJPEG(CameraImage image) async {
+    try {
+      final width = image.width;
+      final height = image.height;
+      final yPlane = image.planes[0];
+      final uPlane = image.planes[1];
+      final vPlane = image.planes[2];
+
+      final imgBuffer = Uint8List(width * height * 3);
+      int bufferIndex = 0;
+
+      for (int y = 0; y < height; y++) {
+        final yRow = yPlane.bytes.sublist(y * yPlane.bytesPerRow);
+        final uvRow = (y ~/ 2) * uPlane.bytesPerRow;
+        for (int x = 0; x < width; x++) {
+          final uvIndex = uvRow + (x ~/ 2);
+
+          final Y = yRow[x] & 0xFF;
+          final U = uPlane.bytes[uvIndex] & 0xFF;
+          final V = vPlane.bytes[uvIndex] & 0xFF;
+
+          int R = (Y + 1.402 * (V - 128)).round();
+          int G = (Y - 0.344136 * (U - 128) - 0.714136 * (V - 128)).round();
+          int B = (Y + 1.772 * (U - 128)).round();
+
+          R = R.clamp(0, 255);
+          G = G.clamp(0, 255);
+          B = B.clamp(0, 255);
+
+          imgBuffer[bufferIndex++] = R;
+          imgBuffer[bufferIndex++] = G;
+          imgBuffer[bufferIndex++] = B;
+        }
+      }
+
+      final imageRGB = img.Image.fromBytes(
+        width,
+        height,
+        imgBuffer,
+        format: img.Format.rgb,
+      );
+
+      final jpeg = img.encodeJpg(imageRGB, quality: 90);
+
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/frame_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await file.writeAsBytes(jpeg);
+      return file;
+    } catch (e) {
+      print("❌ Error converting YUV to JPEG: $e");
+      return null;
+    }
   }
 
   Future<void> scanBatchNumber(InputImage inputImage) async {
@@ -253,22 +313,108 @@ class _BatchScannerPageState extends State<BatchScannerPage>
         await _player.play();
         await _cameraController?.stopImageStream();
 
-        if (mounted) {
-          Navigator.pop(context, batchNo);
-        }
+        Navigator.pop(context, batchNo);
       } else if (!_showedManualEntry) {
         _startTimeout(); // Try again
       }
     } catch (e) {
       print("❌ Error in scanBatchNumber: $e");
       if (!_showedManualEntry) {
-        _showManualEntryBottomSheet();
+        //_showManualEntryBottomSheet();
       }
     }
   }
 
+  Future<void> scanBatchNumberAI(CameraImage image) async {
+    try {
+      // Convert InputImage to JPEG file
+      final file = await convertYUV420ToJPEG(image);
+      if (file == null) {
+        print('❌ Failed to convert image to file');
+        return;
+      }
+      var multipartFile=await createMultipartFile(file.path);
+      final formData = FormData.fromMap({
+        'files': multipartFile,
+        'requirement': 'Analyze this document and provide a detailed summary with key insights, main points, and actionable recommendations.',
+        'type': '1',
+      });
 
-  void _showManualEntryBottomSheet() {
+      final dio = Dio();
+      final response = await dio.post(
+        'https://pixi.dexcy.in/api/process',
+        data: formData,
+      );
+
+      if (response.statusCode == 200) {
+        final json = response.data;
+        print('📄 API data: ${json['data'].toString()}');
+        final parsed =  json['data'].map((e) => MedicineData.fromJson(e)).toList();
+
+        print('🔹 API Brand Name: ${parsed.first.brandName}');
+        print('🔢 API Batch Number: ${parsed.first.batchDetails.batchNumber}');
+        if (parsed.isNotEmpty) {
+          final batchNumber = parsed.first.batchDetails?.batchNumber;
+          final MedicineName = parsed.first.brandName;
+
+          if (batchNumber != null && batchNumber.isNotEmpty) {
+            print("✅ API AI batch number found: $batchNumber");
+            _found = true;
+            scannedText = batchNumber;
+            _timeoutTimer?.cancel();
+            await _player.seek(Duration.zero);
+            await _player.play();
+            await _cameraController?.stopImageStream();
+            Navigator.pop(context, batchNumber);
+          }else if (MedicineName != null && MedicineName.isNotEmpty) {
+            print("✅ API AI batch number found: $batchNumber");
+            _found = true;
+            scannedText = MedicineName;
+            _timeoutTimer?.cancel();
+            await _player.seek(Duration.zero);
+            await _player.play();
+            await _cameraController?.stopImageStream();
+            Navigator.pop(context, MedicineName);
+          } else {
+            print("❌ No batch number found in AI response");
+          }
+        } else {
+          print("❌ Invalid AI response format or empty data");
+        }
+      }else {
+        print("❌ API call failed: ${response.statusMessage}");
+      }
+    } catch (e) {
+      print("❌ Error in scanBatchNumberAI: $e");
+    }
+  }
+  Future<MultipartFile> createMultipartFile(String path) async {
+    String extension = path.split('.').last.toLowerCase();
+    MediaType contentType;
+
+    switch (extension) {
+      case 'pdf':
+        contentType = MediaType('application', 'pdf');
+        break;
+      case 'jpg':
+      case 'jpeg':
+        contentType = MediaType('image', 'jpeg');
+        break;
+      case 'png':
+        contentType = MediaType('image', 'png');
+        break;
+      default:
+        contentType = MediaType('application', 'octet-stream');
+    }
+
+    return await MultipartFile.fromFile(
+      path,
+      filename: path.split('/').last,
+      contentType: contentType,
+    );
+  }
+
+ /* void _showManualEntryBottomSheet() {
     if (!_found && mounted && !_showedManualEntry) {
       print("Showing manual entry dialog");
       _showedManualEntry = true;
@@ -282,7 +428,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
         ),
       );
     }
-  }
+  }*/
 
   @override
   void dispose() {
@@ -337,11 +483,11 @@ class _BatchScannerPageState extends State<BatchScannerPage>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+     /* floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.kPrimary,
         child: const Icon(Icons.edit, color: Colors.white),
         onPressed: _showManualEntryBottomSheet,
-      ),
+      ),*/
     );
   }
 }

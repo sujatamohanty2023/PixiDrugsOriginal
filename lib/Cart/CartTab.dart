@@ -2,14 +2,14 @@
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
+import '../BarcodeScan/ScanPage.dart';
 import '../BarcodeScan/barcode_screen_page.dart';
 import '../BarcodeScan/batch_scanner_page.dart';
 import '../Stock/ProductList.dart';
 
 class CartTab extends StatefulWidget {
-   CartTab({
-    Key? key,
-  }) : super(key: key);
+
+  const CartTab({Key? key}) : super(key: key);
 
   @override
   _CartTabState createState() => _CartTabState();
@@ -102,6 +102,19 @@ class _CartTabState extends State<CartTab> {
   @override
   void dispose() {
     super.dispose();
+  }
+  Future<void> _QuickscanBarcode() async {
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => QuikScanPage()),
+      );
+      if (result.isNotEmpty) {
+        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
+      }
+    } catch (e) {
+      AppUtils.showSnackBar(context,'Failed to scan barcode');
+    }
   }
   /// Initiates barcode scan
   Future<void> _scanBarcode() async {
@@ -226,13 +239,23 @@ class _CartTabState extends State<CartTab> {
               Padding(
                 padding: const EdgeInsets.only(left: 10.0,bottom: 3),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     MyTextfield.textStyle_w600('Sale Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.qr_code_scanner,
+                        color: AppColors.kWhiteColor,
+                        size: 30,
+                      ),
+                      onPressed: _QuickscanBarcode,
+                    ),
                   ],
                 ),
               ),
 
-              Padding(
+             /* Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -274,7 +297,7 @@ class _CartTabState extends State<CartTab> {
                     ),
                   ],
                 ),
-              ),
+              ),*/
 
 
               const SizedBox(height: 5),

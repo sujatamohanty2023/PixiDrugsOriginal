@@ -51,7 +51,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(const Duration(seconds: 3), () {
       if (!isScanned) {
-        _showManualEntryBottomSheet();
+        //_showManualEntryBottomSheet();
       }
     });
   }
@@ -79,7 +79,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
       Navigator.pop(context, scannedCode);
     }
   }
-  void _showManualEntryBottomSheet() {
+/*  void _showManualEntryBottomSheet() {
     showDialog(
       context: context,
       builder: (_) => EditValueDialog(
@@ -88,7 +88,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
           type:'barcode'
       ),
     );
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -136,11 +136,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
+     /* floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.kPrimary,
         child: const Icon(Icons.edit, color: Colors.white),
         onPressed: _showManualEntryBottomSheet,
-      ),
+      ),*/
     );
   }
 }

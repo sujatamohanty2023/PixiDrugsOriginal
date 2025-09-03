@@ -735,9 +735,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   }
 
   Widget _dropdownField(String label, List<String> items, String selectedValue) {
-   /* if (gstRateController.text.isNotEmpty && !items.contains(gstRateController.text)) {
-      label=items.first;
-    }*/
+    if (gstRateController.text.isNotEmpty && !items.contains(gstRateController.text)) {
+      selectedValue = items.first;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
