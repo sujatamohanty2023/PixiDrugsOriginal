@@ -1,5 +1,6 @@
 import 'package:PixiDrugs/constant/all.dart';
 import '../ReturnCart/ReturnCartTab.dart';
+import '../ReturnProduct/ReturnCustomerCart.dart';
 import 'CustomerReturnsResponse.dart';
 
 class SaleReturnListWidget extends StatefulWidget {
@@ -62,7 +63,8 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
     return GestureDetector(
       onTap: (){
         //AppRoutes.navigateTo(context, SaleReturnScreen(billNo:item.billingId,returnModel: item));
-        AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:CartTypeSelection.CustomerReturn,returnModel:item,detail: true,));
+        //AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:CartTypeSelection.CustomerReturn,returnModel:item,detail: true,));
+        AppRoutes.navigateTo(context, ReturnCustomerCart(customerReturnModel:item,detail: true,));
       },
       child: Card(
         color: Colors.white,

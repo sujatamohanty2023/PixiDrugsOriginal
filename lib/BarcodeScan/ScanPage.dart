@@ -8,18 +8,27 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../AIResponse/BatchInfoResponse.dart';
+import '../ReturnCart/ReturnProductList.dart';
+import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../Stock/ProductList.dart';
+import '../search/customerModel.dart';
+import '../search/sellerModel.dart';
 import 'barcode_screen_page.dart';
 import 'batch_scanner_page.dart';
 
 class QuikScanPage extends StatefulWidget {
-  QuikScanPage({super.key});
+  CartTypeSelection? cartTypeSelection;
+  Seller? selectedSeller;
+  CustomerModel? selectedCustomer;
+
+  QuikScanPage({super.key, this.cartTypeSelection, this.selectedSeller,this.selectedCustomer});
 
   @override
   State<QuikScanPage> createState() => _QuikScanPageState();
 }
 
-class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderStateMixin {
+class _QuikScanPageState extends State<QuikScanPage>
+    with SingleTickerProviderStateMixin {
   int selectedTab = 0; // 0 =Barcode, 1 =  Batch Info
   final player = AudioPlayer();
 
@@ -32,7 +41,7 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
   final MobileScannerController controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
     facing: CameraFacing.back,
-    returnImage: true,  // Enable image capture
+    returnImage: true, // Enable image capture
   );
 
   @override
@@ -50,17 +59,20 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
 
     player.setAsset('assets/sound/scanner.mpeg');
   }
+
   @override
   void dispose() {
     _animationController.dispose();
     player.dispose();
     super.dispose();
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     isLoading = false;
   }
+
   /// ✅ Play beep
   Future<void> playBeep() async {
     try {
@@ -84,7 +96,6 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.black.withOpacity(0.6),
       body: SafeArea(
@@ -123,7 +134,8 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
 
             // === Scanner ===
             Expanded(
-              child: selectedTab==0?BarcodeScannerPage():BatchScannerPage(),
+              child:
+                  selectedTab == 0 ? BarcodeScannerPage() : BatchScannerPage(),
             ),
           ],
         ),
@@ -131,13 +143,31 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.secondaryColor,
         child: const Icon(Icons.edit, color: Colors.white),
-        onPressed: (){
-          AppRoutes.navigateTo(context, ProductListPage(flag: 4));
+        onPressed: () async {
+          if (widget.cartTypeSelection != null) {
+            AddManualClick();
+          } else {
+            AppRoutes.navigateTo(context, ProductListPage(flag: 4));
+          }
         },
       ),
     );
   }
-/*Widget BarcodeScanWidget(){
+  Future<void> AddManualClick() async {
+    final scannedCode = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ReturnProductListPage(
+          cartTypeSelection: widget.cartTypeSelection,
+          selectedSeller: widget.selectedSeller,
+          selectedCustomer: widget.selectedCustomer
+      ),),
+    );
+
+    if (scannedCode == null) {
+      Navigator.pop(context,'manualAdd');
+    }
+  }
+  /*Widget BarcodeScanWidget(){
   return Stack(
     children: [
       MobileScanner(
@@ -248,7 +278,7 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
       setState(() => isLoading = true);
       isProcessing = false;
       return;
-    }*//*else {
+    }*/ /*else {
       // Batch scan
       if (!hasImage) {
         print("⚠️ No image available for batch scanning.");
@@ -265,7 +295,7 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
       controller.start();
       setState(() => isLoading = true);
       isProcessing = false;
-    }*//*
+    }*/ /*
   }
 
   Future<void> ScanBatchNo(BarcodeCapture capture) async {
@@ -398,16 +428,18 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
     final isSelected = selectedTab == index;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() {
-          selectedTab = index;
-          lastScanned = null;
-        }),
+        onTap:
+            () => setState(() {
+              selectedTab = index;
+              lastScanned = null;
+            }),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isSelected ? AppColors.secondaryColor : Colors.transparent,
+                color:
+                    isSelected ? AppColors.secondaryColor : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -422,5 +454,4 @@ class _QuikScanPageState extends State<QuikScanPage> with SingleTickerProviderSt
       ),
     );
   }
-
 }

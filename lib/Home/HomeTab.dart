@@ -1,9 +1,12 @@
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import '../BarcodeScan/ScanPage.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Dialog/update_bottom_sheet.dart';
 import '../Profile/contact_us.dart';
 import '../ReturnCart/ReturnCartTab.dart';
+import '../ReturnProduct/ReturnCustomerCart.dart';
+import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../login/mobileLoginScreen.dart';
 import '../report/report_page.dart';
 import 'YoutubeVideoListPage.dart';
@@ -431,12 +434,36 @@ class _HomeTabState extends State<HomeTab> {
         if(type==CartTypeSelection.Sale){
           widget.onGoToCart();
         }else{
-          AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
+          //AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
+          switchToReturnproductCart(type);
         }
       },
     );
   }
+  Future<void> switchToReturnproductCart(CartTypeSelection type) async {
+    final scannedCode = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:type)),
+    );
 
+    if (scannedCode != null && scannedCode.toString().isNotEmpty &&  scannedCode!='manualAdd') {
+      final userId = await SessionManager.getParentingId();
+      if(type==CartTypeSelection.StockiestReturn) {
+        context.read<ApiCubit>().BarcodeScan(
+          code: scannedCode,
+          storeId: userId!,
+        );
+        AppRoutes.navigateTo(context, ReturnStockiestCart());
+      }else if(type==CartTypeSelection.CustomerReturn){
+        context.read<ApiCubit>().customerbarcode(
+            code: scannedCode,
+            storeId: userId!,
+            customer_id:''
+        );
+        AppRoutes.navigateTo(context, ReturnCustomerCart());
+      }
+    }
+  }
   Widget _buildTaskCard({
     required String title,
     required String tasks,

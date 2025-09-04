@@ -82,7 +82,6 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -172,40 +171,63 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                           SizedBox(height: 6),
                           MyTextfield.textStyle_w400("Title", AppUtils.size_16, Colors.black),
                           SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            isExpanded: true,
-                            value: selectedCategory,
-                            items: category.map((reason) {
-                              return DropdownMenuItem<String>(
-                                value: reason,
-                                child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
-                              );
-                            }).toList(),
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              filled: true,
-                              fillColor: Colors.white,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
-                              ),
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white, // Background color
+                              borderRadius: BorderRadius.circular(12), // Rounded corners
+                              border: Border.all(
+                                color: AppColors.kPrimaryDark, // Border color
+                                width: 1, // Border width
                               ),
                             ),
-                            onChanged: (  edit || widget.expenseResponse==null)
-                                ? (value) {
-                              setState(() {
-                                selectedCategory = value;
-                              });
-                            }: null,
-                            hint: const Text("Select Expense Category"),
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            child: PopupMenuButton<String>(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              color: AppColors.kWhiteColor,
+                              elevation: 8,
+                              onSelected: (value) {
+                                setState(() {
+                                  selectedCategory = value;
+                                });
+                              },
+                              itemBuilder: (_) => category
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final index = entry.key;
+                                final item = entry.value;
+
+                                return PopupMenuItem<String>(
+                                  value: item,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      MyTextfield.textStyle_w400(item.toUpperCase(), 15, AppColors.kPrimary),
+                                      if (index < category.length - 1)
+                                        Divider(
+                                          color: AppColors.kPrimaryLight,
+                                          height: 4,
+                                          thickness: 1,
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              })
+                                  .toList(),
+                              enabled: (edit || widget.expenseResponse == null),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: MyTextfield.textStyle_w400( selectedCategory ?? 'Select Expense Category',15, Colors.black)
+                                  ),
+                                  Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
+                                ],
+                              ),
+                            ),
                           ),
+
                           SizedBox(height: 14),
 
                           MyTextfield.textStyle_w400("Amount (₹)", AppUtils.size_16, Colors.black),
