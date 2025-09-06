@@ -1,5 +1,6 @@
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../customWidget/BottomLoader.dart';
 import 'AddExpenseScreen.dart';
 import 'ExpenseResponse.dart';
 
@@ -9,12 +10,16 @@ class ExpenseListWidget extends StatefulWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
+  final ScrollController? scrollController;
+  final bool hasMoreData;
   const ExpenseListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onAddPressed,
+    this.scrollController,
+    required this.hasMoreData,
   });
 
   @override
@@ -31,6 +36,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
         .where((i) =>
         i.title.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
+    final itemCount = filteredExpense.length + (widget.hasMoreData ? 1 : 0);
     return Stack(
       children: [
         Container(
@@ -52,11 +58,14 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
             button_tittle: 'Add Expense',
           )
               : ListView.builder(
+            controller: widget.scrollController,
             padding: EdgeInsets.zero,
-            itemCount: filteredExpense.length,
+            itemCount: itemCount,
             itemBuilder: (_, index) {
-              final item = filteredExpense[index];
-              return _buildExpenseCard(item, screenWidth,context);
+              if (index >= filteredExpense.length) {
+                return BottomLoader();
+              }
+              return _buildExpenseCard(filteredExpense[index], screenWidth,context);
             },
           ),
         ),

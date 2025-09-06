@@ -2,27 +2,23 @@ import 'package:PixiDrugs/constant/all.dart';
 
 class CartState {
   final List<InvoiceItem> cartItems;
-  final List<InvoiceItem> barcodeCartItems;
 
   CartState({
     required this.cartItems,
-    required this.barcodeCartItems,
   });
 
   CartState copyWith({
     List<InvoiceItem>? cartItems,
-    List<InvoiceItem>? barcodeCartItems,
   }) {
     return CartState(
       cartItems: cartItems ?? this.cartItems,
-      barcodeCartItems: barcodeCartItems ?? this.barcodeCartItems,
     );
   }
 }
 
 class CartInitial extends CartState {
   CartInitial()
-      : super(cartItems: [],  barcodeCartItems: []);
+      : super(cartItems: []);
 }
 
 class CartLoaded extends CartState {
@@ -35,7 +31,6 @@ class CartLoaded extends CartState {
 
   CartLoaded({
     required List<InvoiceItem> cartItems,
-    required List<InvoiceItem> barcodeCartItems,
     required this.totalPrice,
     required this.subTotal,
     required this.discountAmount,
@@ -43,8 +38,7 @@ class CartLoaded extends CartState {
     required this.customerPhone,
     required this.customerAddress,
   }) : super(
-    cartItems: cartItems,
-    barcodeCartItems: barcodeCartItems,
+    cartItems: cartItems
   );
 
   CartLoaded copyWith({
@@ -59,7 +53,6 @@ class CartLoaded extends CartState {
   }) {
     return CartLoaded(
       cartItems: cartItems ?? this.cartItems,
-      barcodeCartItems: barcodeCartItems ?? this.barcodeCartItems,
       totalPrice: totalPrice ?? this.totalPrice,
       subTotal: subTotal ?? this.subTotal,
       discountAmount: discountAmount ?? this.discountAmount,
@@ -74,9 +67,6 @@ class CartLoaded extends CartState {
       cartItems: (json['cartItems'] as List)
           .map((e) => InvoiceItem.fromJson(e))
           .toList(),
-      barcodeCartItems: (json['barcodeCartItems'] as List)
-          .map((e) => InvoiceItem.fromJson(e))
-          .toList(),
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       subTotal: (json['subTotal'] ?? 0).toDouble(),
       discountAmount: (json['discountAmount'] ?? 0).toDouble(),
@@ -89,7 +79,6 @@ class CartLoaded extends CartState {
   Map<String, dynamic> toJson() {
     return {
       'cartItems': cartItems.map((e) => e.toJson()).toList(),
-      'barcodeCartItems': barcodeCartItems.map((e) => e.toJson()).toList(),
       'totalPrice': totalPrice,
       'subTotal': subTotal,
       'discountAmount': discountAmount,
@@ -105,11 +94,9 @@ class CartError extends CartState {
 
   CartError({
     required List<InvoiceItem> cartItems,
-    required List<InvoiceItem> barcodeCartItems,
     required this.errorMessage,
   }) : super(
     cartItems: cartItems,
-    barcodeCartItems: barcodeCartItems,
   );
 }
 

@@ -313,7 +313,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
         await _player.play();
         await _cameraController?.stopImageStream();
 
-        Navigator.pop(context, batchNo);
+        Navigator.pop(context, {'code':batchNo});
       } else if (!_showedManualEntry) {
         _startTimeout(); // Try again
       }
@@ -365,7 +365,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
             await _player.seek(Duration.zero);
             await _player.play();
             await _cameraController?.stopImageStream();
-            Navigator.pop(context, batchNumber);
+            Navigator.pop(context, {'code':batchNumber});
           }else if (MedicineName != null && MedicineName.isNotEmpty) {
             print("✅ API AI batch number found: $batchNumber");
             _found = true;
@@ -374,7 +374,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
             await _player.seek(Duration.zero);
             await _player.play();
             await _cameraController?.stopImageStream();
-            Navigator.pop(context, MedicineName);
+            Navigator.pop(context, {'code':MedicineName});
           } else {
             print("❌ No batch number found in AI response");
           }

@@ -1,6 +1,6 @@
 import 'package:PixiDrugs/constant/all.dart';
-import '../ReturnCart/ReturnCartTab.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
+import '../customWidget/BottomLoader.dart';
 import 'CustomerReturnsResponse.dart';
 
 class SaleReturnListWidget extends StatefulWidget {
@@ -8,12 +8,16 @@ class SaleReturnListWidget extends StatefulWidget {
   final List<CustomerReturnsResponse> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
+  final ScrollController? scrollController;
+  final bool hasMoreData;
 
   const SaleReturnListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
+    this.scrollController,
+    required this.hasMoreData,
   });
 
   @override
@@ -30,6 +34,7 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
         .where((i) =>
         i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
+    final itemCount = filteredSales.length + (widget.hasMoreData ? 1 : 0);
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -49,11 +54,14 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
         button_tittle: '',
       )
           : ListView.builder(
+        controller: widget.scrollController,
         padding: EdgeInsets.zero,
-        itemCount: filteredSales.length,
+        itemCount: itemCount,
         itemBuilder: (_, index) {
-          final item = filteredSales[index];
-          return _buildReturnCard(item, screenWidth,context);
+          if (index >= filteredSales.length) {
+            return BottomLoader();
+          }
+          return _buildReturnCard(filteredSales[index], screenWidth,context);
         },
       ),
     );
@@ -62,8 +70,6 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
   Widget _buildReturnCard(CustomerReturnsResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){
-        //AppRoutes.navigateTo(context, SaleReturnScreen(billNo:item.billingId,returnModel: item));
-        //AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:CartTypeSelection.CustomerReturn,returnModel:item,detail: true,));
         AppRoutes.navigateTo(context, ReturnCustomerCart(customerReturnModel:item,detail: true,));
       },
       child: Card(
@@ -75,10 +81,32 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              CircleAvatar(
-                  radius: screenWidth * 0.08,
-                  backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.customer.name),screenWidth * 0.045,AppColors.kPrimary) ),
+              Container(
+                width: screenWidth * 0.13,
+                height: screenWidth * 0.13,
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8), // optional rounding
+                  border: Border.all(
+                    color: Colors.white, // or any color you want
+                    width: 2,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.kPrimary,
+                      AppColors.secondaryColor,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: MyTextfield.textStyle_w600(
+                  getInitials(item.customer.name),
+                  screenWidth * 0.055,
+                  Colors.white,
+                ),
+              ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(

@@ -6,16 +6,14 @@ import '../search/sellerModel.dart';
 enum ProductCardMode { search, cart }
 
 class ProductCard extends StatefulWidget {
-  final InvoiceItem item;
-  final ProductCardMode mode;
-  final bool editable;
-  final bool saleCart;
-  final VoidCallback? onRemove;
-  final VoidCallback? onUpdate;
-  final bool returnStock;
-  final Function(Seller)? onSellerSelected;
-  final Function(CustomerModel)? onCustomerSelected;
-  final CartTypeSelection? cartTypeSelection;
+  InvoiceItem item;
+  ProductCardMode mode;
+  bool editable;
+  bool saleCart;
+  VoidCallback? onRemove;
+  VoidCallback? onUpdate;
+  bool? returnStock;
+  CartTypeSelection? cartTypeSelection;
 
   ProductCard({
     super.key,
@@ -26,8 +24,7 @@ class ProductCard extends StatefulWidget {
     this.onRemove,
     this.onUpdate,
     this.returnStock = false,
-    this.onSellerSelected,this.onCustomerSelected,
-    this.cartTypeSelection=CartTypeSelection.Sale,
+    this.cartTypeSelection,
   });
 
   @override
@@ -38,7 +35,6 @@ class _ProductCardState extends State<ProductCard> {
   late TextEditingController discController;
   UnitType? selectedUnitType;
   double? disPlayMrp=0.0;
-
   @override
   void initState() {
     super.initState();
@@ -85,51 +81,75 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
 
-                  if ((unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) &&  isCartMode) ||  (unitType !=null && widget.saleCart)) ...[
+                  if ((unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) &&  isCartMode) ||  (unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) && widget.saleCart)) ...[
                     Positioned(
-                        top:20,
-                        right: 0,
-                        child:DropdownButton<UnitType>(
-                            value: selectedUnitType,
-                            icon: const Icon(Icons.arrow_drop_down_sharp, color: AppColors.kPrimary),
-                            underline: Container(
-                              height: 1,
-                              color: AppColors.kPrimaryDark,
-                            ),
-                            items: UnitType.values.map((e) => DropdownMenuItem(value: e,
-                                child:  Text(e.name, style: MyTextfield.textStyle(14, AppColors.kPrimary, FontWeight.w600)))).toList(),
-                            onChanged: widget.editable
-                                ?(val) {
-                              if (val != null) {
-                                setState(() {
-                                  selectedUnitType = val;
-                                  widget.item.unitType = val;
+                      top: 30,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.secondaryColor,
+                            width: 1,
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        child: PopupMenuButton<UnitType>(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          color: AppColors.kWhiteColor,
+                          elevation: 8,
+                          onSelected: widget.editable
+                              ? (val) {
+                            setState(() {
+                              selectedUnitType = val;
+                              widget.item.unitType = val;
 
-                                  // 🟢 Calculate proper unit MRP
-                                  final fullMrp = double.tryParse(widget.item.mrp) ?? 0.0;
-                                      final packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
+                              final fullMrp = double.tryParse(widget.item.mrp) ?? 0.0;
+                              final packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
 
-                                  double? unitMrp;
-                                  if (val == UnitType.Tablet && packingQuantity > 0) {
-                                    unitMrp = fullMrp / packingQuantity;
-                                    widget.item.unitMrp = unitMrp.toStringAsFixed(2); // 🔄 set actual value
-                                  } else {
-                                    widget.item.unitMrp = fullMrp.toStringAsFixed(2);
-                                  }
-                                });
-
-                                // 🔄 Also update in Cubit
-                                cartCubit.updateItemUnitRate(
-                                  widget.item.id!,
-                                  double.tryParse(widget.item.unitMrp ?? '0') ?? 0.0,
-                                  type: CartType.barcode,
-                                  unitType: val,
-                                );
-
-                                widget.onUpdate?.call();
+                              double? unitMrp;
+                              if (val == UnitType.Tablet && packingQuantity > 0) {
+                                unitMrp = fullMrp / packingQuantity;
+                                widget.item.unitMrp = unitMrp.toStringAsFixed(2);
+                              } else {
+                                widget.item.unitMrp = fullMrp.toStringAsFixed(2);
                               }
-                            }:null
-                        ))
+                            });
+
+                            cartCubit.updateItemUnitRate(
+                              widget.item.id!,
+                              double.tryParse(widget.item.unitMrp ?? '0') ?? 0.0,
+                              type: CartType.main,
+                              unitType: selectedUnitType!,
+                            );
+
+                            widget.onUpdate?.call();
+                          }
+                              : null,
+                          itemBuilder: (context) => UnitType.values
+                              .map((unit) => PopupMenuItem<UnitType>(
+                            value: unit,
+                            child: Text(
+                              unit.name,
+                              style: MyTextfield.textStyle(14, AppColors.secondaryColor, FontWeight.w600),
+                            ),
+                          ))
+                              .toList(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                selectedUnitType?.name ?? 'Select Unit',
+                                style: MyTextfield.textStyle(14, AppColors.secondaryColor, FontWeight.w600),
+                              ),
+                              Icon(Icons.arrow_drop_down_sharp, color: AppColors.secondaryColor),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
                   ],
                   Row(
                     children: [
@@ -172,7 +192,7 @@ class _ProductCardState extends State<ProductCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if(widget.returnStock)
+        if(widget.returnStock==true)
           widget.cartTypeSelection==CartTypeSelection.StockiestReturn?
           MyTextfield.textStyle_w400('${widget.item.sellerName} / ${widget.item.sellerPhone}', 18, Colors.red):
           MyTextfield.textStyle_w400('${widget.item.customerName} / ${widget.item.customerPhone}', 18, Colors.red),
@@ -203,7 +223,7 @@ class _ProductCardState extends State<ProductCard> {
                       cartCubit.updateItemDiscount(
                         widget.item.id!,
                         discountSale,
-                        type: CartType.barcode,
+                        type: CartType.main,
                         discountType: widget.item.discountType,
                       );
                     }
@@ -230,7 +250,7 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == widget.item.id);
+              cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
             } catch (e) {
               cartItem = null;
             }
@@ -250,45 +270,40 @@ class _ProductCardState extends State<ProductCard> {
             }
 
             if (isSearchMode && quantity == 0 && !isOutOfStock) {
-              return GestureDetector(
-                onTap: () {
-                  cartCubit.addToCart(widget.item, 1, type: CartType.barcode);
-                  if(cartCubit.state.barcodeCartItems.length==1 && widget.returnStock){
-                    if(widget.onSellerSelected!=null) {
-                      final updatedSeller = Seller(
+              return ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.kPrimary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                onPressed: () {
+                  print('Add button pressed');
+                  cartCubit.addToCart(widget.item, 1, type: CartType.main);
+                  if (widget.returnStock == true && cartCubit.state.cartItems.length == 1) {
+                    CustomerModel? updatedCustomer;
+                    if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
+                      updatedCustomer = CustomerModel(
                         id: widget.item.sellerId ?? 0,
-                        sellerName: widget.item.sellerName ?? '',
+                        name: widget.item.sellerName ?? '',
                         phone: widget.item.sellerPhone ?? '',
                         address: '',
-                        // If available in item, use it here
-                        gstNo: '',
                       );
-
-                      // Call the parent callback
-                      widget.onSellerSelected?.call(updatedSeller);
-                    }
-                    if(widget.onCustomerSelected!=null) {
-                      final updatedCustomer = CustomerModel(
+                    } else {
+                      updatedCustomer = CustomerModel(
                         id: widget.item.customerId ?? 0,
                         name: widget.item.customerName ?? '',
                         phone: widget.item.customerPhone ?? '',
                         address: '',
                       );
-
-                      // Call the parent callback
-                      widget.onCustomerSelected?.call(updatedCustomer);
                     }
-                    Navigator.pop(context);
+                    var result = {
+                      'code': 'manualAdd',
+                      'selectedCustomer': updatedCustomer,
+                    };
+                    Navigator.pop(context, result);
                   }
                 },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.kPrimary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
-                ),
+                child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
               );
             } else {
               return Row(
@@ -309,10 +324,10 @@ class _ProductCardState extends State<ProductCard> {
                       } else {
                         if (quantity <= 1) {
                           cartCubit.removeFromCart(widget.item.id!,
-                              type: CartType.barcode);
+                              type: CartType.main);
                         } else {
                           cartCubit.decrementQuantity(widget.item.id!,
-                              type: CartType.barcode);
+                              type: CartType.main);
                         }
                       }
                     },
@@ -331,7 +346,7 @@ class _ProductCardState extends State<ProductCard> {
                         widget.onUpdate?.call();
                       } else {
                         cartCubit.incrementQuantity(widget.item.id!,
-                            type: CartType.barcode);
+                            type: CartType.main);
                       }
                     },
                   ),
@@ -351,7 +366,7 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = state.barcodeCartItems.firstWhere((e) => e.id == widget.item.id);
+              cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
             } catch (e) {
               cartItem = null;
             }
@@ -449,7 +464,7 @@ class _ProductCardState extends State<ProductCard> {
                     onPressed: () {
                       if (widget.saleCart) {
                         cartCubit.removeFromCart(widget.item.id!,
-                            type: CartType.barcode);
+                            type: CartType.main);
                       } else {
                         widget.onRemove?.call();
                         widget.onUpdate?.call();

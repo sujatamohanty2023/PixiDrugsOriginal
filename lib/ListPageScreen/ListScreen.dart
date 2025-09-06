@@ -1,27 +1,30 @@
-import 'package:PixiDrugs/Expense/ExpenseResponse.dart';
-import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
-import 'package:PixiDrugs/Staff/StaffModel.dart';
-import 'package:PixiDrugs/StockReturn/PurchaseReturnModel.dart';
+// Same imports as before...
+
 import 'package:image_cropper/image_cropper.dart';
-import 'package:PixiDrugs/Cart/ReceiptPrinterPage.dart';
-import 'package:PixiDrugs/Home/HomePageScreen.dart';
-import 'package:PixiDrugs/Ledger/LedgerListWidget.dart';
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
-import 'package:PixiDrugs/ListPageScreen/InvoiceListWidget.dart';
-import 'package:PixiDrugs/ListPageScreen/SaleListWidget.dart';
-import 'package:PixiDrugs/SaleList/sale_details.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-import 'package:PixiDrugs/constant/all.dart';
+
+import '../Cart/ReceiptPrinterPage.dart';
 import '../Cart/receipt_pdf_generator.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Expense/AddExpenseScreen.dart';
 import '../Expense/ExpenseListWidget.dart';
+import '../Expense/ExpenseResponse.dart';
+import '../Home/HomePageScreen.dart';
+import '../Ledger/LedgerListWidget.dart';
+import '../Ledger/LedgerModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
+import '../ReturnStock/StockReturnListWidget.dart';
+import '../SaleList/sale_details.dart';
+import '../SaleList/sale_model.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnListWidget.dart';
+import '../Staff/AddStaffScreen.dart';
 import '../Staff/StaffListWidget.dart';
-import '../StockReturn/StockReturnListWidget.dart';
+import '../Staff/StaffModel.dart';
+import '../constant/all.dart';
+import 'InvoiceListWidget.dart';
+import 'SaleListWidget.dart';
 
-enum ListType { invoice, sale, ledger, stockReturn, saleReturn,expense,staff }
+enum ListType { invoice, sale, ledger, stockReturn, saleReturn, expense, staff }
 
 final Map<ListType, String> titleMap = {
   ListType.invoice: 'Invoice List',
@@ -45,18 +48,20 @@ class ListScreen extends StatefulWidget {
 class _ListScreenState extends State<ListScreen>
     with WidgetsBindingObserver, RouteAware {
   String searchQuery = "";
-  List<Invoice> invoiceList = [];
-  List<SaleModel> saleList = [];
-  List<LedgerModel> ledgerList = [];
-  List<PurchaseReturnModel> stockReturnList= [];
-  List<CustomerReturnsResponse> saleReturnList= [];
-  List<ExpenseResponse> expenseList= [];
-  List<StaffModel> staffList= [];
+  final ScrollController _scrollController = ScrollController();
 
   int currentPage = 1;
   bool isLoadingMore = false;
   bool hasMoreData = true;
-  final ScrollController _scrollController = ScrollController();
+
+  // Lists for different types
+  final invoiceList = <Invoice>[];
+  final saleList = <SaleModel>[];
+  final ledgerList = <LedgerModel>[];
+  final stockReturnList = <PurchaseReturnModel>[];
+  final saleReturnList = <CustomerReturnsResponse>[];
+  final expenseList = <ExpenseResponse>[];
+  final staffList = <StaffModel>[];
 
   @override
   void initState() {
@@ -73,8 +78,9 @@ class _ListScreenState extends State<ListScreen>
     _scrollController.dispose();
     super.dispose();
   }
+
   void _onScroll() {
-    if (widget.type == ListType.invoice && searchQuery.isEmpty) {
+    if (_needsPagination()) {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200 &&
           !isLoadingMore &&
@@ -82,6 +88,16 @@ class _ListScreenState extends State<ListScreen>
         _fetchRecord();
       }
     }
+  }
+
+  bool _needsPagination() {
+    return {
+      ListType.invoice,
+      ListType.stockReturn,
+      ListType.saleReturn,
+      ListType.expense,
+      ListType.staff,
+    }.contains(widget.type) && searchQuery.isEmpty;
   }
 
   @override
@@ -92,72 +108,308 @@ class _ListScreenState extends State<ListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _fetchRecord();
-    }
+    if (state == AppLifecycleState.resumed) _fetchRecord();
   }
 
   @override
-  void didPopNext() {
-    _fetchRecord();
-  }
+  void didPopNext() => _fetchRecord();
 
   Future<void> _fetchRecord({bool refresh = false}) async {
     final userId = await SessionManager.getParentingId();
     if (userId == null) return;
 
-
     if (refresh) {
       currentPage = 1;
       hasMoreData = true;
-      invoiceList.clear(); // Reset list on refresh
+      invoiceList.clear();
+      saleList.clear();
+      ledgerList.clear();
+      stockReturnList.clear();
+      saleReturnList.clear();
+      expenseList.clear();
+      staffList.clear();
     }
+
     if (isLoadingMore || !hasMoreData) return;
+
     setState(() => isLoadingMore = true);
+    final apiCubit = context.read<ApiCubit>();
 
     switch (widget.type) {
       case ListType.invoice:
-        await context.read<ApiCubit>().fetchInvoiceList(user_id: userId, page: currentPage);
+        await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage);
         break;
       case ListType.sale:
-        context.read<ApiCubit>().fetchSaleList(user_id: userId);
+        await apiCubit.fetchSaleList(user_id: userId);
         break;
       case ListType.ledger:
-        context.read<ApiCubit>().fetchLedgerList(user_id: userId);
+        await apiCubit.fetchLedgerList(user_id: userId);
         break;
       case ListType.stockReturn:
-        context.read<ApiCubit>().fetchStockReturnList(store_id: userId);
+        await apiCubit.fetchStockReturnList(store_id: userId, page: currentPage);
         break;
       case ListType.saleReturn:
-        context.read<ApiCubit>().fetchSaleReturnList(store_id: userId);
+        await apiCubit.fetchSaleReturnList(store_id: userId, page: currentPage);
         break;
       case ListType.expense:
-        context.read<ApiCubit>().fetchExpenseList(store_id: userId);
+        await apiCubit.fetchExpenseList(store_id: userId, page: currentPage);
         break;
       case ListType.staff:
-        context.read<ApiCubit>().fetchStaffList(store_id: userId);
+        await apiCubit.fetchStaffList(store_id: userId, page: currentPage);
         break;
     }
+
+    setState(() => isLoadingMore = false);
+  }
+
+  void _updatePaginatedList<T>(List<T> targetList, List<T> newItems, int lastPage) {
+    if (currentPage == 1) targetList.clear();
+    targetList.addAll(newItems);
+    hasMoreData = lastPage > currentPage;
+    if (hasMoreData) currentPage++;
+  }
+
+  void _updateSearchQuery(String query) {
     setState(() {
-      isLoadingMore = false;
+      searchQuery = query;
     });
   }
 
-  Future<void> _onAddInvoicePressed() async {
-    AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5,ManualAdd: true);
+  void _showDeleteDialog(BuildContext context, int id) {
+    CommonConfirmationDialog.show<String>(
+      context: context,
+      id: id.toString(),
+      title: 'Delete ${widget.type.name} Record?',
+      content: 'Are you sure you want to delete this ${widget.type.name} record?',
+      onConfirmed: (_) => _deleteRecord(id),
+    );
   }
+
+  void _deleteRecord(int id) async {
+    try {
+      final apiCubit = context.read<ApiCubit>();
+
+      switch (widget.type) {
+        case ListType.invoice:
+          await apiCubit.InvoiceDelete(invoice_id: id.toString());
+          invoiceList.removeWhere((inv) => inv.id == id);
+          break;
+        case ListType.sale:
+          await apiCubit.SaleDelete(billing_id: id.toString());
+          saleList.removeWhere((sale) => sale.invoiceNo == id);
+          break;
+        default:
+          break;
+      }
+
+      AppUtils.showSnackBar(context, "Record deleted successfully");
+      setState(() {});
+    } catch (e) {
+      AppUtils.showSnackBar(context, "Failed to delete record: $e");
+    }
+  }
+
+  // ---- Build Method ----
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      body: BlocBuilder<ApiCubit, ApiState>(
+        builder: (context, state) {
+          final isLoading = state is InvoiceListLoading ||
+              state is SaleListLoading ||
+              state is LedgerListLoading ||
+              state is StockReturnListLoading ||
+              state is SaleReturnListLoading ||
+              state is ExpenseListLoading ||
+              state is StaffListLoading;
+
+          // Populate lists from state
+          if (state is InvoiceListLoaded) {
+            _updatePaginatedList(invoiceList, state.invoiceList, state.last_page);
+          } else if (state is SaleListLoaded) {
+            saleList
+              ..clear()
+              ..addAll(state.saleList);
+          } else if (state is LedgerListLoaded) {
+            ledgerList
+              ..clear()
+              ..addAll(state.leadgerList);
+          } else if (state is StockReturnListLoaded) {
+            _updatePaginatedList(stockReturnList, state.returnList, state.last_page);
+          } else if (state is SaleReturnListLoaded) {
+            _updatePaginatedList(saleReturnList, state.billList, state.last_page);
+          } else if (state is ExpenseListLoaded) {
+            _updatePaginatedList(expenseList, state.list, state.last_page);
+          } else if (state is StaffListLoaded) {
+            _updatePaginatedList(staffList, state.staffList, state.last_page);
+          }
+
+          return Container(
+            color: AppColors.kPrimary,
+            padding: EdgeInsets.only(top: screenWidth * 0.06),
+            child: Column(
+              children: [
+                _buildTopBar(screenWidth),
+                _buildSearchBar(screenWidth),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () => _fetchRecord(refresh: true),
+                    color: AppColors.kPrimary,
+                    backgroundColor: AppColors.kPrimaryLight,
+                    child: _buildListBody(isLoading),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTopBar(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => HomePage()),
+                  (route) => false,
+            ),
+          ),
+          MyTextfield.textStyle_w400(
+            titleMap[widget.type] ?? '',
+            screenWidth * 0.055,
+            Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+        vertical: screenWidth * 0.02,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(screenWidth * 0.07),
+        ),
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: "Search by name",
+            hintStyle: MyTextfield.textStyle(16, Colors.grey, FontWeight.w300),
+            prefixIcon: Icon(Icons.search),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(vertical: 14),
+          ),
+          onChanged: _updateSearchQuery,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListBody(bool isLoading) {
+    switch (widget.type) {
+      case ListType.invoice:
+        return InvoiceListWidget(
+          invoices: invoiceList,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+          onAddPressed: _onAddInvoicePressed,
+          onDeletePressed: (id) { _showDeleteDialog(context, id); },
+          onEditPressed: (inv) => AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)),
+        );
+      case ListType.sale:
+        return SaleListWidget(
+          sales: saleList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+          onDeletePressed: (id) { _showDeleteDialog(context, id); },
+          onEditPressed: (sale) => AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
+          onPrintPressed: (sale) => _onButtonPrintPressed(context, sale),
+          onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
+          onAddPressed: () {},
+        );
+      case ListType.ledger:
+        return LedgerListWidget(
+          items: ledgerList,
+          isLoading: isLoading,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+        );
+      case ListType.stockReturn:
+        return StockReturnListWidget(
+          items: stockReturnList,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+        );
+      case ListType.saleReturn:
+        return SaleReturnListWidget(
+          items: saleReturnList,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+        );
+      case ListType.expense:
+        return ExpenseListWidget(
+          items: expenseList,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+          onAddPressed: _onAddExpense,
+        );
+      case ListType.staff:
+        return StaffListWidget(
+          list: staffList,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
+          searchQuery: searchQuery,
+          onSearchChanged: _updateSearchQuery,
+          onAddPressed: _onAddStaff,
+        );
+    }
+  }
+
+  Future<void> _onAddInvoicePressed() async {
+    AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5, ManualAdd: true);
+  }
+
   Future<void> _onAddExpense() async {
     AppRoutes.navigateTo(context, Addexpensescreen());
   }
+
   Future<void> _onAddStaff() async {
-    AppRoutes.navigateTo(context, AddStaffScreen(add:true));
+    AppRoutes.navigateTo(context, AddStaffScreen(add: true));
   }
 
-  Future<void> _setSelectedImage(List<File> file) async {
-    List<String> croppedFileList =[];
-    for(var item in file) {
+  Future<void> _setSelectedImage(List<File> files) async {
+    List<String> croppedPaths = [];
+
+    for (var file in files) {
       final croppedFile = await ImageCropper().cropImage(
-        sourcePath: item.path,
+        sourcePath: file.path,
         compressFormat: ImageCompressFormat.jpg,
         compressQuality: 90,
         uiSettings: [
@@ -177,222 +429,22 @@ class _ListScreenState extends State<ListScreen>
           ),
         ],
       );
-      croppedFileList.add(croppedFile!.path);
+      if (croppedFile != null) {
+        croppedPaths.add(croppedFile.path);
+      }
     }
 
-    if (croppedFileList.isNotEmpty) {
+    if (croppedPaths.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddPurchaseBill(paths:croppedFileList),
+          builder: (context) => AddPurchaseBill(paths: croppedPaths),
         ),
       );
     }
   }
-  void _deleteRecord(int id) async {
-    try {
-      switch (widget.type) {
-        case ListType.invoice:
-          await context.read<ApiCubit>().InvoiceDelete(invoice_id: id.toString());
-          setState(() => invoiceList.removeWhere((inv) => inv.id == id));
-          break;
-        case ListType.sale:
-          await context.read<ApiCubit>().SaleDelete(billing_id: id.toString());
-          setState(() => saleList.removeWhere((sale) => sale.invoiceNo == id));
-          break;
-        default:
-          break;
-      }
-      AppUtils.showSnackBar(context,"Record deleted successfully");
-    } catch (e) {
-      AppUtils.showSnackBar(context,"Failed to delete record: $e");
-    }
-  }
 
-  void _showDeleteDialog(BuildContext context,int id) {
-    CommonConfirmationDialog.show<String>(
-      context: context,
-      id: id.toString(),
-      title: 'Delete ${widget.type.name} Record?',
-      content: 'Are you sure you want to delete this ${widget.type.name} record?',
-      onConfirmed: (_) => _deleteRecord(id),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Scaffold(
-      body: BlocBuilder<ApiCubit, ApiState>(
-        builder: (context, state) {
-
-          final isLoading = state is InvoiceListLoading ||
-              state is SaleListLoading ||
-              state is LedgerListLoading ||
-              state is StockReturnListLoading ||
-              state is SaleReturnListLoading ||
-              state is ExpenseListLoading||
-              state is StaffListLoading;
-
-          if (state is InvoiceListLoaded) {
-            if (currentPage == 1) invoiceList.clear();
-
-            invoiceList.addAll(state.invoiceList);
-            hasMoreData = state.last_page > currentPage;
-            if (hasMoreData) currentPage++;
-
-          }else if (state is SaleListLoaded) {
-            saleList = state.saleList;
-          }else if (state is LedgerListLoaded) {
-            ledgerList = state.leadgerList;
-          }else if (state is StockReturnListLoaded) {
-            stockReturnList = state.returnList;
-          }else if (state is SaleReturnListLoaded) {
-            saleReturnList = state.billList;
-          }else if (state is ExpenseListLoaded) {
-            expenseList = state.list;
-          }else if (state is StaffListLoaded) {
-            staffList = state.staffList;
-          }
-
-          return Container(
-            color: AppColors.kPrimary,
-            padding: EdgeInsets.only(top: screenWidth * 0.06),
-            child: Column(
-              children: [
-                _buildTopBar(screenWidth),
-                _buildSearchBar(screenWidth),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: ()=>_fetchRecord(refresh: true),
-                    child: _buildListBody(isLoading),
-                    color: AppColors.kPrimary,
-                    backgroundColor: AppColors.kPrimaryLight,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildListBody(bool isLoading) {
-    switch (widget.type) {
-      case ListType.invoice:
-        return InvoiceListWidget(
-            invoices: invoiceList,
-            isLoading: isLoading && currentPage==1,
-            isLoadingMore:isLoadingMore,
-            scrollController:_scrollController,
-            searchQuery: searchQuery,
-            onSearchChanged: (v) => setState(() => searchQuery = v),
-            onAddPressed: _onAddInvoicePressed,
-            onDeletePressed: (id) {
-              _showDeleteDialog(context, id);
-            },
-            onEditPressed: (inv) =>
-                AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)));
-      case ListType.sale:
-        print('SaleList${saleList.length}');
-        return SaleListWidget(
-          sales: saleList,
-          isLoading: isLoading,
-          searchQuery: searchQuery,
-          onSearchChanged: (v) => setState(() => searchQuery = v),
-          onDeletePressed: (id) {
-            _showDeleteDialog(context, id);
-          },
-          onEditPressed: (sale) =>
-              AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
-          onPrintPressed: (sale) {
-            _onButtonPrintPressed(context, sale);
-          },
-          onSharePressed: (sale) =>ReceiptPdfGenerator.generateAndSharePdf(context, sale),
-          onAddPressed: () {  },
-        );
-      case ListType.ledger:
-        return LedgerListWidget(
-          items: ledgerList,
-          isLoading: isLoading,
-          searchQuery: searchQuery,
-          onSearchChanged: (v) => setState(() => searchQuery = v),
-        );
-      case ListType.stockReturn:
-        return StockReturnListWidget(
-          items: stockReturnList,
-          isLoading: isLoading,
-          searchQuery: searchQuery,
-          onSearchChanged: (v) => setState(() => searchQuery = v),
-        );
-      case ListType.saleReturn:
-        return SaleReturnListWidget(
-          items: saleReturnList,
-          isLoading: isLoading,
-          searchQuery: searchQuery,
-          onSearchChanged: (v) => setState(() => searchQuery = v),
-        );
-      case ListType.expense:
-        return ExpenseListWidget(
-          items: expenseList,
-          isLoading: isLoading,
-          searchQuery: searchQuery,
-          onAddPressed: _onAddExpense,
-          onSearchChanged: (v) => setState(() => searchQuery = v)
-        );
-      case ListType.staff:
-        return StaffListWidget(
-            list: staffList,
-            isLoading: isLoading,
-            searchQuery: searchQuery,
-            onAddPressed: _onAddStaff,
-            onSearchChanged: (v) => setState(() => searchQuery = v)
-        );
-    }
-  }
-
-  Widget _buildTopBar(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.only(top:screenWidth * 0.02,left:screenWidth * 0.02,right: screenWidth * 0.02),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => HomePage()),
-                  (route) => false,
-            ),
-          ),
-          MyTextfield.textStyle_w400(titleMap[widget.type] ?? '', screenWidth * 0.055,Colors.white,),
-        ],
-      ),
-    );
-  }
-  Widget _buildSearchBar(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.only(left:screenWidth * 0.04,right: screenWidth * 0.04,bottom: screenWidth * 0.02),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(screenWidth * 0.07),
-        ),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: "Search by name",
-            hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
-          ),
-          onChanged: (value) => setState(() => searchQuery = value),
-        ),
-      ),
-    );
-  }
-  void _onButtonPrintPressed(BuildContext context,SaleModel saleItem) {
+  void _onButtonPrintPressed(BuildContext context, SaleModel sale) {
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -408,12 +460,11 @@ class _ListScreenState extends State<ListScreen>
         maxChildSize: 0.95,
         builder: (context, scrollController) {
           return ReceiptPrinterPage(
-            sale: saleItem,
+            sale: sale,
             scrollController: scrollController,
           );
         },
       ),
     );
   }
-
 }

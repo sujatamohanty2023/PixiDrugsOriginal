@@ -34,7 +34,13 @@ class ProductTile extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child:MyTextfield.textStyle_w600(product!.product, SizeConfig.screenWidth! * 0.045, AppColors.kPrimary)
+                      child:Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            MyTextfield.textStyle_w600(product!.product, SizeConfig.screenWidth! * 0.045, AppColors.kPrimary),
+                            MyTextfield.textStyle_w300(product!.sellerName!.toLowerCase(), SizeConfig.screenWidth! * 0.035, AppColors.kBlackColor800)
+                          ]
+                      )
                     ),
                     RichText(
                       text: TextSpan(
@@ -89,15 +95,26 @@ class ProductTile extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          MyTextfield.textStyle_w400(isOutOfStock
-                      ? "Out of Stock"
-                              : "Stock: $stock",16, isOutOfStock ? Colors.red : Colors.teal),
-                          SizedBox(height: 2,),
-                          if (!isOutOfStock)
-                            buildExpiryText(),
+                          Row(
+                            children: [
+                              Icon(
+                                isOutOfStock ? Icons.error_outline : Icons.inventory_outlined,
+                                color: isOutOfStock ? Colors.red : AppColors.secondaryColor,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              MyTextfield.textStyle_w400(
+                                isOutOfStock ? "Out of Stock" : "Stock: $stock",
+                                16,
+                                isOutOfStock ? Colors.red : AppColors.secondaryColor,
+                              ),
+                            ],
+                          ),
+                          if (!isOutOfStock) buildExpiryText(),
                         ],
                       ),
                     ),
+
 
                     if (isOutOfStock)
                       Container(
@@ -143,10 +160,22 @@ class ProductTile extends StatelessWidget {
   }
   Widget buildExpiryText() {
     try {
-      final formattedExpiry = DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product!.expiry));
-      return MyTextfield.textStyle_w400("Ex. Date: $formattedExpiry", 14, Colors.grey.shade700);
+      final formattedExpiry = DateFormat('MM/yy').format(parseFlexibleExpiry(product!.expiry));
+      return Row(
+        children: [
+          const Icon(Icons.access_time_outlined, color: AppColors.error,size: 16,),
+          const SizedBox(width: 5),
+         MyTextfield.textStyle_w400("$formattedExpiry", 14, AppColors.error)
+        ],
+      );
     } catch (e) {
-      return MyTextfield.textStyle_w400("Ex. Date: ${product!.expiry}", 14, Colors.grey.shade700);
+      return Row(
+        children: [
+          const Icon(Icons.access_time_outlined, color: Colors.grey,size: 16,),
+          const SizedBox(width: 5),
+          MyTextfield.textStyle_w400("${product!.expiry}", 14, Colors.red.shade700)
+        ],
+      );
     }
   }
   DateTime parseFlexibleExpiry(String input) {

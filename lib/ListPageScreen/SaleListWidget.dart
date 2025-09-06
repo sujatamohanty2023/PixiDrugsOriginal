@@ -85,10 +85,33 @@ class SaleListWidget extends StatelessWidget {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: screenWidth * 0.08,
-                backgroundColor: AppColors.kPrimaryDark,
-                child: MyTextfield.textStyle_w600( getInitials(sale.customer.name),screenWidth * 0.045,AppColors.kPrimary) ),
+              Container(
+                width: screenWidth * 0.14,
+                height: screenWidth * 0.14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8), // optional rounding
+                  border: Border.all(
+                    color: Colors.white, // or any color you want
+                    width: 2,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.kPrimary,
+                      AppColors.secondaryColor,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: MyTextfield.textStyle_w600(
+                  getInitials(sale.customer.name),
+                  screenWidth * 0.055,
+                  Colors.white,
+                ),
+              ),
+
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(

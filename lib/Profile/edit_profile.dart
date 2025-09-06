@@ -106,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: BoxDecoration(
           gradient: AppColors.myGradient,
         ),
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 60),
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 0, bottom: 60),
         child: SingleChildScrollView(
           child: SafeArea(
             child: Column(
@@ -114,12 +114,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 SizedBox(height: screenHeight * 0.015),
                 Center(
-                  child: Stack(
+                  child: Column(
                     children: [
-                      SizedBox(height: screenHeight * 0.04),
+                      SizedBox(height: screenHeight * 0.02),
                       CircleAvatar(
                         backgroundColor: AppColors.kPrimary.withOpacity(0.3),
-                        radius: 60,
+                        radius: 50,
                         backgroundImage: _imageFile.isNotEmpty
                             ? _imageFile.contains('https://')
                                 ? NetworkImage(_imageFile)
@@ -128,79 +128,86 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     : NetworkImage(
                                         '${AppString.baseUrl}$_imageFile')
                             : AssetImage(AppImages.AppIcon) as ImageProvider,
-                        child: _imageFile.isEmpty
-                            ? Icon(Icons.person,
-                                size: 60, color: AppColors.kPrimary)
-                            : null,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
+                      SizedBox(height: screenHeight * 0.01),
+                      GestureDetector(
+                        onTap: (){
+                          AddPurchaseBottomSheet(context, _setSelectedImage,
+                              pick_Size: 1);
+                        },
+                        child:Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: AppColors.kWhiteColor,
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppColors.kPrimary,
+                                  AppColors.secondaryColor,
+                                ],
+                                stops: [0.0, 1.0],
+                                tileMode: TileMode.clamp),
                             borderRadius: BorderRadius.circular(50),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 4,
-                                offset: Offset(2, 2),
+                            border: Border.all(width: 0.5, color: AppColors.secondaryColor),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.upload, color: Colors.white),
+                              const SizedBox(width: 8),
+                              MyTextfield.textStyle_w600(
+                                "Upload Store Image",
+                                SizeConfig.screenWidth! * 0.040,
+                                Colors.white,
                               ),
                             ],
-                          ),
-                          child: IconButton(
-                            icon: Icon(Icons.edit, color: AppColors.kPrimary),
-                            onPressed: () {
-                              AddPurchaseBottomSheet(context, _setSelectedImage,
-                                  pick_Size: 1);
-                            },
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: screenHeight * 0.015),
                 // Name input field
-                MyTextfield.textStyle_w600('Name of the store', 18, Colors.black),
+                MyTextfield.textStyle_w400('Name of the store', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: 'Enter ${AppString.storeName}', controller: storeNameController),
                 SizedBox(height: screenHeight * 0.015),
-                MyTextfield.textStyle_w600('Name of Owner/Proprietor', 18, Colors.black),
+                MyTextfield.textStyle_w400('Name of Owner/Proprietor', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: 'Enter ${AppString.ownerName}',
                     controller: ownerNameController),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('Address Of Store', 18, Colors.black),
+                MyTextfield.textStyle_w400('Address Of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                   controller: addressController,
                   hintText: 'Enter ${AppString.storeAddress}',
-                  keyboardType: TextInputType.text,maxLines: 3 ,),
+                  keyboardType: TextInputType.text,maxLines:2 ,),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('Mobile no. of Owner', 18, Colors.black),
+                MyTextfield.textStyle_w400('Mobile no. of Owner', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                   controller: phoneController,
                   hintText: AppString.enterNumber,
                   keyboardType: TextInputType.phone,readOnly: true,),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('Email Id. of Owner/Store', 18, Colors.black),
+                MyTextfield.textStyle_w400('Email Id. of Owner/Store', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     hintText: AppString.enterEmail,
                     controller: emailController,readOnly: true),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('GST NO. of Store', 18, Colors.black),
+                MyTextfield.textStyle_w400('GST NO. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: gstController,
                     hintText: AppString.enterGst,
                     keyboardType: TextInputType.text),
                 SizedBox(height: 8),
-                MyTextfield.textStyle_w600('Licence No. of Store', 18, Colors.black),
+                MyTextfield.textStyle_w400('Licence No. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
                 SizedBox(height: 8),
                 MyEdittextfield(
                     controller: regController,

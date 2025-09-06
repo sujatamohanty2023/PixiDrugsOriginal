@@ -1,6 +1,6 @@
 import '../Ledger/Payment.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
 import '../constant/all.dart';
 import 'ApiUtil/api_exception.dart';
 
@@ -266,12 +266,12 @@ class ApiRepository {
     ));
   }
 
-  Future<Map<String, dynamic>> fetchList(String storeId, String apiName) {
+  Future<Map<String, dynamic>> fetchList(String storeId, String apiName,int page) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {
         'store_id': storeId,
-        'page': 1,
+        'page': page,
       },
     ));
   }

@@ -1,11 +1,9 @@
-import 'package:PixiDrugs/SaleReturn/SaleReturnScreen.dart';
 import 'package:PixiDrugs/Home/HomePageScreen.dart';
 import 'package:PixiDrugs/SplashScreen.dart';
 import 'package:PixiDrugs/Stock/ProductList.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/FCMService.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
-import 'package:PixiDrugs/StockReturn/PurchaseReturnScreen.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'Api/api_repository.dart';
@@ -83,14 +81,6 @@ class _MyAppState extends State<MyApp> {
             final flag = settings.arguments;
             return MaterialPageRoute(
               builder: (_) => ProductListPage(flag: int.parse(flag.toString())));
-          }else if (settings.name == '/purchaseReturn') {
-            final value = settings.arguments;
-            return MaterialPageRoute(
-              builder: (_) => PurchaseReturnScreen(invoiceNo: value.toString(),addReturn:true));
-          }else if (settings.name == '/saleReturn') {
-            final value = settings.arguments;
-            return MaterialPageRoute(
-              builder: (_) => SaleReturnScreen(billNo: int.parse(value.toString()),addReturn:true));
           }
           return null;
         },

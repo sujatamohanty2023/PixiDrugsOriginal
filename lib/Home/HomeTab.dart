@@ -4,11 +4,11 @@ import '../BarcodeScan/ScanPage.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Dialog/update_bottom_sheet.dart';
 import '../Profile/contact_us.dart';
-import '../ReturnCart/ReturnCartTab.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../login/mobileLoginScreen.dart';
 import '../report/report_page.dart';
+import '../search/customerModel.dart';
 import 'YoutubeVideoListPage.dart';
 
 class DashboardItem {
@@ -63,7 +63,7 @@ class _HomeTabState extends State<HomeTab> {
     dashboardItems = [
       DashboardItem(title: "New Sale Entry",desc: "Record a new sale", icon:AppImages.sale,
           onTap:() {
-            _newSaleEntry('Start New Sale', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.Sale);
+            _newSaleEntry('Start New Sale', 'This will clear the previous cart. Do you want to continue?');
           }
       ),
       DashboardItem(title: "Sales Report", desc:"Track sales summary", icon:AppImages.sale_list, onTap: () {
@@ -80,26 +80,10 @@ class _HomeTabState extends State<HomeTab> {
         Navigator.pushNamed(context, '/stockList', arguments: 3);
       }),
       DashboardItem(title: "Stockist Return",desc: "Return products back to stockist", icon:AppImages.purchase_return, onTap: () {
-        /*showDialog(
-          context: context,
-          builder: (_) => EditValueDialog(
-            title: 'Invoice No.',
-            initialValue: '',
-            type: 'stockReturn',
-          ),
-        );*/
-        _newSaleEntry('Start New Stockist Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.StockiestReturn);
+        _returnProduct('Start New Stockist Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.StockiestReturn,1);
       }),
       DashboardItem(title: "Customer Return",desc: "Manage products returned by customers", icon:AppImages.sale_return,onTap:  () {
-        /*showDialog(
-          context: context,
-          builder: (_) => EditValueDialog(
-            title: 'Bill No.',
-            initialValue: '',
-            type: 'saleReturn',
-          ),
-        );*/
-        _newSaleEntry('Start New Customer Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.CustomerReturn);
+        _returnProduct('Start New Customer Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.CustomerReturn,2);
       }),
       DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stock_return,onTap:  () {
         AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
@@ -381,7 +365,7 @@ class _HomeTabState extends State<HomeTab> {
                     crossAxisCount: 3,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 0.95,
+                    childAspectRatio: 0.90,
                   ),
                   itemBuilder: (context, index) {
                     final item = dashboardItems[index];
@@ -421,7 +405,7 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  Future<void> _newSaleEntry(String tittle,String content,CartTypeSelection type) async {
+  Future<void> _newSaleEntry(String tittle,String content) async {
     CommonConfirmationDialog.show<int>(
       context: context,
       id: 0,
@@ -430,37 +414,57 @@ class _HomeTabState extends State<HomeTab> {
       negativeButton: 'Cancel',
       positiveButton: 'Yes, Start New',
       onConfirmed: (int) async {
-        context.read<CartCubit>().clearCart(type: CartType.barcode);
-        if(type==CartTypeSelection.Sale){
-          widget.onGoToCart();
-        }else{
-          //AppRoutes.navigateTo(context, ReturnCartTab(cartTypeSelection:type));
-          switchToReturnproductCart(type);
-        }
+        context.read<CartCubit>().clearCart(type: CartType.main);
+        widget.onGoToCart();
+      },
+    );
+  }
+  Future<void> _returnProduct(String tittle,String content,CartTypeSelection cartTypeSelection,int flag) async {
+    CommonConfirmationDialog.show<int>(
+      context: context,
+      id: flag,
+      title: tittle,
+      content: content,
+      negativeButton: 'Cancel',
+      positiveButton: 'Yes, Start New',
+      onConfirmed: (int) async {
+        context.read<CartCubit>().clearCart(type: CartType.main);
+        switchToReturnproductCart(cartTypeSelection);
       },
     );
   }
   Future<void> switchToReturnproductCart(CartTypeSelection type) async {
-    final scannedCode = await Navigator.push(
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:type)),
+      MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection: type)),
     );
 
-    if (scannedCode != null && scannedCode.toString().isNotEmpty &&  scannedCode!='manualAdd') {
-      final userId = await SessionManager.getParentingId();
-      if(type==CartTypeSelection.StockiestReturn) {
-        context.read<ApiCubit>().BarcodeScan(
-          code: scannedCode,
-          storeId: userId!,
-        );
-        AppRoutes.navigateTo(context, ReturnStockiestCart());
-      }else if(type==CartTypeSelection.CustomerReturn){
-        context.read<ApiCubit>().customerbarcode(
-            code: scannedCode,
-            storeId: userId!,
-            customer_id:''
-        );
-        AppRoutes.navigateTo(context, ReturnCustomerCart());
+    if (result != null) {
+      final scannedCode = result['code'];
+      CustomerModel? selectedCustomer = scannedCode == 'manualAdd'?result['selectedCustomer']:null;
+
+      if (scannedCode != null && scannedCode.toString().isNotEmpty) {
+        final userId = await SessionManager.getParentingId();
+
+        if (type == CartTypeSelection.StockiestReturn) {
+          if (scannedCode != 'manualAdd') {
+            context.read<ApiCubit>().BarcodeScan(
+              code: scannedCode,
+              storeId: userId!,
+            );
+          }
+          AppRoutes.navigateTo(context, ReturnStockiestCart(selectedCustomer:selectedCustomer));
+
+        } else if (type == CartTypeSelection.CustomerReturn) {
+          if (scannedCode != 'manualAdd') {
+            context.read<ApiCubit>().customerbarcode(
+              code: scannedCode,
+              storeId: userId!,
+              customer_id: '', // You can use otherValue here if needed
+            );
+          }
+          AppRoutes.navigateTo(context, ReturnCustomerCart(selectedCustomer:selectedCustomer));
+        }
       }
     }
   }

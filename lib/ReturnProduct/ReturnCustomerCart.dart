@@ -2,18 +2,17 @@
 import 'package:PixiDrugs/constant/all.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Cart/address_widget.dart';
-import '../ReturnCart/ReturnItemTile.dart';
+import 'ReturnItemTile.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
 import '../search/customerModel.dart';
-import '../search/sellerModel.dart' show Seller;
 
 class ReturnCustomerCart extends StatefulWidget {
   CustomerReturnsResponse? customerReturnModel;
   bool detail;
+  CustomerModel? selectedCustomer;
   ReturnCustomerCart({Key? key,
-    this.customerReturnModel,
+    this.customerReturnModel,this.selectedCustomer,
     this.detail = false,}) : super(key: key);
 
   @override
@@ -69,9 +68,12 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
 
       // Load into CartCubit
       context.read<CartCubit>().loadItemsToCart(
-          invoiceItems!, type: CartType.barcode);
+          invoiceItems!, type: CartType.main);
       // Set selected reason from model
       selectedReason = widget.customerReturnModel?.reason;
+    }
+    if(widget.selectedCustomer!=null) {
+      selectedCustomer=widget.selectedCustomer;
     }
 
   }
@@ -101,7 +103,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                 cartCubit.addToCart(
                   searchResults.first,
                   1,
-                  type: CartType.barcode,
+                  type: CartType.main,
                 );
               }
             } else {
@@ -112,7 +114,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
           } else if (state is SaleReturnAddLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully retrun to stock');
-              context.read<CartCubit>().clearCart(type: CartType.barcode);
+              context.read<CartCubit>().clearCart(type: CartType.main);
               Navigator.pop(context);
             }else{
               AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
@@ -122,7 +124,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
           }else if (state is SaleReturnEditLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully Updated');
-              context.read<CartCubit>().clearCart(type: CartType.barcode);
+              context.read<CartCubit>().clearCart(type: CartType.main);
               Navigator.pop(context);
             }else{
               AppUtils.showSnackBar(context,'Failed to Update');
@@ -143,7 +145,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             if (state is CartLoaded) {
               return _buildCartLoadedUI(
                 context,
-                state.barcodeCartItems,
+                state.cartItems,
                 state.totalPrice,
                 state.subTotal,
                 state.discountAmount,
@@ -200,39 +202,51 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                       Colors.black,
                     ),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      value: selectedReason,
-                      items: returnReasons.map((reason) {
-                        return DropdownMenuItem<String>(
-                          value: reason,
-                          child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
-                        ),
-                        disabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: (edit || !widget.detail)
+                              ? AppColors.kPrimaryDark
+                              : Colors.grey.shade400,
+                          width: 1,
                         ),
                       ),
-                      onChanged: ( edit || !widget.detail)
-                          ? (value) {
-                        setState(() {
-                          selectedReason = value;
-                        });
-                      }: null,
-                      hint: const Text("Select a return reason"),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: PopupMenuButton<String>(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        color: Colors.white,
+                        elevation: 8,
+                        enabled: (edit || !widget.detail),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        },
+                        itemBuilder: (context) => returnReasons.map((reason) {
+                          return PopupMenuItem<String>(
+                            value: reason,
+                            child: MyTextfield.textStyle_w400(reason, 16, AppColors.kPrimary),
+                          );
+                        }).toList(),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: MyTextfield.textStyle_w400(
+                                selectedReason ?? 'Select a return reason',
+                                16,
+                                selectedReason != null ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                            Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ]
@@ -348,7 +362,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
       );
       if (result.isNotEmpty && result!='manualAdd') {
         context.read<ApiCubit>().customerbarcode(
-            code: result,
+            code: result['code'],
             storeId: userId,
             customer_id:selectedCustomer!=null?selectedCustomer!.id.toString():''
         );
@@ -365,12 +379,12 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
       AppUtils.showSnackBar(context, 'Please select a valid return reason');
       return;
     }
-    if(cartState.barcodeCartItems.isEmpty){
+    if(cartState.cartItems.isEmpty){
       AppUtils.showSnackBar(context, 'Please Add return Item' );
       return;
     }
-    print('API returnModel=${cartState.barcodeCartItems.toString()}');
-    final selectedItems = cartState.barcodeCartItems.
+    print('API returnModel=${cartState.cartItems.toString()}');
+    final selectedItems = cartState.cartItems.
     map((item) => ReturnedItem(
       productId: item.id??0,
       quantity: item.qty,
@@ -454,7 +468,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
         cartCubit.addToCart(
           searchResults[index],
           1,
-          type: CartType.barcode,
+          type: CartType.main,
         );
       }
     });

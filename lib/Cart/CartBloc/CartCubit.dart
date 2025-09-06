@@ -1,12 +1,11 @@
 
 import 'package:PixiDrugs/constant/all.dart';
 
-enum CartType { main,  barcode }
-enum CartTypeSelection { Sale,  StockiestReturn,CustomerReturn }
+enum CartType { main }
+enum CartTypeSelection { StockiestReturn,CustomerReturn }
 
 class CartCubit extends Cubit<CartState> {
   Timer? _cartDebounce;
-  Timer? _barcodeDebounce;
 
   CartCubit() : super(CartInitial()) {
     _loadDataFromPreferences();
@@ -77,8 +76,6 @@ class CartCubit extends Cubit<CartState> {
     switch (type) {
       case CartType.main:
         return state.cartItems;
-      case CartType.barcode:
-        return state.barcodeCartItems;
     }
   }
 
@@ -92,7 +89,6 @@ class CartCubit extends Cubit<CartState> {
         final totals = _recalculateCartTotals(updatedList);
         emit(CartLoaded(
           cartItems: updatedList,
-          barcodeCartItems: state.barcodeCartItems,
           totalPrice: totals['totalPrice']!,
           subTotal: totals['subTotal']!,
           discountAmount: totals['discountAmount']!,
@@ -101,27 +97,6 @@ class CartCubit extends Cubit<CartState> {
           customerAddress: '',
         ));
         _saveCartToPreferences();
-        break;
-
-      case CartType.barcode:
-        final totals = _recalculateCartTotals(updatedList);
-
-        if (state is CartLoaded) {
-          final currentState = state as CartLoaded;
-
-          emit(CartLoaded(
-            cartItems: currentState.cartItems,
-            barcodeCartItems: updatedList,
-            totalPrice: totals['totalPrice']!,
-            subTotal: totals['subTotal']!,
-            discountAmount: totals['discountAmount']!,
-            customerName: updatedList.isEmpty ? '' : (customerName ?? currentState.customerName),
-            customerPhone: updatedList.isEmpty ? '' : (customerPhone ?? currentState.customerPhone),
-            customerAddress: updatedList.isEmpty ? '' : (customerAddress ?? currentState.customerAddress),
-          ));
-
-          _saveBarcodeCartToPreferences();
-        }
         break;
     }
   }
@@ -153,12 +128,10 @@ class CartCubit extends Cubit<CartState> {
     required String phone,
     required String address,
   }) {
-    final barcodeItems = state.barcodeCartItems;
-    final totals = _recalculateCartTotals(barcodeItems);
+    final totals = _recalculateCartTotals(state.cartItems);
 
     emit(CartLoaded(
       cartItems: state.cartItems,
-      barcodeCartItems: barcodeItems,
       totalPrice: totals['totalPrice']!,
       subTotal: totals['subTotal']!,
       discountAmount: totals['discountAmount']!,
@@ -216,11 +189,7 @@ class CartCubit extends Cubit<CartState> {
     _emitUpdatedCartState(type, updatedCart);
   }
   void clearCart({CartType type = CartType.main, bool clearCustomer = true}) {
-    if (type == CartType.barcode && clearCustomer) {
-      _emitUpdatedCartState(type, [], customerName: '', customerPhone: '', customerAddress: '');
-    } else {
-      _emitUpdatedCartState(type, []);
-    }
+    _emitUpdatedCartState(type, [], customerName: '', customerPhone: '', customerAddress: '');
   }
 
   int getQuantity(int productId, {CartType type = CartType.main}) {
@@ -246,67 +215,33 @@ class CartCubit extends Cubit<CartState> {
     });
   }
 
-  Future<void> _saveBarcodeCartToPreferences() async {
-    _barcodeDebounce?.cancel();
-    _barcodeDebounce = Timer(const Duration(seconds: 1), () async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        if (state is CartLoaded) {
-          final current = state as CartLoaded;
-
-          final data = {
-            'items': current.barcodeCartItems.map((e) => e.toJson()).toList(),
-            'customerName': current.customerName,
-            'customerPhone': current.customerPhone,
-            'customerAddress': current.customerAddress,
-          };
-
-          await prefs.setString('barcodeCartState', jsonEncode(data));
-        }
-      } catch (e) {
-        print('Error saving barcode cart: $e');
-      }
-    });
-  }
-
 
   Future<void> _loadDataFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cartData = prefs.getString('cartState');
-      final barcodeData = prefs.getString('barcodeCartState');
 
       List<InvoiceItem> cartList = [];
-      List<InvoiceItem> barcodeList = [];
-
-      if (cartData != null) {
-        final List decoded = jsonDecode(cartData);
-        cartList = decoded.map((e) => InvoiceItem.fromJson(e)).toList();
-      }
-
       String customerName = '';
       String customerPhone = '';
       String customerAddress = '';
 
-      if (barcodeData != null) {
-        final decodedBarcode = jsonDecode(barcodeData);
+      if (cartData != null) {
+        final decodedBarcode = jsonDecode(cartData);
         final List items = decodedBarcode['items'] ?? [];
 
-        barcodeList = items.map((e) => InvoiceItem.fromJson(e)).toList();
+        cartList = items.map((e) => InvoiceItem.fromJson(e)).toList();
         customerName = decodedBarcode['customerName'] ?? '';
         customerPhone = decodedBarcode['customerPhone'] ?? '';
         customerAddress = decodedBarcode['customerAddress'] ?? '';
       }
 
       final cartTotals = _recalculateCartTotals(cartList);
-      final barcodeTotals = _recalculateCartTotals(barcodeList);
-      final useBarcode = barcodeList.isNotEmpty;
       emit(CartLoaded(
         cartItems: cartList,
-        barcodeCartItems: barcodeList,
-        totalPrice: useBarcode ? barcodeTotals['totalPrice']! : cartTotals['totalPrice']!,
-        subTotal: useBarcode ? barcodeTotals['subTotal']! : cartTotals['subTotal']!,
-        discountAmount: useBarcode ? barcodeTotals['discountAmount']! : cartTotals['discountAmount']!,
+        totalPrice: cartTotals['totalPrice']!,
+        subTotal:cartTotals['subTotal']!,
+        discountAmount: cartTotals['discountAmount']!,
         customerName: customerName,
         customerPhone: customerPhone,
         customerAddress: customerAddress,
@@ -314,7 +249,6 @@ class CartCubit extends Cubit<CartState> {
     } catch (e) {
       emit(CartError(
         cartItems: [],
-        barcodeCartItems: [],
         errorMessage: 'Failed to load cart: $e',
       ));
     }
@@ -323,7 +257,6 @@ class CartCubit extends Cubit<CartState> {
   @override
   Future<void> close() {
     _cartDebounce?.cancel();
-    _barcodeDebounce?.cancel();
     return super.close();
   }
 }

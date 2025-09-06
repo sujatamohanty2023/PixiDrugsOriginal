@@ -1,12 +1,12 @@
 import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/Cart/customerDetailWidget.dart';
+import 'package:PixiDrugs/Cart/printer_screen.dart';
 import 'package:PixiDrugs/Dialog/success_dialog.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/search/sellerModel.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
 import 'CustomerDetailBottomSheet.dart';
-import 'ProductCard.dart';
 import 'ReceiptPrinterPage.dart';
 
 class CartPage extends StatefulWidget {
@@ -76,7 +76,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             address = state.customerAddress;
             return _buildCartLoadedUI(
               context,
-              state.barcodeCartItems,
+              state.cartItems,
               state.totalPrice,
               state.subTotal,
               state.discountAmount,
@@ -163,14 +163,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         width: 150,
         child: MyElevatedButton(
           onPressed: () {
-            if (address.isNotEmpty && paymentType.isNotEmpty) {
+            if (name.isNotEmpty && paymentType.isNotEmpty) {
               _paymentPageCall();
             } else {
               _onButtonSalePressed();
             }
           },
           custom_design: true,
-          buttonText: address.isNotEmpty ? "CheckOut" : "Confirm",
+          buttonText: name.isNotEmpty ? "CheckOut" : "Confirm",
         ),
       ),
     );
@@ -180,13 +180,13 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
     final cartState = context.read<CartCubit>().state;
 
     if (cartState is CartLoaded) {
-      if (cartState.barcodeCartItems.isEmpty) {
+      if (cartState.cartItems.isEmpty) {
         AppUtils.showSnackBar(context,'Your cart is empty');
         return;
       }
 
       final model = OrderPlaceModel(
-        cartItems: cartState.barcodeCartItems,
+        cartItems: cartState.cartItems,
         seller_id: userId!,
         name: name,
         phone: phone,
@@ -226,7 +226,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         "Your order #${sale.invoiceNo} has been placed successfully.",
         onDonePressed: () {
           Future.delayed(Duration(milliseconds: 300), () {
-            _showReceiptBottomSheet(parentContext, sale);
+            //_showReceiptBottomSheet(parentContext, sale);
+            AppRoutes.navigateTo(context, ReceiptPrinterPage(
+              sale: sale,
+            ));
           });
         },
       ),

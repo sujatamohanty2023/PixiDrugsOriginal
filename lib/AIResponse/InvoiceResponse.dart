@@ -177,7 +177,7 @@ class Item {
   final double? lineSubtotal;
   final double? lineTaxTotal;
   final double? allocatedHeaderCharges;
-  final double? lineTotal;
+  final double? total;
 
   Item({
      this.srNo,
@@ -204,7 +204,7 @@ class Item {
      this.lineSubtotal,
      this.lineTaxTotal,
      this.allocatedHeaderCharges,
-     this.lineTotal,
+     this.total,
   });
 
   factory Item.fromJson(Map<String?, dynamic> json) {
@@ -233,7 +233,7 @@ class Item {
       lineSubtotal: _parseDouble(json['line_subtotal']),
       lineTaxTotal: _parseDouble(json['line_tax_total']),
       allocatedHeaderCharges: _parseDouble(json['allocated_header_charges']),
-      lineTotal: _parseDouble(json['line_total']),
+      total: _parseDouble(json['line_total']),
     );
   }
 }

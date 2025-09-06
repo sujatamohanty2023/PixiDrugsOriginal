@@ -1,15 +1,16 @@
 import 'package:PixiDrugs/constant/all.dart';
+import 'package:PixiDrugs/search/customerModel.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Cart/address_widget.dart';
-import '../ReturnCart/ReturnItemTile.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
-import '../search/sellerModel.dart' show Seller;
+import '../ReturnStock/PurchaseReturnModel.dart';
+import 'ReturnItemTile.dart';
 
 class ReturnStockiestCart extends StatefulWidget {
   PurchaseReturnModel? purchaseReturnModel;
   bool detail;
+  CustomerModel? selectedCustomer;
   ReturnStockiestCart({Key? key,
-    this.purchaseReturnModel,
+    this.purchaseReturnModel,this.selectedCustomer,
     this.detail = false,}) : super(key: key);
 
   @override
@@ -29,7 +30,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
 
   String? selectedReason='Select return reason';
   String userId = '';
-  Seller? selectedSeller;
+  CustomerModel? selectedSeller;
   List<InvoiceItem> searchResults = [];
 
   Future<void> _loadUserId() async {
@@ -43,12 +44,11 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
     super.initState();
     _loadUserId();
     if(widget.purchaseReturnModel!=null) {
-      selectedSeller = Seller(
+      selectedSeller = CustomerModel(
         id: widget.purchaseReturnModel!.sellerId ?? 0,
-        sellerName: widget.purchaseReturnModel!.sellerName ?? '',
+        name: widget.purchaseReturnModel!.sellerName ?? '',
         phone: widget.purchaseReturnModel!.phone ?? '',
         address: widget.purchaseReturnModel!.address??'',
-        gstNo: '',
       );
       final items =widget.purchaseReturnModel?.items;
       final invoiceItems = items?.map((item) =>
@@ -67,11 +67,13 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
 
       // Load into CartCubit
       context.read<CartCubit>().loadItemsToCart(
-          invoiceItems!, type: CartType.barcode);
+          invoiceItems!, type: CartType.main);
       // Set selected reason from model
       selectedReason = widget.purchaseReturnModel?.reason;
     }
-
+    if(widget.selectedCustomer!=null) {
+      selectedSeller=widget.selectedCustomer;
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -82,21 +84,21 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             searchResults = state.list;
             if (searchResults.isNotEmpty) {
               final cartCubit = context.read<CartCubit>();
-              if(cartCubit.state.barcodeCartItems.isEmpty || cartCubit.state.barcodeCartItems.first.sellerId==searchResults.first.sellerId) {
+              if(cartCubit.state.cartItems.isEmpty || cartCubit.state.cartItems.first.sellerId==searchResults.first.sellerId) {
                 cartCubit.addToCart(
                   searchResults.first,
                   1,
-                  type: CartType.barcode,
+                  type: CartType.main,
                 );
                 setState(() {
-                  selectedSeller = Seller(
+                  selectedSeller = CustomerModel(
                     id: searchResults.first.sellerId ?? 0,
-                    sellerName: searchResults.first.sellerName ?? '',
+                    name: searchResults.first.sellerName ?? '',
                     phone: searchResults.first.sellerPhone ?? '',
-                    address: '', gstNo: '',
+                    address: '',
                   );
                 });
-              }else if(cartCubit.state.barcodeCartItems.first.sellerId!=searchResults.first.sellerId){
+              }else if(cartCubit.state.cartItems.first.sellerId!=searchResults.first.sellerId){
                 AppUtils.showSnackBar(context, 'Different Seller Item');
               }
             } else {
@@ -108,7 +110,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
           if (state is StockReturnAddLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully retrun to stock');
-              context.read<CartCubit>().clearCart(type: CartType.barcode);
+              context.read<CartCubit>().clearCart(type: CartType.main);
               Navigator.pop(context);
             }else{
               AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
@@ -118,7 +120,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
           }else if (state is StockReturnEditLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully Updated');
-              context.read<CartCubit>().clearCart(type: CartType.barcode);
+              context.read<CartCubit>().clearCart(type: CartType.main);
               Navigator.pop(context);
             }else{
               AppUtils.showSnackBar(context,'Failed to Update');
@@ -135,7 +137,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             if (state is CartLoaded) {
               return _buildCartLoadedUI(
                 context,
-                state.barcodeCartItems,
+                state.cartItems,
                 state.totalPrice,
                 state.subTotal,
                 state.discountAmount,
@@ -180,7 +182,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               selectedSeller != null?
-              addressWidget(name:selectedSeller!.sellerName,phone: selectedSeller!.phone,address: selectedSeller!.address,tap:() async =>{},isSaleCart:false):SizedBox(),
+              addressWidget(name:selectedSeller!.name,phone: selectedSeller!.phone,address: selectedSeller!.address??'',tap:() async =>{},isSaleCart:false):SizedBox(),
               const SizedBox(height: 5),
               Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,40 +194,53 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
                       Colors.black,
                     ),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      value: selectedReason,
-                      items: returnReasons.map((reason) {
-                        return DropdownMenuItem<String>(
-                          value: reason,
-                          child: MyTextfield.textStyle_w400(reason,16,Colors.grey),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: AppColors.kPrimary, width: 1.5),
-                        ),
-                        disabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: (edit || !widget.detail)
+                              ? AppColors.kPrimaryDark
+                              : Colors.grey.shade400,
+                          width: 1,
                         ),
                       ),
-                      onChanged: ( edit || !widget.detail)
-                          ? (value) {
-                        setState(() {
-                          selectedReason = value;
-                        });
-                      }: null,
-                      hint: const Text("Select a return reason"),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: PopupMenuButton<String>(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        color: Colors.white,
+                        elevation: 8,
+                        enabled: (edit || !widget.detail),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        },
+                        itemBuilder: (context) => returnReasons.map((reason) {
+                          return PopupMenuItem<String>(
+                            value: reason,
+                            child: MyTextfield.textStyle_w400(reason, 16, AppColors.kPrimary),
+                          );
+                        }).toList(),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: MyTextfield.textStyle_w400(
+                                selectedReason ?? 'Select a return reason',
+                                16,
+                                selectedReason != null ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                            Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
+                          ],
+                        ),
+                      ),
                     ),
+
                     const SizedBox(height: 16),
                   ]
               ),
@@ -336,10 +351,10 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.StockiestReturn,
-        selectedSeller: selectedSeller)),
+        selectedCustomer: selectedSeller)),
       );
       if (result.isNotEmpty && result!='manualAdd') {
-        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
+        context.read<ApiCubit>().BarcodeScan(code: result['code'],storeId: userId,seller_id:selectedSeller!=null?selectedSeller!.id.toString():'');
       }
     } catch (e) {
       AppUtils.showSnackBar(context,'Failed to scan barcode');
@@ -353,12 +368,12 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
       AppUtils.showSnackBar(context, 'Please select a valid return reason');
       return;
     }
-    if(cartState.barcodeCartItems.isEmpty){
+    if(cartState.cartItems.isEmpty){
       AppUtils.showSnackBar(context, 'Please Add return Item' );
       return;
     }
 
-    final selectedItems = cartState.barcodeCartItems.
+    final selectedItems = cartState.cartItems.
     map((item) => ReturnItemModel(
       productId: item.id??0,
       quantity: item.qty,

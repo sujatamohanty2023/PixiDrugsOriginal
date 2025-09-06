@@ -25,7 +25,7 @@ class _ReportPageState extends State<ReportPage> {
     DashboardCardModel(title: 'Purchase Amt.', amount: '₹0.00',color:Colors.pink),
     DashboardCardModel(title: 'Profit', amount: '₹0.00',color:Colors.deepPurple),
     DashboardCardModel(title: 'Expenses', amount: '₹0.00',color:Colors.cyan),
-    DashboardCardModel(title: 'Stockiest Due', amount: '₹0.00',color:Colors.green),
+    DashboardCardModel(title: 'Stockist Due', amount: '₹0.00',color:Colors.green),
     DashboardCardModel(title: 'Customer Due', amount: '₹0.00',color:Colors.red),
   ];
 
@@ -147,13 +147,13 @@ class _ReportPageState extends State<ReportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MyTextfield.textStyle_w800(amount, 16, colorValue),
+          MyTextfield.textStyle_w800(amount, SizeConfig.screenWidth! *0.045, colorValue),
           SizedBox(height: 5,),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MyTextfield.textStyle_w400(title.toUpperCase(), 14,colorValue),
-              Icon(Icons.arrow_forward_ios, size: 14,color: colorValue),
+              MyTextfield.textStyle_w400(title.toUpperCase(), SizeConfig.screenWidth! *0.035,colorValue),
+              Icon(Icons.arrow_forward_ios, size: SizeConfig.screenWidth! *0.035,color: colorValue),
             ],
           ),
         ],

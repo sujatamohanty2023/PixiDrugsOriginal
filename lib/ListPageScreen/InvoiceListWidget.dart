@@ -1,4 +1,5 @@
 import '../constant/all.dart';
+import '../customWidget/BottomLoader.dart';
 
 class InvoiceListWidget extends StatefulWidget {
   final bool isLoading;
@@ -8,8 +9,8 @@ class InvoiceListWidget extends StatefulWidget {
   final VoidCallback onAddPressed;
   final Function(Invoice) onEditPressed;
   final Function(int) onDeletePressed;
-  final bool isLoadingMore;
   final ScrollController? scrollController;
+  final bool hasMoreData;
 
   const InvoiceListWidget({
     required this.isLoading,
@@ -20,7 +21,7 @@ class InvoiceListWidget extends StatefulWidget {
     required this.onDeletePressed,
     required this.onEditPressed,
     this.scrollController,
-    this.isLoadingMore = false,
+    required this.hasMoreData,
     Key? key,
   }) : super(key: key);
 
@@ -50,7 +51,7 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
         .toLowerCase()
         .contains(widget.searchQuery.toLowerCase()))
         .toList();
-    final itemCount = filteredInvoices.length + (!widget.isLoading ? 1 : 0);
+    final itemCount = filteredInvoices.length + (widget.hasMoreData  ? 1 : 0);
 
     return Stack(
       children: [
@@ -77,7 +78,7 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
             itemCount: itemCount,
             itemBuilder: (_, index) {
               if (index >= filteredInvoices.length) {
-                return _buildBottomLoader();
+                return BottomLoader();
               }
               return _buildInvoiceCard(filteredInvoices[index], screenWidth,index);
             },
@@ -97,23 +98,12 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
     );
   }
 
-  Widget _buildBottomLoader() => Padding(
-    padding: EdgeInsets.symmetric(vertical: 16),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircularProgressIndicator(strokeWidth: 2, color: AppColors.kPrimary),
-        SizedBox(height: 8),
-        Text("Loading more invoices...", style: TextStyle(color: Colors.grey)),
-      ],
-    ),
-  );
-
   Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index) {
     return GestureDetector(
       onTap: () => AppRoutes.navigateTo(
           context, InvoiceSummaryPage(details: true, invoice: invoice)),
       child: Card(
+        color: AppColors.kWhiteColor,
         margin: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.03, vertical: screenWidth * 0.015),
         shape: RoundedRectangleBorder(
@@ -132,16 +122,33 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
                   color: AppColors.kPrimary,
                 ),
               ),
-              SizedBox(width: screenWidth * 0.02),
-              CircleAvatar(
-                radius: screenWidth * 0.08,
-                backgroundColor: AppColors.kPrimaryDark,
+              Container(
+                width: screenWidth * 0.13,
+                height: screenWidth * 0.13,
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8), // optional rounding
+                  border: Border.all(
+                    color: Colors.white, // or any color you want
+                    width: 2,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.kPrimary,
+                      AppColors.secondaryColor,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                alignment: Alignment.center,
                 child: MyTextfield.textStyle_w600(
                   _getInitials(invoice.sellerName!),
-                  screenWidth * 0.045,
-                  AppColors.kPrimary,
+                  screenWidth * 0.055,
+                  Colors.white,
                 ),
               ),
+
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(

@@ -7,7 +7,7 @@ import 'package:PixiDrugs/report/reportResponse.dart';
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../Staff/StaffModel.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
 import '../search/customerModel.dart';
 import '../search/sellerModel.dart';
 
@@ -363,7 +363,8 @@ class StockReturnListLoading extends ApiState {}
 
 class StockReturnListLoaded extends ApiState {
   final List<PurchaseReturnModel> returnList;
-  StockReturnListLoaded({required this.returnList});
+  final int last_page;
+  StockReturnListLoaded({required this.returnList,required this.last_page});
 }
 
 class StockReturnListError extends ApiState {
@@ -423,7 +424,8 @@ class SaleReturnListLoading extends ApiState {}
 
 class SaleReturnListLoaded extends ApiState {
   final List<CustomerReturnsResponse> billList;
-  SaleReturnListLoaded({required this.billList});
+  final int last_page;
+  SaleReturnListLoaded({required this.billList,required this.last_page});
 }
 
 class SaleReturnListError extends ApiState {
@@ -459,7 +461,8 @@ class ExpenseListLoading extends ApiState {}
 
 class ExpenseListLoaded extends ApiState {
   final List<ExpenseResponse> list;
-  ExpenseListLoaded({required this.list});
+  final int last_page;
+  ExpenseListLoaded({required this.list,required this.last_page});
 }
 
 class ExpenseListError extends ApiState {
@@ -497,7 +500,8 @@ class StaffListLoading extends ApiState {}
 
 class StaffListLoaded extends ApiState {
   final List<StaffModel> staffList;
-  StaffListLoaded({required this.staffList});
+  final int last_page;
+  StaffListLoaded({required this.staffList,required this.last_page});
 }
 
 class StaffListError extends ApiState {

@@ -62,18 +62,6 @@ class EditValueDialog extends StatelessWidget {
                     }else if(addMore !=null){
                       addMore?.call(controller.text.trim());
                       Navigator.pop(context);
-                    }else if(type =='stockReturn'){
-                      Navigator.pop(context);
-                      await Future.delayed(Duration(milliseconds: 100));
-                      Navigator.pushNamed(context, '/purchaseReturn',arguments: controller.text.trim());
-                    }else if(type =='saleReturn'){
-                      Navigator.pop(context);
-                      await Future.delayed(Duration(milliseconds: 100));
-                      Navigator.pushNamed(context, '/saleReturn',arguments: controller.text.trim());
-                    }else if(type =='barcode'){
-                      Navigator.pop(context);
-                      await Future.delayed(Duration(milliseconds: 100));
-                      Navigator.pop(context,controller.text.trim());
                     }
                   },
                   style: ElevatedButton.styleFrom(

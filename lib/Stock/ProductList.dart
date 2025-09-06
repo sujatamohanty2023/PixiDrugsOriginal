@@ -283,7 +283,7 @@ PreferredSizeWidget customAppBar(
                 children: [
                   if (flag == 2 || flag == 3 || flag == 4)
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Navigator.pop(context,'manualAdd'),
                       child: SvgPicture.asset(
                         AppImages.back,
                         height: 24,

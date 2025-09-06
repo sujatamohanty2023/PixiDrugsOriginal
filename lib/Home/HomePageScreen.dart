@@ -24,13 +24,12 @@ class _HomePageState extends State<HomePage> {
 
     if (scannedCode != null && scannedCode.toString().isNotEmpty) {
       final userId = await SessionManager.getParentingId();
-      context.read<ApiCubit>().BarcodeScan(
-        code: scannedCode,
-        storeId: userId!,
-        source: 'scan', // Important to distinguish source
-      );
-
-      // Show CartTab
+      if(scannedCode !='manualAdd') {
+       context.read<ApiCubit>().BarcodeScan(
+          code: scannedCode['code'],
+          storeId: userId!,
+        );
+      }
       setState(() {
         selectedPos = index;
       });
@@ -65,7 +64,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColors.kPrimaryLight,
       body: getBody(),
       bottomNavigationBar: ConvexAppBar(
-        style: TabStyle.react,
+        style: TabStyle.fixedCircle, // or TabStyle.reactCircle
         backgroundColor: AppColors.kPrimary,
         activeColor: AppColors.kWhiteColor,
         color: AppColors.kPrimaryLight,
@@ -75,43 +74,23 @@ class _HomePageState extends State<HomePage> {
             final cartCubit = context.read<CartCubit>();
             final cartState = cartCubit.state;
 
-            // Assuming cartState has a `barcodeCartItems` or similar
-            final isCartEmpty = cartState.barcodeCartItems.isEmpty;
+            final isCartEmpty = cartState.cartItems.isEmpty;
 
             if (isCartEmpty) {
-              cartCubit.clearCart(type: CartType.barcode);
-
-              final scannedCode = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => QuikScanPage()),
-              );
-
-              if (scannedCode != null && scannedCode.toString().isNotEmpty) {
-                final userId = await SessionManager.getParentingId();
-                context.read<ApiCubit>().BarcodeScan(
-                  code: scannedCode,
-                  storeId: userId!,
-                  source: 'scan', // Important to distinguish source
-                );
-
-                // Show CartTab
-                setState(() {
-                  selectedPos = 2;
-                });
-              }
+              cartCubit.clearCart(type: CartType.main);
+              switchToCart(2);
               return;
-            }else{
+            } else {
               setState(() {
                 selectedPos = index;
               });
             }
-          }else {
+          } else {
             setState(() {
               selectedPos = index;
             });
           }
         },
-
         items: [
           TabItem(
             icon: SvgPicture.asset(
@@ -125,23 +104,30 @@ class _HomePageState extends State<HomePage> {
             icon: SvgPicture.asset(
               AppImages.ledger,
               height: 24,
-              color: selectedPos == 2 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
+              color: selectedPos == 1 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Ledger',
           ),
           TabItem(
-            icon: SvgPicture.asset(
-              AppImages.scan_cart,
-              height: 24,
-              color: selectedPos == 1 ?AppColors.kWhiteColor : AppColors.kPrimaryLight,
+            icon: Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+               color: AppColors.kWhiteColor,
+                shape: BoxShape.circle,
+              ),
+              child: SvgPicture.asset(
+                AppImages.scan_cart,
+                height: 32, // Bigger size
+                color: AppColors.kPrimary,
+              ),
             ),
-            title: 'Sell',
+            title: 'Scan',
           ),
           TabItem(
             icon: SvgPicture.asset(
               AppImages.stock,
               height: 24,
-              color: selectedPos == 2 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
+              color: selectedPos == 3 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Stock',
           ),
@@ -149,12 +135,13 @@ class _HomePageState extends State<HomePage> {
             icon: SvgPicture.asset(
               AppImages.profile,
               height: 24,
-              color: selectedPos == 3 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
+              color: selectedPos == 4 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Profile',
           ),
         ],
       ),
+
     );
   }
 }

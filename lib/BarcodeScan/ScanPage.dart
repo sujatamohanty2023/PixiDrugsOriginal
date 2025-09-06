@@ -8,7 +8,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../AIResponse/BatchInfoResponse.dart';
-import '../ReturnCart/ReturnProductList.dart';
+import '../ReturnProduct/ReturnProductList.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../Stock/ProductList.dart';
 import '../search/customerModel.dart';
@@ -18,10 +18,10 @@ import 'batch_scanner_page.dart';
 
 class QuikScanPage extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
-  Seller? selectedSeller;
   CustomerModel? selectedCustomer;
+  final Function(CustomerModel)? onCustomerSelected;
 
-  QuikScanPage({super.key, this.cartTypeSelection, this.selectedSeller,this.selectedCustomer});
+  QuikScanPage({super.key, this.cartTypeSelection, this.selectedCustomer,this.onCustomerSelected});
 
   @override
   State<QuikScanPage> createState() => _QuikScanPageState();
@@ -36,6 +36,7 @@ class _QuikScanPageState extends State<QuikScanPage>
   bool isProcessing = false;
   String? lastScanned; // remember last scanned value
 
+  Map<String, dynamic> scanedResult={};
   late AnimationController _animationController;
   late Animation<double> _animation;
   final MobileScannerController controller = MobileScannerController(
@@ -103,12 +104,12 @@ class _QuikScanPageState extends State<QuikScanPage>
           children: [
             // Header
             Container(
-              color: const Color(0xFF2E3A59),
+              color: AppColors.kPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               child: Row(
                 children: [
                   InkWell(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context,scanedResult),
                     child: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
                   const SizedBox(width: 10),
@@ -123,7 +124,7 @@ class _QuikScanPageState extends State<QuikScanPage>
 
             // Tabs
             Container(
-              color: const Color(0xFF2E3A59),
+              color:AppColors.kPrimary,
               child: Row(
                 children: [
                   _buildTabButton("Scan Barcode", 0),
@@ -140,30 +141,72 @@ class _QuikScanPageState extends State<QuikScanPage>
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.secondaryColor,
-        child: const Icon(Icons.edit, color: Colors.white),
-        onPressed: () async {
-          if (widget.cartTypeSelection != null) {
-            AddManualClick();
-          } else {
-            AppRoutes.navigateTo(context, ProductListPage(flag: 4));
-          }
-        },
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 40.0),
+        child: GestureDetector(
+          onTap: () async {
+            if (widget.cartTypeSelection != null) {
+              AddManualClickReturn();
+            } else {
+              AddManualClick();
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.kPrimary,
+                    AppColors.secondaryColor,
+                  ],
+                  stops: [0.0, 1.0],
+                  tileMode: TileMode.clamp),
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(width: 0.5, color: AppColors.secondaryColor),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.search, color: Colors.white),
+                const SizedBox(width: 8),
+                MyTextfield.textStyle_w600(
+                  "Search Product",
+                  SizeConfig.screenWidth! * 0.040,
+                  Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+
     );
   }
-  Future<void> AddManualClick() async {
+  Future<void> AddManualClickReturn() async {
     final scannedCode = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ReturnProductListPage(
           cartTypeSelection: widget.cartTypeSelection,
-          selectedSeller: widget.selectedSeller,
           selectedCustomer: widget.selectedCustomer
       ),),
     );
 
-    if (scannedCode == null) {
+    if (scannedCode != null) {
+      scanedResult=scannedCode;
+      Navigator.pop(context,scanedResult);
+    }
+  }
+  Future<void> AddManualClick() async {
+    final scannedCode = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProductListPage(flag: 4)),
+    );
+
+    if (scannedCode != null) {
       Navigator.pop(context,'manualAdd');
     }
   }
@@ -446,8 +489,8 @@ class _QuikScanPageState extends State<QuikScanPage>
           ),
           alignment: Alignment.center,
           child: MyTextfield.textStyle_w600(
-            title,
-            SizeConfig.screenWidth! * 0.032,
+            title.toUpperCase(),
+            SizeConfig.screenWidth! * 0.045,
             isSelected ? Colors.white : Colors.white70,
           ),
         ),

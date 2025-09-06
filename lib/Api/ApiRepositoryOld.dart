@@ -4,7 +4,7 @@ import 'package:PixiDrugs/constant/all.dart';
 
 import '../SaleList/sale_model.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
 import 'ApiUtil/api_exception.dart';
 
 class ApiRepositoryOld {

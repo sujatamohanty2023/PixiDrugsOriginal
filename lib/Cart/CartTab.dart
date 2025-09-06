@@ -39,8 +39,7 @@ class _CartTabState extends State<CartTab> {
           if (state is BarcodeScanLoaded && state.source=='scan') {
             searchResults = state.list;
             if (searchResults.isNotEmpty) {
-              final cartCubit = context.read<CartCubit>();
-              cartCubit.addToCart(searchResults.first, 1, type: CartType.barcode);
+              context.read<CartCubit>().addToCart(searchResults.first, 1, type: CartType.main);
             } else {
               AppUtils.showSnackBar(context,'No products found.');
             }
@@ -69,7 +68,7 @@ class _CartTabState extends State<CartTab> {
       builder: (context, state) {
         return Container(
           color: AppColors.kPrimary,
-            child: _buildCartOrEmpty(state.barcodeCartItems));
+            child: _buildCartOrEmpty(state.cartItems));
       },
     );
   }
@@ -90,7 +89,7 @@ class _CartTabState extends State<CartTab> {
           ),
         ),
       child: NoItemPage(
-        onTap: _scanBarcode,
+        onTap: _QuickscanBarcode,
         image: AppImages.empty_cart,
         tittle: "Your Cart is Empty",
         description: "Looks like you haven't added anything \nto your cart yet.",
@@ -109,121 +108,12 @@ class _CartTabState extends State<CartTab> {
         context,
         MaterialPageRoute(builder: (context) => QuikScanPage()),
       );
-      if (result.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
+      if (result.isNotEmpty && result!='manualAdd') {
+       await context.read<ApiCubit>().BarcodeScan(code: result['code'],storeId: userId,);
       }
     } catch (e) {
       AppUtils.showSnackBar(context,'Failed to scan barcode');
     }
-  }
-  /// Initiates barcode scan
-  Future<void> _scanBarcode() async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
-      );
-      if (result.isNotEmpty) {
-        context.read<ApiCubit>().BarcodeScan(code: result,storeId: userId);
-      }
-    } catch (e) {
-      AppUtils.showSnackBar(context,'Failed to scan barcode');
-    }
-  }
-  Future<void> scanBatchNumber() async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => BatchScannerPage()),
-      );
-      if (result.isNotEmpty) {
-        _showManualEntryBottomSheet(result);
-      }
-    } catch (e) {
-      //AppUtils.showSnackBar(context,'Failed to scan');
-    }
-  }
-  Future<void> scanBatchNumberOld() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    if (pickedFile == null) return;
-
-    final inputImage = InputImage.fromFile(File(pickedFile.path));
-    final textRecognizer = TextRecognizer();
-    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-    final List<String> allLines = [];
-
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        final lineText = line.text.trim();
-        allLines.add(lineText);
-        print('Recognized line: $lineText');
-      }
-    }
-
-    String? batchNumber;
-
-    final labelPattern = RegExp(
-      r'\b(?:b[\.\s]*no[\.\s]*|batch(?:\s+no[\.\s]*)?)[:\s]*([A-Za-z0-9\-\/]{4,})?',
-      caseSensitive: false,
-    );
-    final valuePattern = RegExp(r'^[A-Za-z0-9\-\/]{4,}$');
-
-    for (int i = 0; i < allLines.length; i++) {
-      final line = allLines[i];
-
-      final labelMatch = labelPattern.firstMatch(line);
-      if (labelMatch != null) {
-        // Case 1: Value is on the same line
-        final sameLineValue = labelMatch.group(1);
-        if (sameLineValue != null && sameLineValue.trim().isNotEmpty) {
-          batchNumber = sameLineValue.trim();
-          print("Batch number found on same line: $batchNumber");
-          break;
-        }
-
-        // Case 2: Look ahead in the next 1–3 lines
-        for (int j = 1; j <= 10 && (i + j) < allLines.length; j++) {
-          final nextLine = allLines[i + j].trim();
-          if (valuePattern.hasMatch(nextLine)) {
-            batchNumber = nextLine;
-            print("Batch number found in next lines: $batchNumber");
-            break;
-          }
-        }
-      }
-
-      if (batchNumber != null) break;
-    }
-
-    await textRecognizer.close();
-
-    if (batchNumber != null && batchNumber.isNotEmpty) {
-      _showManualEntryBottomSheet(batchNumber);
-    } else {
-      AppUtils.showSnackBar(context,'Batch number not found');
-      _showManualEntryBottomSheet('');
-    }
-  }
-
-  void _showManualEntryBottomSheet(String batchNumber) {
-    showDialog(
-      context: context,
-      builder: (_) => EditValueDialog(
-          title: 'Batch No.',
-          initialValue:batchNumber,
-          onSave: (value) {
-            setState(() {
-              extractedBatchNumber = value;
-            });
-            context.read<ApiCubit>().BarcodeScan(
-              code: extractedBatchNumber,
-              storeId: userId,
-              source: 'scan'
-            );
-          },
-      ),
-    );
   }
 
   Widget cartAppBar(BuildContext context) {

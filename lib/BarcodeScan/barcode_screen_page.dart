@@ -76,7 +76,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
       _timeoutTimer?.cancel(); // Cancel timeout
       _player.seek(Duration.zero);
       _player.play();
-      Navigator.pop(context, scannedCode);
+      Navigator.pop(context, {'code':scannedCode});
     }
   }
 /*  void _showManualEntryBottomSheet() {

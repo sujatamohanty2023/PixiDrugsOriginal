@@ -305,7 +305,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
         'Print Failed: $res.Please Check your IP Address.',
       );
     }
-    context.read<CartCubit>().clearCart(type: CartType.barcode);
+    context.read<CartCubit>().clearCart(type: CartType.main);
     AppRoutes.navigateTo(context, HomePage());
   }
 
@@ -565,27 +565,56 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
               right: 16,
               top: 10,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                Expanded(
-                  child: MyElevatedButton(
-                    buttonText: 'Share',
-                    onPressed: (){
-                      ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
-                      context.read<CartCubit>().clearCart(type: CartType.barcode);
-                      Navigator.pop(context);
-                    },
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: MyElevatedButton(
+                        buttonText: 'Share',
+                        onPressed: (){
+                          ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                          context.read<CartCubit>().clearCart(type: CartType.main);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    Expanded(
+                      child: MyElevatedButton(
+                        buttonText: 'Thermal Print',
+                        onPressed: () {
+                          _printBill(context);
+                        }
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 10,),
-                Expanded(
-                  child: MyElevatedButton(
-                    buttonText: 'Print Receipt',
-                    onPressed: () {
-                      _printBill(context);
-                    }
-                  ),
+                SizedBox(height: 20,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: MyElevatedButton(
+                        buttonText: 'Download',
+                        onPressed: (){
+                         /* ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                          context.read<CartCubit>().clearCart(type: CartType.main);
+                          Navigator.pop(context);*/
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    Expanded(
+                      child: MyElevatedButton(
+                          buttonText: 'Normal Print',
+                          onPressed: () {
+                            _printBill(context);
+                          }
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

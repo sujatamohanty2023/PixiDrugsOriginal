@@ -237,6 +237,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           ? '${gst.toInt()}%'
           : '${gst.toStringAsFixed(1)}%';
     print('gst=$gstFormatted');
+      print('Data=${item.toString()}');
       return InvoiceItem(
         hsn: item.hsn ?? '',
         product: item.description ?? '',
@@ -250,15 +251,15 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         qty: item.qty ?? 0,
         qty_free: item.freeQty ?? 0,
         gst: gstFormatted,
-        total: (item.lineTotal ?? 0).toStringAsFixed(2),
+        total: item.total.toString(),
         discountType: DiscountType.percent,
         sellerName: data.seller.name ?? '',
         sellerPhone: data.seller.phone ?? '',
       );
     }).toList();
 
-    double totalAmount = items.fold(0.0, (sum, item) {
-      return sum + (double.tryParse(item.total ?? '0') ?? 0.0);
+    double netAmount = items.fold(0.0, (sum, item) {
+      return sum + (double.tryParse(item.total) ?? 0.0);
     });
 
     return Invoice(
@@ -268,7 +269,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       sellerGstin: data.seller.gstin ?? '',
       sellerAddress: data.seller.address ?? '',
       sellerPhone: data.seller.phone ?? '',
-      netAmount: totalAmount.toStringAsFixed(2),
+      netAmount: netAmount.toStringAsFixed(2),
       items: items,
     );
   }
@@ -351,7 +352,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     mrpController.text = product?.mrp.toString() ?? '';
     discController.text = product?.discount.toString() ?? '';
     taxableController.text =product?.taxable.toString() ?? '';
-    totalController.text = product?.total.replaceAll(',', '') ?? '0.0';
+    totalController.text = product?.total.toString() ?? '';
   }
   void _clearControllers() {
     batchNoController.clear();
@@ -659,7 +660,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                         product?.mrp = mrpController.text;
                         product?.taxable = taxableController.text;
                         product?.discount = discController.text;
-                        product?.total = totalController.text.replaceAll(',', '');
+                        product?.total = totalController.text;
                       }
 
                       setState(() {

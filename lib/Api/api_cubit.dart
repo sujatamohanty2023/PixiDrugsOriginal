@@ -12,7 +12,7 @@ import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../Staff/StaffModel.dart';
-import '../StockReturn/PurchaseReturnModel.dart';
+import '../ReturnStock/PurchaseReturnModel.dart';
 import '../report/reportResponse.dart';
 import 'api_repository.dart';
 
@@ -414,13 +414,14 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchStockReturnList({required String store_id}) async {
+  Future<void> fetchStockReturnList({required String store_id,required int page}) async {
     try {
       emit(StockReturnListLoading());
-      final response = await apiRepository.fetchList(store_id,'stockist-returns');
+      final response = await apiRepository.fetchList(store_id,'stockist-returns',page);
       final data = response['data'] as List;
       final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
-      emit(StockReturnListLoaded(returnList: list));
+      var last_page=response['meta']['last_page'];
+      emit(StockReturnListLoaded(returnList: list,last_page:last_page));
     } catch (e) {
       emit(StockReturnListError('Error: $e'));
     }
@@ -482,13 +483,14 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchSaleReturnList({required String store_id}) async {
+  Future<void> fetchSaleReturnList({required String store_id,required int page}) async {
     try {
       emit(SaleReturnListLoading());
-      final response = await apiRepository.fetchList(store_id,'customer-returns');
+      final response = await apiRepository.fetchList(store_id,'customer-returns',page);
       final data = response['data'] as List;
       final list = data.map((json) => CustomerReturnsResponse.fromJson(json)).toList();
-      emit(SaleReturnListLoaded(billList: list));
+      var last_page=response['last_page'];
+      emit(SaleReturnListLoaded(billList: list,last_page: last_page));
     } catch (e) {
       emit(SaleReturnListError('Error: $e'));
     }
@@ -518,25 +520,27 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchExpenseList({required String store_id}) async {
+  Future<void> fetchExpenseList({required String store_id,required int page}) async {
     try {
       emit(ExpenseListLoading());
-      final response = await apiRepository.fetchList(store_id,'expense');
+      final response = await apiRepository.fetchList(store_id,'expense',page);
       final data = response['data'] as List;
       final list = data.map((json) => ExpenseResponse.fromJson(json)).toList();
-      emit(ExpenseListLoaded(list: list));
+      var last_page=response['last_page'];
+      emit(ExpenseListLoaded(list: list,last_page: last_page));
     } catch (e) {
       emit(ExpenseListError('Error: $e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchStaffList({required String store_id}) async {
+  Future<void> fetchStaffList({required String store_id,required int page}) async {
     try {
       emit(StaffListLoading());
-      final response = await apiRepository.fetchList(store_id,'staff');
+      final response = await apiRepository.fetchList(store_id,'staff',page);
       final data = response['data'] as List;
       final list = data.map((json) => StaffModel.fromJson(json)).toList();
-      emit(StaffListLoaded(staffList: list));
+      var last_page=response['pagination']['last_page'];
+      emit(StaffListLoaded(staffList: list,last_page: last_page));
     } catch (e) {
       emit(StaffListError('Error: $e'));
     }

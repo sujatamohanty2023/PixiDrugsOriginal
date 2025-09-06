@@ -1,5 +1,6 @@
 import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
+import '../customWidget/BottomLoader.dart';
 import 'StaffModel.dart';
 
 class StaffListWidget extends StatefulWidget {
@@ -8,12 +9,16 @@ class StaffListWidget extends StatefulWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
+  final ScrollController? scrollController;
+  final bool hasMoreData;
   const StaffListWidget({
     required this.isLoading,
     required this.list,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onAddPressed,
+    this.scrollController,
+    required this.hasMoreData,
   });
 
   @override
@@ -30,6 +35,7 @@ class _StaffListWidgetState extends State<StaffListWidget> {
         .where((i) =>
         i.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
+    final itemCount = filteredStaff.length + (widget.hasMoreData ? 1 : 0);
     return Stack(
         children: [
           Container(
@@ -44,11 +50,14 @@ class _StaffListWidgetState extends State<StaffListWidget> {
                 ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
                 : widget.list.isNotEmpty
                 ?ListView.builder(
+              controller: widget.scrollController,
               padding: EdgeInsets.zero,
-              itemCount: filteredStaff.length,
+              itemCount: itemCount,
               itemBuilder: (_, index) {
-                final item = filteredStaff[index];
-                return _buildStaffCard(item, screenWidth,context);
+                if (index >= filteredStaff.length) {
+                  return BottomLoader();
+                }
+                return _buildStaffCard(filteredStaff[index], screenWidth,context);
               },
             ):NoItemPage(
               onTap: widget.onAddPressed,
