@@ -97,7 +97,13 @@ class _QuikScanPageState extends State<QuikScanPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          // Trigger same behavior as AppBar back arrow
+          Navigator.pop(context, scanedResult);
+          return false; // Prevent default back navigation
+        },
+        child: Scaffold(
       backgroundColor: Colors.black.withOpacity(0.6),
       body: SafeArea(
         child: Column(
@@ -184,6 +190,7 @@ class _QuikScanPageState extends State<QuikScanPage>
         ),
       ),
 
+    )
     );
   }
   Future<void> AddManualClickReturn() async {
@@ -207,7 +214,7 @@ class _QuikScanPageState extends State<QuikScanPage>
     );
 
     if (scannedCode != null) {
-      Navigator.pop(context,'manualAdd');
+      Navigator.pop(context, {'code':'manualAdd'});
     }
   }
   /*Widget BarcodeScanWidget(){

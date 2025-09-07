@@ -43,7 +43,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
   void initState() {
     super.initState();
     _loadUserId();
-    if(widget.purchaseReturnModel!=null) {
+    if(widget.purchaseReturnModel!=null && widget.detail) {
       selectedSeller = CustomerModel(
         id: widget.purchaseReturnModel!.sellerId ?? 0,
         name: widget.purchaseReturnModel!.sellerName ?? '',
@@ -84,22 +84,28 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             searchResults = state.list;
             if (searchResults.isNotEmpty) {
               final cartCubit = context.read<CartCubit>();
-              if(cartCubit.state.cartItems.isEmpty || cartCubit.state.cartItems.first.sellerId==searchResults.first.sellerId) {
-                cartCubit.addToCart(
-                  searchResults.first,
-                  1,
-                  type: CartType.main,
+              final scannedItem = searchResults.first;
+
+              // If seller is not set, initialize it first
+              selectedSeller ??= CustomerModel(
+                  id: scannedItem.sellerId ?? 0,
+                  name: scannedItem.sellerName ?? '',
+                  phone: scannedItem.sellerPhone ?? '',
+                  address: '',
                 );
-                setState(() {
-                  selectedSeller = CustomerModel(
-                    id: searchResults.first.sellerId ?? 0,
-                    name: searchResults.first.sellerName ?? '',
-                    phone: searchResults.first.sellerPhone ?? '',
-                    address: '',
-                  );
-                });
-              }else if(cartCubit.state.cartItems.first.sellerId!=searchResults.first.sellerId){
+
+              // Check seller matches
+              if (selectedSeller!.id != scannedItem.sellerId) {
                 AppUtils.showSnackBar(context, 'Different Seller Item');
+                return;
+              }
+
+              // Check if item already in cart
+              bool alreadyInCart = cartCubit.state.cartItems.any((i) =>
+              i.id == scannedItem.id && i.batch == scannedItem.batch);
+
+              if (!alreadyInCart && state.source=='scan') {
+                cartCubit.addToCart(scannedItem, 1, type: CartType.main);
               }
             } else {
               AppUtils.showSnackBar(context, 'No products found.');
@@ -353,8 +359,11 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
         MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.StockiestReturn,
         selectedCustomer: selectedSeller)),
       );
-      if (result.isNotEmpty && result!='manualAdd') {
-        context.read<ApiCubit>().BarcodeScan(code: result['code'],storeId: userId,seller_id:selectedSeller!=null?selectedSeller!.id.toString():'');
+      if (result.isNotEmpty && result['code']!='manualAdd') {
+        context.read<ApiCubit>().BarcodeScan(
+            code: result['code'],
+            storeId: userId,
+            seller_id:selectedSeller!=null?selectedSeller!.id.toString():'');
       }
     } catch (e) {
       AppUtils.showSnackBar(context,'Failed to scan barcode');

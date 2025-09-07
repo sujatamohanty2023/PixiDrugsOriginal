@@ -18,6 +18,116 @@ class _ProductListPageState extends State<ProductListPage> {
   int currentPage = 1;
   bool isLoadingMore = false;
   bool hasMoreData = true;
+  String _selectedFilter='';
+
+  void _applyFilter(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      switch (filter) {
+        case 'Product name - A to Z':
+          _products.sort((a, b) => a.product.compareTo(b.product));
+          break;
+        case 'Product name - Z to A':
+          _products.sort((a, b) => b.product.compareTo(a.product));
+          break;
+        case 'Stock QTY - High to Low':
+          _products.sort((a, b) => b.stock.compareTo(a.stock));
+          break;
+        case 'Stock QTY - Low to High':
+          _products.sort((a, b) => a.stock.compareTo(b.stock));
+          break;
+        case 'Expiry  - first to last':
+          _products.sort((a, b) => a.expiry.compareTo(b.expiry));
+          break;
+        case 'Expiry - last to first':
+          _products.sort((a, b) => b.expiry.compareTo(a.expiry));
+          break;
+      }
+    });
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        String selectedSort = _selectedFilter;
+        List<String> sortOptions = [
+          'Product name - A to Z',
+          'Product name - Z to A',
+          'Stock QTY - High to Low',
+          'Stock QTY - Low to High',
+          'Expiry  - first to last',
+          'Expiry - last to first',
+        ];
+
+        return StatefulBuilder(builder: (context, setState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                 gradient: AppColors.myGradient,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    const Text("Filter",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: ListView.separated(
+                        controller: scrollController,
+                        itemCount: sortOptions.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final option = sortOptions[index];
+                          return RadioListTile(
+                            title: Text(option),
+                            value: option,
+                            activeColor: AppColors.kPrimary,
+                            groupValue: selectedSort,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedSort = value.toString();
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child:MyElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          _applyFilter(selectedSort);
+                        },
+                        buttonText: 'Apply',
+                      ),
+                    )
+                  ],
+                ),
+              );
+            },
+          );
+        });
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -99,9 +209,16 @@ class _ProductListPageState extends State<ProductListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          // Same as AppBar back arrow
+          Navigator.pop(context, {'code':'manualAdd'});
+          // Return false to prevent default pop (optional, if you already pop manually)
+          return false;
+        },
+        child:  Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBar(context, _searchController, _onclearTap, flag: widget.flag),
+      appBar: customAppBar(context, _searchController, _onclearTap, flag: widget.flag,_showFilterSheet),
       body: BlocConsumer<ApiCubit, ApiState>(
         listener: (context, state) {
           if (state is StockListLoaded ||
@@ -210,6 +327,7 @@ class _ProductListPageState extends State<ProductListPage> {
       )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    )
     );
   }
 }
@@ -251,7 +369,7 @@ Widget _buildEmptyPage({required int flag, required VoidCallback onAddProduct}) 
 PreferredSizeWidget customAppBar(
     BuildContext context,
     TextEditingController searchController,
-    VoidCallback onclearTap, {
+    VoidCallback onclearTap,VoidCallback _showFilterSheet,{
       required int flag,
     }) {
   String getTitle(int flag) {
@@ -283,7 +401,7 @@ PreferredSizeWidget customAppBar(
                 children: [
                   if (flag == 2 || flag == 3 || flag == 4)
                     GestureDetector(
-                      onTap: () => Navigator.pop(context,'manualAdd'),
+                      onTap: () => Navigator.pop(context,{'code':'manualAdd'}),
                       child: SvgPicture.asset(
                         AppImages.back,
                         height: 24,
@@ -301,35 +419,45 @@ PreferredSizeWidget customAppBar(
             ),
             const SizedBox(height: 5),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    const Icon(Icons.search, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search Product/Stockiest Name...',
-                          hintStyle: MyTextfield.textStyle(
-                              16, Colors.grey, FontWeight.w300),
-                          border: InputBorder.none,
-                        ),
+              padding: const EdgeInsets.only(left:10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          const Icon(Icons.search, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(
+                                hintText: 'Search Product/Stockiest Name...',
+                                hintStyle: MyTextfield.textStyle(
+                                    16, Colors.grey, FontWeight.w300),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          if (searchController.text.isNotEmpty)
+                            IconButton(
+                              onPressed: onclearTap,
+                              icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                            ),
+                        ],
                       ),
                     ),
-                    if (searchController.text.isNotEmpty)
-                      IconButton(
-                        onPressed: onclearTap,
-                        icon: const Icon(Icons.clear_rounded, color: Colors.grey),
-                      ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.tune, color: Colors.white),
+                    onPressed:_showFilterSheet,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -339,3 +467,5 @@ PreferredSizeWidget customAppBar(
     ),
   );
 }
+
+

@@ -53,14 +53,16 @@ class _ProductCardState extends State<ProductCard> {
     final cartCubit = context.read<CartCubit>();
     final isCartMode = widget.mode == ProductCardMode.cart;
     final isEditable = widget.editable;
-    final unitType = !widget.saleCart?widget.item.unitType:AppUtils().detectUnitType(widget.item.packing);
-    int packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
+    final unitType = !widget.saleCart ? widget.item.unitType : AppUtils()
+        .detectUnitType(widget.item.packing);
+    int packingQuantity = AppUtils().extractPackingQuantity(
+        widget.item.packing);
 
     double mrp = double.tryParse(widget.item.mrp) ?? 0.0;
     disPlayMrp = mrp;
     if (selectedUnitType == UnitType.Tablet && packingQuantity > 0) {
       disPlayMrp = mrp / packingQuantity;
-    }else if(selectedUnitType == UnitType.Tablet && isCartMode){
+    } else if (selectedUnitType == UnitType.Tablet && isCartMode) {
       disPlayMrp = double.tryParse(widget.item.unitMrp);
     }
 
@@ -81,7 +83,10 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.editable && isCartMode && widget.saleCart)
                     _buildRemoveIcon(context, cartCubit),
 
-                  if ((unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) &&  isCartMode) ||  (unitType !=null && (unitType == UnitType.Tablet || unitType == UnitType.Strip) && widget.saleCart)) ...[
+                  if ((unitType != null && (unitType == UnitType.Tablet ||
+                      unitType == UnitType.Strip) && isCartMode) ||
+                      (unitType != null && (unitType == UnitType.Tablet ||
+                          unitType == UnitType.Strip) && widget.saleCart)) ...[
                     Positioned(
                       top: 30,
                       right: 0,
@@ -94,9 +99,11 @@ class _ProductCardState extends State<ProductCard> {
                             width: 1,
                           ),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
                         child: PopupMenuButton<UnitType>(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           color: AppColors.kWhiteColor,
                           elevation: 8,
                           onSelected: widget.editable
@@ -105,21 +112,27 @@ class _ProductCardState extends State<ProductCard> {
                               selectedUnitType = val;
                               widget.item.unitType = val;
 
-                              final fullMrp = double.tryParse(widget.item.mrp) ?? 0.0;
-                              final packingQuantity = AppUtils().extractPackingQuantity(widget.item.packing);
+                              final fullMrp = double.tryParse(
+                                  widget.item.mrp) ?? 0.0;
+                              final packingQuantity = AppUtils()
+                                  .extractPackingQuantity(widget.item.packing);
 
                               double? unitMrp;
-                              if (val == UnitType.Tablet && packingQuantity > 0) {
+                              if (val == UnitType.Tablet &&
+                                  packingQuantity > 0) {
                                 unitMrp = fullMrp / packingQuantity;
-                                widget.item.unitMrp = unitMrp.toStringAsFixed(2);
+                                widget.item.unitMrp =
+                                    unitMrp.toStringAsFixed(2);
                               } else {
-                                widget.item.unitMrp = fullMrp.toStringAsFixed(2);
+                                widget.item.unitMrp =
+                                    fullMrp.toStringAsFixed(2);
                               }
                             });
 
                             cartCubit.updateItemUnitRate(
                               widget.item.id!,
-                              double.tryParse(widget.item.unitMrp ?? '0') ?? 0.0,
+                              double.tryParse(widget.item.unitMrp ?? '0') ??
+                                  0.0,
                               type: CartType.main,
                               unitType: selectedUnitType!,
                             );
@@ -127,23 +140,30 @@ class _ProductCardState extends State<ProductCard> {
                             widget.onUpdate?.call();
                           }
                               : null,
-                          itemBuilder: (context) => UnitType.values
-                              .map((unit) => PopupMenuItem<UnitType>(
-                            value: unit,
-                            child: Text(
-                              unit.name,
-                              style: MyTextfield.textStyle(14, AppColors.secondaryColor, FontWeight.w600),
-                            ),
-                          ))
-                              .toList(),
+                          itemBuilder: (context) =>
+                              UnitType.values
+                                  .map((unit) =>
+                                  PopupMenuItem<UnitType>(
+                                    value: unit,
+                                    child: Text(
+                                      unit.name,
+                                      style: MyTextfield.textStyle(
+                                          14, AppColors.secondaryColor,
+                                          FontWeight.w600),
+                                    ),
+                                  ))
+                                  .toList(),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 selectedUnitType?.name ?? 'Select Unit',
-                                style: MyTextfield.textStyle(14, AppColors.secondaryColor, FontWeight.w600),
+                                style: MyTextfield.textStyle(
+                                    14, AppColors.secondaryColor,
+                                    FontWeight.w600),
                               ),
-                              Icon(Icons.arrow_drop_down_sharp, color: AppColors.secondaryColor),
+                              Icon(Icons.arrow_drop_down_sharp,
+                                  color: AppColors.secondaryColor),
                             ],
                           ),
                         ),
@@ -155,10 +175,11 @@ class _ProductCardState extends State<ProductCard> {
                     children: [
                       _buildProductImage(),
                       const SizedBox(width: 10),
-                      Expanded(child: _buildProductDetails(context, cartCubit, isCartMode, isEditable)),
+                      Expanded(child: _buildProductDetails(
+                          context, cartCubit, isCartMode, isEditable)),
                     ],
                   ),
-                  _buildQuantityControls(context, cartCubit, isCartMode),
+                  _buildQuantityControls(context, cartCubit,isCartMode),
                 ],
               ),
             ),
@@ -238,7 +259,7 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildQuantityControls(BuildContext context, CartCubit cartCubit, bool isCartMode) {
+  Widget _buildQuantityControls(BuildContext context,CartCubit cartCubit, bool isCartMode) {
     final isSearchMode = widget.mode == ProductCardMode.search;
 
     return Positioned(
@@ -269,43 +290,25 @@ class _ProductCardState extends State<ProductCard> {
               );
             }
 
-            if (isSearchMode && quantity == 0 && !isOutOfStock) {
+            print('Add Cart item=${cartCubit.state.cartItems.toString()}');
+            if (isSearchMode && quantity==0 && !isOutOfStock) {
               return ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kPrimary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 ),
-                onPressed: () {
-                  print('Add button pressed');
-                  cartCubit.addToCart(widget.item, 1, type: CartType.main);
-                  if (widget.returnStock == true && cartCubit.state.cartItems.length == 1) {
-                    CustomerModel? updatedCustomer;
-                    if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
-                      updatedCustomer = CustomerModel(
-                        id: widget.item.sellerId ?? 0,
-                        name: widget.item.sellerName ?? '',
-                        phone: widget.item.sellerPhone ?? '',
-                        address: '',
-                      );
-                    } else {
-                      updatedCustomer = CustomerModel(
-                        id: widget.item.customerId ?? 0,
-                        name: widget.item.customerName ?? '',
-                        phone: widget.item.customerPhone ?? '',
-                        address: '',
-                      );
+                  onPressed: () {
+                    print('Add item=${widget.item.id}');
+                    cartCubit.addToCart(widget.item, 1, type: CartType.main);
+
+                    if (widget.returnStock == true) {
+                      _navigateBackWithCustomer();
                     }
-                    var result = {
-                      'code': 'manualAdd',
-                      'selectedCustomer': updatedCustomer,
-                    };
-                    Navigator.pop(context, result);
-                  }
-                },
+                  },
                 child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
               );
-            } else {
+            } else if (quantity>=1 && !isOutOfStock) {
               return Row(
                 children: [
                   _buildQuantityButton(
@@ -352,12 +355,39 @@ class _ProductCardState extends State<ProductCard> {
                   ),
                 ],
               );
+            }else{
+              return const SizedBox.shrink();
             }
           },
         ),
       ),
     );
   }
+  void _navigateBackWithCustomer() {
+    CustomerModel updatedCustomer;
+    if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
+      updatedCustomer = CustomerModel(
+        id: widget.item.sellerId ?? 0,
+        name: widget.item.sellerName ?? '',
+        phone: widget.item.sellerPhone ?? '',
+        address: '',
+      );
+    } else {
+      updatedCustomer = CustomerModel(
+        id: widget.item.customerId ?? 0,
+        name: widget.item.customerName ?? '',
+        phone: widget.item.customerPhone ?? '',
+        address: '',
+      );
+    }
+
+    var result = {
+      'code': 'manualAdd',
+      'selectedCustomer': updatedCustomer,
+    };
+    Navigator.pop(context, result);
+  }
+
   Widget _buildQuantityDisplay() {
     return Builder(
       builder: (context) {

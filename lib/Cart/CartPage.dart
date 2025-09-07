@@ -1,11 +1,7 @@
-import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/Cart/customerDetailWidget.dart';
-import 'package:PixiDrugs/Cart/printer_screen.dart';
 import 'package:PixiDrugs/Dialog/success_dialog.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/search/sellerModel.dart';
-import '../ReturnStock/PurchaseReturnModel.dart';
 import 'CustomerDetailBottomSheet.dart';
 import 'ReceiptPrinterPage.dart';
 

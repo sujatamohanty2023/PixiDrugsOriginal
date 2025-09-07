@@ -227,10 +227,10 @@ class _HomeTabState extends State<HomeTab> {
   PreferredSizeWidget customAppBarHome(BuildContext context, VoidCallback onYouTubeTap) {
 
     return PreferredSize(
-      preferredSize: const Size.fromHeight(65),
+      preferredSize: const Size.fromHeight(70),
       child: Container(
         color: AppColors.kPrimary,
-        padding: const EdgeInsets.only(top: 22.0, left: 12, right: 12),
+        padding: const EdgeInsets.only(top: 10.0, left: 12, right: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -332,7 +332,7 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),*/
                 SizedBox(
-                  height: screenHeight * 0.18,
+                  height: screenHeight * 0.2,
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: bannerList.length,
@@ -361,15 +361,15 @@ class _HomeTabState extends State<HomeTab> {
                   physics: NeverScrollableScrollPhysics(), // Prevents scroll conflict
                   shrinkWrap: true, // Makes GridView take only needed height
                   itemCount: dashboardItems.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.90,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: screenWidth > 600 ? 5 : 3, // Tablets get 5 columns
+                      crossAxisSpacing: screenWidth * 0.02,
+                      mainAxisSpacing: screenWidth * 0.02,
+                      childAspectRatio: screenWidth > 600 ? 1.0 : 0.85,
                   ),
                   itemBuilder: (context, index) {
                     final item = dashboardItems[index];
-                    return _dashboardTile(item.title, item.desc, item.icon, item.onTap);
+                    return _dashboardTile(item.title, item.desc, item.icon, item.onTap,screenWidth);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -381,10 +381,10 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _dashboardTile(String title, String desc, String icon, VoidCallback onTap) {
+  Widget _dashboardTile(String title, String desc, String icon, VoidCallback onTap, double screenWidth) {
     return GestureDetector(
       onTap: onTap,
-      child: _buildTaskCard(title: title, tasks: desc, icon: icon),
+      child: _buildTaskCard(title: title, tasks: desc, icon: icon,screenWidth:screenWidth),
     );
   }
 
@@ -471,7 +471,7 @@ class _HomeTabState extends State<HomeTab> {
   Widget _buildTaskCard({
     required String title,
     required String tasks,
-    required String icon,
+    required String icon,required double screenWidth,
   }) {
     return Column(
       children: [
@@ -498,16 +498,16 @@ class _HomeTabState extends State<HomeTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
-                      radius: 30,
+                      radius: screenWidth * 0.08,
                       backgroundColor: AppColors.kWhiteColor,
                       child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: SvgPicture.asset(icon, height: 40, width: 40),
+                        padding: EdgeInsets.all(screenWidth * 0.010),
+                        child: SvgPicture.asset(icon, height: screenWidth * 0.09),
                       ),
                     ),
                     const SizedBox(height: 5),
-                    //MyTextfield.textStyle_w600(title, SizeConfig.screenWidth! * 0.043, AppColors.kPrimary),
-                    //MyTextfield.textStyle_w300(tasks, SizeConfig.screenWidth! * 0.030, AppColors.kPrimary.withOpacity(0.6)),
+                    //MyTextfield.textStyle_w600(title, screenWidth * 0.043, AppColors.kPrimary),
+                    //MyTextfield.textStyle_w300(tasks, screenWidth * 0.030, AppColors.kPrimary.withOpacity(0.6)),
                   ],
                 ),
               ),
@@ -528,7 +528,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ),
         SizedBox(height: 5,),
-        MyTextfield.textStyle_w600(title, 14, AppColors.kPrimary),
+        MyTextfield.textStyle_w600(title, screenWidth * 0.035, AppColors.kPrimary),
       ],
     );
   }

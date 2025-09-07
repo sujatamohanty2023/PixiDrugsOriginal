@@ -149,8 +149,12 @@ class CartCubit extends Cubit<CartState> {
     if (index == -1) {
       updatedCart.add(product.copyWith(qty: quantity,discountSale: '0'));
     } else {
-      var updateQuantity = detailPage ? 0 : updatedCart[index].qty;
-      updatedCart[index] = updatedCart[index].copyWith(qty: updateQuantity + quantity);
+      int currentQty = updatedCart[index].qty;
+      int newQty = detailPage ? quantity : currentQty + quantity;
+      updatedCart[index] = updatedCart[index].copyWith(qty: newQty);
+
+      /*var updateQuantity = detailPage ? 0 : updatedCart[index].qty;
+      updatedCart[index] = updatedCart[index].copyWith(qty: updateQuantity + quantity);*/
     }
 
     _emitUpdatedCartState(type, updatedCart);

@@ -169,9 +169,12 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           'https://pixi.dexcy.in/api/process',
           data: formData,
         );
-
         if (response.statusCode == 200) {
+          var jsonData = response.data['data'];
           print("Data: ${response.data['data'].toString()}");
+          String prettyJson = const JsonEncoder.withIndent('  ').convert(jsonData);
+          debugPrint(prettyJson, wrapWidth: 1024);
+
           final List<InvoiceData> data = (response.data['data'] as List)
               .map((x) => InvoiceData.fromJson(x))
               .toList();

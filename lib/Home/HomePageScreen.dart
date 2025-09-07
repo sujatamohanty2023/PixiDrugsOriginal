@@ -22,9 +22,9 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (context) => QuikScanPage()),
     );
 
-    if (scannedCode != null && scannedCode.toString().isNotEmpty) {
+    if (scannedCode != null) {
       final userId = await SessionManager.getParentingId();
-      if(scannedCode !='manualAdd') {
+      if(scannedCode['code'] !='manualAdd') {
        context.read<ApiCubit>().BarcodeScan(
           code: scannedCode['code'],
           storeId: userId!,
@@ -60,9 +60,20 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeArea(
+        child: Scaffold(
       backgroundColor: AppColors.kPrimaryLight,
-      body: getBody(),
+      //body: getBody()
+      body: IndexedStack(
+          index: selectedPos,
+          children: [
+            HomeTab(onGoToCart: () => switchToCart(2)),
+            ListScreen(type: ListType.ledger),
+            CartTab(),
+            ProductListPage(flag: 1),
+            ProfileScreen(),
+          ],
+        ),
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle, // or TabStyle.reactCircle
         backgroundColor: AppColors.kPrimary,
@@ -95,7 +106,7 @@ class _HomePageState extends State<HomePage> {
           TabItem(
             icon: SvgPicture.asset(
               AppImages.home,
-              height: 24,
+              height: SizeConfig.blockHeight * 3,
               color: selectedPos == 0 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Home',
@@ -103,7 +114,7 @@ class _HomePageState extends State<HomePage> {
           TabItem(
             icon: SvgPicture.asset(
               AppImages.ledger,
-              height: 24,
+              height: SizeConfig.blockHeight * 3,
               color: selectedPos == 1 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Ledger',
@@ -117,7 +128,7 @@ class _HomePageState extends State<HomePage> {
               ),
               child: SvgPicture.asset(
                 AppImages.scan_cart,
-                height: 32, // Bigger size
+                height: SizeConfig.blockHeight * 4, // Bigger size
                 color: AppColors.kPrimary,
               ),
             ),
@@ -126,7 +137,7 @@ class _HomePageState extends State<HomePage> {
           TabItem(
             icon: SvgPicture.asset(
               AppImages.stock,
-              height: 24,
+              height: SizeConfig.blockHeight * 3,
               color: selectedPos == 3 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Stock',
@@ -134,7 +145,7 @@ class _HomePageState extends State<HomePage> {
           TabItem(
             icon: SvgPicture.asset(
               AppImages.profile,
-              height: 24,
+              height: SizeConfig.blockHeight * 3,
               color: selectedPos == 4 ? AppColors.kWhiteColor : AppColors.kPrimaryLight,
             ),
             title: 'Profile',
@@ -142,6 +153,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
+    )
     );
   }
 }

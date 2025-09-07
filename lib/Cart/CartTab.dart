@@ -108,7 +108,7 @@ class _CartTabState extends State<CartTab> {
         context,
         MaterialPageRoute(builder: (context) => QuikScanPage()),
       );
-      if (result.isNotEmpty && result!='manualAdd') {
+      if (result.isNotEmpty && result['code']!='manualAdd') {
        await context.read<ApiCubit>().BarcodeScan(code: result['code'],storeId: userId,);
       }
     } catch (e) {

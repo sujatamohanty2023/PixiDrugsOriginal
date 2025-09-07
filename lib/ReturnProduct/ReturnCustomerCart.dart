@@ -99,7 +99,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                   }
 
                 });
-              } else if (cartCubit.state.cartItems.isEmpty && selectedCustomer!=null){
+              } else if (cartCubit.state.cartItems.isNotEmpty && selectedCustomer!=null){
                 cartCubit.addToCart(
                   searchResults.first,
                   1,
@@ -360,7 +360,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
         MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.CustomerReturn,
             selectedCustomer: selectedCustomer)),
       );
-      if (result.isNotEmpty && result!='manualAdd') {
+      if (result.isNotEmpty && result['code'] !='manualAdd') {
         context.read<ApiCubit>().customerbarcode(
             code: result['code'],
             storeId: userId,

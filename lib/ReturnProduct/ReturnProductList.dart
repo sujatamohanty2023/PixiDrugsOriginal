@@ -36,7 +36,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
     String? userId=await SessionManager.getParentingId();
     if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
       if(widget.selectedCustomer!=null) {
-        context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, seller_id:widget.selectedCustomer?.id.toString()??'');
+        context.read<ApiCubit>().BarcodeScan(code: '', storeId: userId!, seller_id:widget.selectedCustomer?.id.toString()??'',source: 'manual');
       }else{
         context.read<ApiCubit>().fetchStockList(user_id: userId!,page: 1,query:_searchController.text.toString());
       }
@@ -71,7 +71,14 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          // Same as AppBar back arrow
+          Navigator.pop(context, {'code': 'manualAdd'});
+          // Return false to prevent default pop (optional, if you already pop manually)
+          return false;
+        },
+        child:  Scaffold(
       backgroundColor: AppColors.kPrimary,
       appBar: customAppBar(context, _searchController, _onclearTap),
       body: BlocConsumer<ApiCubit, ApiState>(
@@ -129,6 +136,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
           }
 
       ),
+    )
     );
   }
 }
@@ -151,7 +159,7 @@ PreferredSizeWidget customAppBar(BuildContext context,
                 children: [
                   GestureDetector(
                     onTap: (){
-                      Navigator.pop(context,'manualAdd');
+                      Navigator.pop(context,{'code': 'manualAdd'});
                     },
                     child:
                     SvgPicture.asset(

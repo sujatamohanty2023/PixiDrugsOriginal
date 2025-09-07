@@ -68,9 +68,9 @@ class _ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final crossAxisCount = isPortrait ? 2 : 3;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth < 400 ? 2 : screenWidth < 800 ? 3 : 4;
+    final aspectRatio = screenWidth < 400 ? 2.0 : 2.5;
 
     return SingleChildScrollView(
       child: Column(
@@ -79,16 +79,19 @@ class _ReportPageState extends State<ReportPage> {
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
-              return GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 2.5,
-                children: [
-                  ...cards.map((item) => _buildCard(item.title, item.amount,item.color)).toList(),
-                ],
+              final screenWidth = constraints.maxWidth;
+              final crossAxisSpacing = screenWidth * 0.03;
+              final cardWidth = (screenWidth - (crossAxisSpacing * 1)) / 2; // 2 cards per row
+
+              return Wrap(
+                spacing: crossAxisSpacing, // horizontal space
+                runSpacing: crossAxisSpacing, // vertical space
+                children: cards.map((item) {
+                  return SizedBox(
+                    width: cardWidth, // fixed width for uniform layout
+                    child: _buildCard(item.title, item.amount, item.color),
+                  );
+                }).toList(),
               );
             },
           ),
@@ -128,36 +131,43 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  Widget _buildCard(String title, String amount,Color colorValue) {
+  Widget _buildCard(String title, String amount, Color colorValue) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        gradient:  LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          colorValue.withOpacity(0.2),
-          colorValue.withOpacity(0.2),
-        ],
-        stops: [0.0, 1.0],
-        tileMode: TileMode.clamp),
+        color: colorValue.withOpacity(0.08),
         border: Border.all(color: colorValue, width: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MyTextfield.textStyle_w800(amount, SizeConfig.screenWidth! *0.045, colorValue),
-          SizedBox(height: 5,),
+          MyTextfield.textStyle_w800(amount, screenWidth * 0.04, colorValue),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              MyTextfield.textStyle_w400(title.toUpperCase(), SizeConfig.screenWidth! *0.035,colorValue),
-              Icon(Icons.arrow_forward_ios, size: SizeConfig.screenWidth! *0.035,color: colorValue),
+              Expanded( // allow long titles to wrap
+                child: MyTextfield.textStyle_w400(
+                  title.toUpperCase(),
+                  screenWidth * 0.032,
+                  colorValue,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: screenWidth * 0.033,
+                color: colorValue,
+              ),
             ],
           ),
         ],
       ),
     );
   }
+
 }
