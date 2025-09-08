@@ -1,30 +1,32 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../SaleList/sale_model.dart';
-import '../constant/images.dart';
-import '../constant/utils.dart';
+import '../constant/all.dart';
 import '../shareFileToWhatsApp.dart';
 
 class ReceiptPdfGenerator {
-  static Future<void> generateAndSharePdf(BuildContext context, SaleModel saleItem) async {
+  /// Generate receipt PDF and return saved file path
+  static Future<String> _generatePdf(SaleModel saleItem) async {
     final pdf = pw.Document();
 
+    // ✅ Load font
     final fontData = await rootBundle.load('assets/fonts/Signika-Regular.ttf');
     final ttf = pw.Font.ttf(fontData);
 
-    // Load logo image
+    // ✅ Load logo image
     pw.MemoryImage? logoImage;
     try {
       final bytes = (await rootBundle.load(AppImages.AppIcon)).buffer.asUint8List();
       logoImage = pw.MemoryImage(bytes);
     } catch (_) {}
 
-    // Helper to calculate subtotal
+    // ✅ Helper to calculate subtotal
     double calculateSubtotal(SaleItem item) {
       final price = item.price ?? 0;
       final quantity = item.quantity ?? 0;
@@ -39,32 +41,66 @@ class ReceiptPdfGenerator {
     final totalDiscount = items.fold<double>(
         0,
             (sum, item) =>
-        sum + ((item.price ?? 0) * (item.quantity ?? 0) * ((item.discount ?? 0) / 100)));
+        sum +
+            ((item.price ?? 0) *
+                (item.quantity ?? 0) *
+                ((item.discount ?? 0) / 100)));
     final totalAmount = totalItemAmount - totalDiscount;
 
+    // ✅ Add page
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4, // or PdfPageFormat.roll80 for thermal
         margin: const pw.EdgeInsets.all(16),
         build: (context) {
-          return _buildReceiptLayout(ttf, logoImage, saleItem, items, totalItemAmount, totalDiscount, totalAmount, calculateSubtotal);
+          return _buildReceiptLayout(
+            ttf,
+            logoImage,
+            saleItem,
+            items,
+            totalItemAmount,
+            totalDiscount,
+            totalAmount,
+            calculateSubtotal,
+          );
         },
       ),
     );
 
-    // Save PDF
+    // ✅ Save PDF in temp dir
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/receipt_${saleItem.invoiceNo}.pdf');
     await file.writeAsBytes(await pdf.save());
 
-    // Share
-    if (saleItem.customer.phone.isNotEmpty && saleItem.customer.phone != 'no number') {
-      await _sharePdfViaWhatsApp(saleItem, file.path);
-    } else {
-      AppUtils.showSnackBar(context, 'Invalid Mobile No.');
+    return file.path;
+  }
+
+  /// Download PDF (open in viewer / saved to storage)
+  static Future<void> downloadPdf(BuildContext context, SaleModel saleItem) async {
+    try {
+      final filePath = await _generatePdf(saleItem);
+      AppUtils.showSnackBar(context, 'Download Completed...');
+      await OpenFile.open(filePath); // Open with default PDF viewer
+    } catch (e) {
+      AppUtils.showSnackBar(context, 'Error saving PDF: $e');
+    }
+  }
+  /// Share PDF via WhatsApp
+  static Future<void> generateAndSharePdf(BuildContext context, SaleModel saleItem) async {
+    try {
+      final filePath = await _generatePdf(saleItem);
+      if (saleItem.customer.phone.isNotEmpty &&
+          saleItem.customer.phone != 'no number') {
+        await _sharePdfViaWhatsApp(saleItem, filePath);
+      } else {
+        AppUtils.showSnackBar(context, 'Invalid Mobile No.');
+      }
+    } catch (e) {
+      AppUtils.showSnackBar(context, 'Error sharing PDF: $e');
     }
   }
 
+  /// ✅ Receipt Layout
   static pw.Widget _buildReceiptLayout(
       pw.Font ttf,
       pw.MemoryImage? logoImage,
@@ -94,24 +130,31 @@ class ReceiptPdfGenerator {
         ),
         pw.Align(
             alignment: pw.Alignment.topRight,
-            child: pw.Text('GSTIN: 1234567890', style: pw.TextStyle(font: ttf, fontSize: 9))),
+            child: pw.Text('GSTIN: 1234567890',
+                style: pw.TextStyle(font: ttf, fontSize: 9))),
         pw.Align(
             alignment: pw.Alignment.topRight,
-            child: pw.Text('Phone: 123456789', style: pw.TextStyle(font: ttf, fontSize: 9))),
+            child: pw.Text('Phone: 123456789',
+                style: pw.TextStyle(font: ttf, fontSize: 9))),
         pw.Align(
             alignment: pw.Alignment.topRight,
-            child: pw.Text('Address: Berhampur', style: pw.TextStyle(font: ttf, fontSize: 9))),
+            child: pw.Text('Address: Berhampur',
+                style: pw.TextStyle(font: ttf, fontSize: 9))),
         pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
+
         // Invoice info
         pw.Row(children: [
-          pw.Text('Invoice No:', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
+          pw.Text('Invoice No:',
+              style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
           pw.Text('#${saleItem.invoiceNo}', style: pw.TextStyle(font: ttf)),
         ]),
         pw.Row(children: [
-          pw.Text('Date:', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
+          pw.Text('Date:',
+              style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
           pw.Text('${saleItem.date ?? ''}', style: pw.TextStyle(font: ttf)),
         ]),
         pw.SizedBox(height: 12),
+
         // Customer
         pw.Text('Customer Details',
             style: pw.TextStyle(
@@ -119,9 +162,12 @@ class ReceiptPdfGenerator {
                 fontWeight: pw.FontWeight.bold,
                 fontSize: 12,
                 color: PdfColor.fromInt(0xFF062A49))),
-        pw.Text('Name: ${saleItem.customer.name ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
-        pw.Text('Phone: ${saleItem.customer.phone ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
-        pw.Text('Address: ${saleItem.customer.address ?? ''}', style: pw.TextStyle(font: ttf, fontSize: 11)),
+        pw.Text('Name: ${saleItem.customer.name ?? ''}',
+            style: pw.TextStyle(font: ttf, fontSize: 11)),
+        pw.Text('Phone: ${saleItem.customer.phone ?? ''}',
+            style: pw.TextStyle(font: ttf, fontSize: 11)),
+        pw.Text('Address: ${saleItem.customer.address ?? ''}',
+            style: pw.TextStyle(font: ttf, fontSize: 11)),
         pw.SizedBox(height: 20),
 
         // Table header
@@ -131,10 +177,26 @@ class ReceiptPdfGenerator {
           child: pw.Row(
             children: [
               pw.Expanded(flex: 4, child: pw.Text('Item', style: _headerStyle(ttf))),
-              pw.Expanded(flex: 2, child: pw.Text('Qty', style: _headerStyle(ttf), textAlign: pw.TextAlign.center)),
-              pw.Expanded(flex: 2, child: pw.Text('MRP', style: _headerStyle(ttf), textAlign: pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: pw.Text('Disc', style: _headerStyle(ttf), textAlign: pw.TextAlign.center)),
-              pw.Expanded(flex: 2, child: pw.Text('Total', style: _headerStyle(ttf), textAlign: pw.TextAlign.right)),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('Qty',
+                      style: _headerStyle(ttf),
+                      textAlign: pw.TextAlign.center)),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('MRP',
+                      style: _headerStyle(ttf),
+                      textAlign: pw.TextAlign.right)),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('Disc',
+                      style: _headerStyle(ttf),
+                      textAlign: pw.TextAlign.center)),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('Total',
+                      style: _headerStyle(ttf),
+                      textAlign: pw.TextAlign.right)),
             ],
           ),
         ),
@@ -148,11 +210,30 @@ class ReceiptPdfGenerator {
             ),
             child: pw.Row(
               children: [
-                pw.Expanded(flex: 4, child: pw.Text(item.productName ?? '', style: pw.TextStyle(font: ttf, fontSize: 11))),
-                pw.Expanded(flex: 2, child: pw.Text('${item.quantity ?? 0}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
-                pw.Expanded(flex: 2, child: pw.Text('${(item.price ?? 0).toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
-                pw.Expanded(flex: 2, child: pw.Text('${item.discount ?? 0}%', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
-                pw.Expanded(flex: 2, child: pw.Text('${subtotal.toStringAsFixed(2)}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
+                pw.Expanded(
+                    flex: 4,
+                    child: pw.Text(item.productName ?? '',
+                        style: pw.TextStyle(font: ttf, fontSize: 11))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text('${item.quantity ?? 0}',
+                        style: pw.TextStyle(font: ttf, fontSize: 11),
+                        textAlign: pw.TextAlign.center)),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text('${(item.price ?? 0).toStringAsFixed(2)}',
+                        style: pw.TextStyle(font: ttf, fontSize: 11),
+                        textAlign: pw.TextAlign.right)),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text('${item.discount ?? 0}%',
+                        style: pw.TextStyle(font: ttf, fontSize: 11),
+                        textAlign: pw.TextAlign.center)),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text('${subtotal.toStringAsFixed(2)}',
+                        style: pw.TextStyle(font: ttf, fontSize: 11),
+                        textAlign: pw.TextAlign.right)),
               ],
             ),
           );
@@ -179,12 +260,12 @@ class ReceiptPdfGenerator {
         ),
 
         pw.SizedBox(height: 30),
-
         _termsAndConditions(ttf),
         pw.SizedBox(height: 20),
         pw.Center(
           child: pw.Text('Thank you for shopping at PixiDrugs!',
-              style: pw.TextStyle(font: ttf, fontSize: 12, color: PdfColors.grey600)),
+              style: pw.TextStyle(
+                  font: ttf, fontSize: 12, color: PdfColors.grey600)),
         ),
       ],
     );
@@ -196,11 +277,16 @@ class ReceiptPdfGenerator {
     color: PdfColors.white,
   );
 
-  static pw.Widget _totalRow(pw.Font ttf, String label, double value, {bool isDiscount = false, bool isTotal = false}) {
+  static pw.Widget _totalRow(pw.Font ttf, String label, double value,
+      {bool isDiscount = false, bool isTotal = false}) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text(label, style: pw.TextStyle(font: ttf, fontSize: isTotal ? 18 : 14, fontWeight: pw.FontWeight.bold)),
+        pw.Text(label,
+            style: pw.TextStyle(
+                font: ttf,
+                fontSize: isTotal ? 18 : 14,
+                fontWeight: pw.FontWeight.bold)),
         pw.Text(
           isDiscount ? '-${value.toStringAsFixed(2)}' : '${value.toStringAsFixed(2)}',
           style: pw.TextStyle(
@@ -224,7 +310,11 @@ class ReceiptPdfGenerator {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Terms and Conditions', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF062A49))),
+          pw.Text('Terms and Conditions',
+              style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColor.fromInt(0xFF062A49))),
           pw.SizedBox(height: 8),
           pw.Text(
             '1. Medicines must be stored as per the instructions on the packaging.\n'
@@ -234,14 +324,16 @@ class ReceiptPdfGenerator {
                 '5. We are not responsible for any misuse or side effects of the medicines.\n'
                 '6. Prices are subject to change without prior notice.\n'
                 '7. Thank you for choosing PixiDrugs.',
-            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey800, height: 1.3),
+            style:
+            pw.TextStyle(fontSize: 10, color: PdfColors.grey800, height: 1.3),
           ),
         ],
       ),
     );
   }
 
-  static Future<void> _sharePdfViaWhatsApp(SaleModel saleItem, String filePath) async {
+  static Future<void> _sharePdfViaWhatsApp(
+      SaleModel saleItem, String filePath) async {
     await shareFileToWhatsApp(
       phoneNumber: "91${saleItem.customer.phone.replaceAll("+91", '')}",
       filePath: filePath,

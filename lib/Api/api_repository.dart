@@ -119,7 +119,7 @@ class ApiRepository {
   Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) {
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/checkout',
-      queryParameters: {
+      data: {
         'seller_id': model.seller_id,
         'name': model.name,
         'phone': model.phone,
@@ -135,6 +135,9 @@ class ApiRepository {
           'store_id': model.seller_id,
         },
       },
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+      }),
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> post_Invoice(Invoice invoice) {
@@ -191,7 +194,7 @@ class ApiRepository {
       queryParameters: {'term': query,'store_id':storeId},
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> saleList(String userId) async {
+  Future<Map<String, dynamic>> saleList(String userId,int page) async {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/salelist/',
       queryParameters: {
@@ -199,6 +202,8 @@ class ApiRepository {
         'from_date': '',
         'to_date': '',
         'range': '',
+        'page': page,
+        'per_page': 10,
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }

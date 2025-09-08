@@ -1,6 +1,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/GradientInitialsBox.dart';
 import 'AddExpenseScreen.dart';
 import 'ExpenseResponse.dart';
 
@@ -97,16 +98,16 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              CircleAvatar(
-                  radius: screenWidth * 0.08,
-                  backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.title),screenWidth * 0.045,AppColors.kPrimary) ),
+              GradientInitialsBox(
+                size: screenWidth * 0.15,
+                name: item.title,
+              ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextfield.textStyle_w800(item.title!,screenWidth * 0.04,AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(item.title,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
                     MyTextfield.textStyle_w400('Dt: ${item.expanseDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
                     MyTextfield.textStyle_w600("Reason: ${item.note}", screenWidth * 0.035, Colors.teal),
@@ -141,10 +142,5 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
         ),
       ),
     );
-  }
-
-  String getInitials(String name) {
-    final parts = name.trim().split(' ');
-    return parts.take(2).map((e) => e[0].toUpperCase()).join();
   }
 }

@@ -93,6 +93,7 @@ class _ListScreenState extends State<ListScreen>
   bool _needsPagination() {
     return {
       ListType.invoice,
+      ListType.sale,
       ListType.stockReturn,
       ListType.saleReturn,
       ListType.expense,
@@ -140,7 +141,7 @@ class _ListScreenState extends State<ListScreen>
         await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage);
         break;
       case ListType.sale:
-        await apiCubit.fetchSaleList(user_id: userId);
+        await apiCubit.fetchSaleList(user_id: userId,page: currentPage);
         break;
       case ListType.ledger:
         await apiCubit.fetchLedgerList(user_id: userId);
@@ -230,9 +231,7 @@ class _ListScreenState extends State<ListScreen>
           if (state is InvoiceListLoaded) {
             _updatePaginatedList(invoiceList, state.invoiceList, state.last_page);
           } else if (state is SaleListLoaded) {
-            saleList
-              ..clear()
-              ..addAll(state.saleList);
+            _updatePaginatedList(saleList, state.saleList, state.last_page);
           } else if (state is LedgerListLoaded) {
             ledgerList
               ..clear()
@@ -335,13 +334,17 @@ class _ListScreenState extends State<ListScreen>
       case ListType.sale:
         return SaleListWidget(
           sales: saleList,
-          isLoading: isLoading,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
           onDeletePressed: (id) { _showDeleteDialog(context, id); },
           onEditPressed: (sale) => AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
-          onPrintPressed: (sale) => _onButtonPrintPressed(context, sale),
+          onPrintPressed: (sale) => /*_onButtonPrintPressed(context, sale)*/AppRoutes.navigateTo(context,
+            ReceiptPrinterPage(sale: sale)),
           onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
+          onDownloadPressed: (sale) => ReceiptPdfGenerator.downloadPdf(context, sale),
           onAddPressed: () {},
         );
       case ListType.ledger:

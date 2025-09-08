@@ -1,5 +1,6 @@
 import '../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/GradientInitialsBox.dart';
 
 class InvoiceListWidget extends StatefulWidget {
   final bool isLoading;
@@ -122,33 +123,10 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
                   color: AppColors.kPrimary,
                 ),
               ),
-              Container(
-                width: screenWidth * 0.13,
-                height: screenWidth * 0.13,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(8), // optional rounding
-                  border: Border.all(
-                    color: Colors.white, // or any color you want
-                    width: 2,
-                  ),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.kPrimary,
-                      AppColors.secondaryColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: MyTextfield.textStyle_w600(
-                  _getInitials(invoice.sellerName!),
-                  screenWidth * 0.055,
-                  Colors.white,
-                ),
+              GradientInitialsBox(
+                size: screenWidth * 0.15,
+                name: invoice.sellerName!,
               ),
-
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
@@ -169,57 +147,48 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
                   ],
                 ),
               ),
-              Column(
-                children: [
-                  MyTextfield.textStyle_w600('${index+1}', screenWidth * 0.049, Colors.green),
-                  PopupMenuButton<String>(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              PopupMenuButton<String>(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: AppColors.kWhiteColor,
+                elevation: 10,
+                onSelected: (value) {
+                  if (value == 'edit') widget.onEditPressed(invoice);
+                  if (value == 'delete') widget.onDeletePressed(invoice.id!);
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(AppImages.edit,
+                            height: 18, color: AppColors.kPrimary),
+                        SizedBox(width: 8),
+                        MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
+                      ],
                     ),
-                    color: AppColors.kWhiteColor,
-                    elevation: 10,
-                    onSelected: (value) {
-                      if (value == 'edit') widget.onEditPressed(invoice);
-                      if (value == 'delete') widget.onDeletePressed(invoice.id!);
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            SvgPicture.asset(AppImages.edit,
-                                height: 18, color: AppColors.kPrimary),
-                            SizedBox(width: 8),
-                            MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
-                          ],
-                        ),
-                      ),
-                      if (role == 'owner')
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(AppImages.delete,
-                                  height: 18, width: 18, color: AppColors.kRedColor),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600(
-                                  'Delete', 13, AppColors.kRedColor),
-                            ],
-                          ),
-                        ),
-                    ],
-                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                   ),
+                  if (role == 'owner')
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(AppImages.delete,
+                              height: 18, width: 18, color: AppColors.kRedColor),
+                          SizedBox(width: 8),
+                          MyTextfield.textStyle_w600(
+                              'Delete', 13, AppColors.kRedColor),
+                        ],
+                      ),
+                    ),
                 ],
+                icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  String _getInitials(String name) {
-    return name.trim().split(' ').take(2).map((e) => e[0].toUpperCase()).join();
   }
 }

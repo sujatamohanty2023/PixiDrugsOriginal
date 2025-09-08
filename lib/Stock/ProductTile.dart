@@ -1,13 +1,15 @@
 import 'package:intl/intl.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../customWidget/GradientInitialsBox.dart';
+
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;
   ProductTile({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
-    final stock=  product!.qty+product!.qty_free;
+    final stock=  product!.stock;
     final bool isOutOfStock = stock<= 0;
     final DateTime now = DateTime.now();
     DateTime? expiryDate;

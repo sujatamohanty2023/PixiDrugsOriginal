@@ -599,9 +599,9 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                       child: MyElevatedButton(
                         buttonText: 'Download',
                         onPressed: (){
-                         /* ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                          ReceiptPdfGenerator.downloadPdf(context, widget.sale);
                           context.read<CartCubit>().clearCart(type: CartType.main);
-                          Navigator.pop(context);*/
+                          Navigator.pop(context);
                         },
                       ),
                     ),

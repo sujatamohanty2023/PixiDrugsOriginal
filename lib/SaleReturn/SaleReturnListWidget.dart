@@ -1,6 +1,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/GradientInitialsBox.dart';
 import 'CustomerReturnsResponse.dart';
 
 class SaleReturnListWidget extends StatefulWidget {
@@ -81,31 +82,9 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              Container(
-                width: screenWidth * 0.13,
-                height: screenWidth * 0.13,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(8), // optional rounding
-                  border: Border.all(
-                    color: Colors.white, // or any color you want
-                    width: 2,
-                  ),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.kPrimary,
-                      AppColors.secondaryColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: MyTextfield.textStyle_w600(
-                  getInitials(item.customer.name),
-                  screenWidth * 0.055,
-                  Colors.white,
-                ),
+              GradientInitialsBox(
+                size: screenWidth * 0.15,
+                name: item.customer.name,
               ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
@@ -148,10 +127,5 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
         ),
       ),
     );
-  }
-
-  String getInitials(String name) {
-    final parts = name.trim().split(' ');
-    return parts.take(2).map((e) => e[0].toUpperCase()).join();
   }
 }

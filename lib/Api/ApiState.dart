@@ -241,7 +241,8 @@ class SaleListLoading extends ApiState {}
 
 class SaleListLoaded extends ApiState {
   final List<SaleModel> saleList;
-  SaleListLoaded({required this.saleList});
+  final int last_page;
+  SaleListLoaded({required this.saleList,required this.last_page});
 }
 
 class SaleListError extends ApiState {

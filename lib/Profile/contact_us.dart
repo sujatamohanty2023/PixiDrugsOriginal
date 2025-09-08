@@ -4,7 +4,7 @@ class ContactUsPage extends StatelessWidget {
   final String whatsappNumber = "9124004386";
   final String whatsappMessage = "Hello, I would like to discuss a project.";
   final String email = "Support@pixidrugs.com";
-  final String website = "http://pixidrugs.com/";
+  final String website = "https://pixidrugs.com/";
   final String phone = "+91 9124004386";
 
   const ContactUsPage({super.key});

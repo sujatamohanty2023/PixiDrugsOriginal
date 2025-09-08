@@ -17,13 +17,13 @@ class _WebviewscreenState extends State<Webviewscreen> {
     super.initState();
     var url = '';
     if (widget.tittle == 'About Us') {
-      url = 'http://pixidrugs.com/#About_us';
+      url = 'https://pixidrugs.com/#About_us';
     } else if (widget.tittle == 'Contact Us') {
-      url = 'http://pixidrugs.com/#Contact_us';
+      url = 'https://pixidrugs.com/#Contact_us';
     } else if (widget.tittle == 'Privacy Policy') {
-      url = 'http://pixidrugs.com/privacy';
+      url = 'https://pixidrugs.com/privacy';
     } else if (widget.tittle == 'Terms & Conditions') {
-      url = 'http://pixidrugs.com/terms';
+      url = 'https://pixidrugs.com/terms';
     }
     _controller = WebViewController()..loadRequest(Uri.parse(url));
   }

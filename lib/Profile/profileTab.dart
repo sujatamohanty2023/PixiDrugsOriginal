@@ -68,17 +68,12 @@ class ProfileScreen extends StatefulWidget {
 
     @override
     Widget build(BuildContext context) {
-      final screenHeight = MediaQuery
-          .of(context)
-          .size
-          .height;
-
       return Scaffold(
         backgroundColor: Colors.white,
         body: Container(
           color: AppColors.kPrimary,
           width: double.infinity,
-          padding: EdgeInsets.only(top: 50),
+          padding: EdgeInsets.only(top: 20),
           child: Column(
             children: [
               Padding(

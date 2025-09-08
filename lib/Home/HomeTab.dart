@@ -342,7 +342,7 @@ class _HomeTabState extends State<HomeTab> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
-                            image: NetworkImage('http://pixidrugs.com/${bannerList[index]}'),
+                            image: NetworkImage('https://pixidrugs.com/${bannerList[index]}'),
                             fit: BoxFit.cover,
                           ),
                         ),

@@ -1,5 +1,5 @@
 class AppString {
-  static String baseUrl = 'http://pixidrugs.com/';
+  static String baseUrl = 'https://pixidrugs.com/';
 
   static String loginText = 'Login with Mobile Number';
   static String logindesc = 'Enter your mobile number to receive an OTP';

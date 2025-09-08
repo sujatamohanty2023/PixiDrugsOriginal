@@ -1,6 +1,7 @@
 import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/GradientInitialsBox.dart';
 import 'StaffModel.dart';
 
 class StaffListWidget extends StatefulWidget {
@@ -95,10 +96,10 @@ class _StaffListWidgetState extends State<StaffListWidget> {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              CircleAvatar(
-                  radius: screenWidth * 0.08,
-                  backgroundColor: AppColors.kPrimaryDark,
-                  child: MyTextfield.textStyle_w600( getInitials(item.name),screenWidth * 0.045,AppColors.kPrimary) ),
+              GradientInitialsBox(
+                size: screenWidth * 0.15,
+                name: item.name,
+              ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
@@ -155,10 +156,5 @@ class _StaffListWidgetState extends State<StaffListWidget> {
         ),
       ),
     );
-  }
-
-  String getInitials(String name) {
-    final parts = name.trim().split(' ');
-    return parts.take(2).map((e) => e[0].toUpperCase()).join();
   }
 }

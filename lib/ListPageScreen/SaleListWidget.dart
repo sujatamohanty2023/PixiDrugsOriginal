@@ -2,7 +2,10 @@ import 'package:PixiDrugs/SaleList/sale_details.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-class SaleListWidget extends StatelessWidget {
+import '../customWidget/BottomLoader.dart';
+import '../customWidget/GradientInitialsBox.dart';
+
+class SaleListWidget extends StatefulWidget {
   final bool isLoading;
   final List<SaleModel> sales;
   final String searchQuery;
@@ -12,9 +15,11 @@ class SaleListWidget extends StatelessWidget {
   final Function(int id) onDeletePressed;
   final Function(SaleModel sale) onPrintPressed;
   final Function(SaleModel sale) onSharePressed;
-  String? role;
+  final Function(SaleModel sale) onDownloadPressed;
+  final ScrollController? scrollController;
+  final bool hasMoreData;
 
-  SaleListWidget({
+  const SaleListWidget({
     required this.isLoading,
     required this.sales,
     required this.searchQuery,
@@ -24,19 +29,38 @@ class SaleListWidget extends StatelessWidget {
     required this.onEditPressed,
     required this.onPrintPressed,
     required this.onSharePressed,
-  });
+    required this.onDownloadPressed,
+    this.scrollController,
+    required this.hasMoreData,
+    Key? key,
+  }) : super(key: key);
 
-  void loadUserData() async {
-    role = await SessionManager.getRole();
+  @override
+  State<SaleListWidget> createState() => _SaleListWidgetState();
+}
+
+class _SaleListWidgetState extends State<SaleListWidget> {
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
   }
+
+  Future<void> _loadUserRole() async {
+    role = await SessionManager.getRole();
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    loadUserData();
-    final filteredSales = sales
+    final filteredSales = widget.sales
         .where((i) =>
-        i.customer.name.toLowerCase().contains(searchQuery.toLowerCase()))
+        i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
+    final itemCount = filteredSales.length + (widget.hasMoreData  ? 1 : 0);
 
     return  Container(
       decoration: BoxDecoration(
@@ -46,11 +70,11 @@ class SaleListWidget extends StatelessWidget {
           topRight: Radius.circular(screenWidth * 0.07),
         ),
       ),
-      child: isLoading
+      child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : sales.isEmpty
+          : widget.sales.isEmpty
           ? NoItemPage(
-        onTap: onAddPressed,
+        onTap: widget.onAddPressed,
         image: AppImages.no_sale,
         tittle: 'No Sale Record Found',
         description:
@@ -58,11 +82,14 @@ class SaleListWidget extends StatelessWidget {
         button_tittle: 'Add Sale Record',
       )
           : ListView.builder(
+        controller: widget.scrollController,
         padding: EdgeInsets.zero,
-        itemCount: filteredSales.length,
+        itemCount: itemCount,
         itemBuilder: (_, index) {
-          final sale = filteredSales[index];
-          return _buildSaleCard(sale, screenWidth,context);
+          if (index >= filteredSales.length) {
+            return BottomLoader();
+          }
+          return _buildSaleCard(filteredSales[index], screenWidth,context);
         },
       ),
     );
@@ -85,33 +112,10 @@ class SaleListWidget extends StatelessWidget {
           padding: EdgeInsets.all(screenWidth * 0.02),
           child: Row(
             children: [
-              Container(
-                width: screenWidth * 0.14,
-                height: screenWidth * 0.14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(8), // optional rounding
-                  border: Border.all(
-                    color: Colors.white, // or any color you want
-                    width: 2,
-                  ),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.kPrimary,
-                      AppColors.secondaryColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: MyTextfield.textStyle_w600(
-                  getInitials(sale.customer.name),
-                  screenWidth * 0.055,
-                  Colors.white,
-                ),
+              GradientInitialsBox(
+                size: screenWidth * 0.15,
+                name: sale.customer.name,
               ),
-
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
@@ -140,52 +144,36 @@ class SaleListWidget extends StatelessWidget {
                     elevation: 10,
                     onSelected: (value) {
                       if (value == 'print') {
-                        onPrintPressed(sale);
+                        widget.onPrintPressed(sale);
                       }else if (value == 'share') {
-                        onSharePressed(sale);
+                        widget.onSharePressed(sale);
                       }else if (value == 'edit') {
-                        onEditPressed(sale);
+                        widget.onEditPressed(sale);
                       } else if (value == 'delete') {
-                        onDeletePressed(sale.invoiceNo!);
+                        widget.onDeletePressed(sale.invoiceNo!);
+                      }else if (value == 'download') {
+                        widget.onDownloadPressed(sale.invoiceNo!);
                       }
                     },
                     itemBuilder: (context) => [
-                      PopupMenuItem(value: 'print',
-                          child:Row(
-                            children: [
-                              SvgPicture.asset(AppImages.printer, height: 18, color: AppColors.kPrimary),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Print Bill', 13, AppColors.kPrimary),
-                            ],
-                          )),
+                      PopupMenuItem(value: 'print', height: 30,
+                          padding: EdgeInsets.zero,
+                          child:MenuItem(AppImages.printer,'Print Bill')),
                       if(sale.customer.phone.isNotEmpty && sale.customer.phone!='no number')
-                      PopupMenuItem(value: 'share',
-                          child:Row(
-                            children: [
-                              SvgPicture.asset(AppImages.share, height: 18, color: AppColors.kPrimary),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Share', 13, AppColors.kPrimary),
-                            ],
-                          )),
-                      PopupMenuItem(value: 'edit',
-                          child:Row(
-                            children: [
-                              SvgPicture.asset(AppImages.edit, height: 18, color: AppColors.kPrimary),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
-                            ],
-                          )),
+                      PopupMenuItem(value: 'share',height: 30,
+                          padding: EdgeInsets.zero,
+                          child:MenuItem(AppImages.share,'Share')),
+                      PopupMenuItem(value: 'download',height: 30,
+                          padding: EdgeInsets.zero,
+                          child:MenuItem(AppImages.download,'Download')),
+                      PopupMenuItem(value: 'edit',height: 30,
+                          padding: EdgeInsets.zero,
+                          child:MenuItem(AppImages.edit,'Edit')),
                       if(role=='owner')
                       PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(AppImages.delete, height: 18,  color: AppColors.kRedColor,),
-                              SizedBox(width: 8),
-                              MyTextfield.textStyle_w600('Delete', 13, AppColors.kRedColor),
-                            ],
-                          )
-                      ),
+                          value: 'delete',height: 30,
+                          padding: EdgeInsets.zero,
+                          child: MenuItem(AppImages.delete,'Delete',color:AppColors.kRedColor)),
                     ],
                     icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                   ),
@@ -216,9 +204,16 @@ class SaleListWidget extends StatelessWidget {
       ),
     );
   }
-
-  String getInitials(String name) {
-    final parts = name.trim().split(' ');
-    return parts.take(2).map((e) => e[0].toUpperCase()).join();
+  Widget MenuItem(String icon,String Tittle, {Color color=AppColors.kPrimary}){
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: Row(
+        children: [
+          SvgPicture.asset(icon, height: 18,color: color),
+          SizedBox(width: 8),
+          MyTextfield.textStyle_w600(Tittle, 13, AppColors.kPrimary),
+        ],
+      ),
+    );
   }
 }

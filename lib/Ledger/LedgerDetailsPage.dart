@@ -9,6 +9,8 @@ import 'package:PixiDrugs/Ledger/PaymentOutBottomSheet.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/shareFileToWhatsApp.dart';
 
+import '../customWidget/GradientInitialsBox.dart';
+
 
 class LedgerDetailsPage extends StatefulWidget {
   LedgerModel? ledger;
@@ -138,14 +140,9 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                               // Main Content: Avatar + Party Info
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                    radius: screenWidth * 0.08,
-                                    backgroundColor: AppColors.kPrimaryDark,
-                                    child: MyTextfield.textStyle_w400(
-                                      getInitials(widget.ledger!.sellerName),
-                                      screenWidth * 0.045,
-                                      AppColors.kPrimary,
-                                    ),
+                                  GradientInitialsBox(
+                                    size: screenWidth * 0.15,
+                                    name: widget.ledger!.sellerName,
                                   ),
                                   SizedBox(width: screenWidth * 0.03),
 
@@ -158,10 +155,6 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                           crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                           children: [
-                                            // MyTextfield.textStyle_w800(
-                                            //     truncateWords(widget.ledger!.sellerName, 5),
-                                            //     screenWidth * 0.045,
-                                            //     AppColor.kblack),
                                             MyTextfield.textStyle_w800(
                                                 truncateWords(widget.ledger!.sellerName, 2),
                                                 screenWidth * 0.04,
@@ -1023,12 +1016,5 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
         },
       ),
     );
-  }
-
-  String getInitials(String name) {
-    List<String> parts = name.trim().split(" ");
-    return parts.length >= 2
-        ? "${parts[0][0]}${parts[1][0]}"
-        : name.substring(0, 2);
   }
 }

@@ -195,16 +195,16 @@ class _ProductCardState extends State<ProductCard> {
         : widget.item.product.toUpperCase();
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.kPrimaryDark,
+        gradient: AppColors.myGradient1,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.kPrimaryLight, width: 2),
+        border: Border.all(color: AppColors.secondaryColor, width: 2),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: MyTextfield.textStyle_w800(initials, 20, AppColors.kPrimary),
+        padding: EdgeInsets.all(SizeConfig.screenWidth! * 0.04),
+        child: MyTextfield.textStyle_w800(initials, SizeConfig.screenWidth! * 0.05, AppColors.loginbg),
       ),
     );
   }
@@ -218,7 +218,7 @@ class _ProductCardState extends State<ProductCard> {
           MyTextfield.textStyle_w400('${widget.item.sellerName} / ${widget.item.sellerPhone}', 18, Colors.red):
           MyTextfield.textStyle_w400('${widget.item.customerName} / ${widget.item.customerPhone}', 18, Colors.red),
 
-        MyTextfield.textStyle_w600(widget.item.product, 18, Colors.black),
+        MyTextfield.textStyle_w600(widget.item.product, 18, AppColors.kPrimary),
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
         MyTextfield.textStyle_w200(widget.item.composition??'No Composition', 12, Colors.grey[600]!),
         const SizedBox(height: 4),
@@ -228,8 +228,8 @@ class _ProductCardState extends State<ProductCard> {
           Row(
             children: [
               SizedBox(
-                height: 35,
-                width: 80,
+                height: 30,
+                width: 60,
                 child: MyEdittextfield(
                   controller: discController,
                   hintText: "Discount",

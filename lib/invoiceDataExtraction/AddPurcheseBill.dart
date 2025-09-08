@@ -236,6 +236,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   Invoice convertFromOcrInvoiceData(InvoiceData data) {
     List<InvoiceItem> items = data.item.map((item) {
       final double gst = ((item.cgstRate ?? 0) + (item.sgstRate ?? 0) + (item.igstRate ?? 0)) * 100;
+      /*final int qty= item.qty! - item.freeQty!;
+      final int qtyFree= item.freeQty!;*/
       final String gstFormatted = gst % 1 == 0
           ? '${gst.toInt()}%'
           : '${gst.toStringAsFixed(1)}%';

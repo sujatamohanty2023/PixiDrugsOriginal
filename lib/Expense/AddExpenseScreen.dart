@@ -15,19 +15,22 @@ class Addexpensescreen extends StatefulWidget {
 class _AddexpensescreenState extends State<Addexpensescreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _referralNameController = TextEditingController();
+  final TextEditingController _referralMobileController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   bool edit=false;
   List<String> category = [
     'Select Expense Category',
     'Staff Salaries',
-    'Rent',
-    'Medicine Purchase',
-    'Fuel',
+    'Shop Rent',
     'Electric Bill',
-    'Office Expenses',
-    'GST Payments',
+    'Fuel',
     'Food',
+    'GST Charges',
+    'Referrals/Commissions',
+    'Office Expenses',
     'Medicine Purchase',
+    'Others'
   ];
   String? selectedCategory='Select Expense Category';
   @override
@@ -39,6 +42,14 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
       _noteController.text = widget.expenseResponse!.note;
       selectedCategory=widget.expenseResponse?.title??'Select Expense Category';
     }
+  }
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    _referralNameController.dispose();
+    _referralMobileController.dispose();
+    super.dispose();
   }
   Future<void> _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -60,25 +71,38 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
   Future<void> _saveExpense() async {
     String amount = _amountController.text.trim();
     String note = _noteController.text.trim();
+    String referralName = _referralNameController.text.trim();
+    String referralMobile = _referralMobileController.text.trim();
     if (selectedCategory == null || selectedCategory == 'Select Expense Category') {
       AppUtils.showSnackBar(context, 'Please Select Expense Category');
       return;
     }
+    // Mandatory name/mobile for 'Referrals/Commissions' or 'Others'
+    if (selectedCategory == 'Referrals/Commissions' || selectedCategory == 'Others') {
+      if (referralName.isEmpty || referralMobile.isEmpty) {
+        AppUtils.showSnackBar(context, 'Please enter referral person name and mobile number');
+        return;
+      }
+    }
+
     final userId = await SessionManager.getParentingId() ?? '';
+    final formattedNote = (selectedCategory == 'Referrals/Commissions' || selectedCategory == 'Others')
+        ? 'Name: $referralName, Mobile: $referralMobile\n$note'
+        : note;
     if(edit && widget.expenseResponse !=null){
       context.read<ApiCubit>().ExpenseEdit(id:widget.expenseResponse!.id.toString(),
           store_id:userId,
           title:selectedCategory!,
           amount:amount,
           expanse_date:DateFormat('yyyy-MM-dd').format(selectedDate),
-          note:note
+          note:formattedNote
       );
     }else {
       context.read<ApiCubit>().ExpenseAdd(store_id:userId,
           title:selectedCategory!,
           amount:amount,
           expanse_date:DateFormat('yyyy-MM-dd').format(selectedDate),
-          note:note
+          note:formattedNote
       );
     }
   }
@@ -274,6 +298,25 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                             maxLines: 3,
                             readOnly: !edit && widget.expenseResponse!=null,
                           ),
+                          if ((selectedCategory == 'Referrals/Commissions' || selectedCategory == 'Others') && (edit || widget.expenseResponse == null)) ...[
+                            SizedBox(height: 14),
+                            MyTextfield.textStyle_w400("Referral Person Name", AppUtils.size_16, Colors.black),
+                            SizedBox(height: 6),
+                            MyEdittextfield(
+                              controller: _referralNameController,
+                              hintText: "Enter referral name",
+                              readOnly: !edit && widget.expenseResponse != null,
+                            ),
+                            SizedBox(height: 14),
+                            MyTextfield.textStyle_w400("Referral Mobile Number", AppUtils.size_16, Colors.black),
+                            SizedBox(height: 6),
+                            MyEdittextfield(
+                              controller: _referralMobileController,
+                              hintText: "Enter mobile number",
+                              keyboardType: TextInputType.phone,
+                              readOnly: !edit && widget.expenseResponse != null,
+                            ),
+                          ],
                           SizedBox(height: 30),
                           !edit && widget.expenseResponse !=null?SizedBox():MyElevatedButton(
                             onPressed: _saveExpense,

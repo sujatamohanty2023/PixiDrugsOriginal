@@ -99,7 +99,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                   }
 
                 });
-              } else if (cartCubit.state.cartItems.isNotEmpty && selectedCustomer!=null){
+              } else if (cartCubit.state.cartItems.isNotEmpty && selectedCustomer!=null && state.source=='scan'){
                 cartCubit.addToCart(
                   searchResults.first,
                   1,
@@ -286,7 +286,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
   }
   PreferredSizeWidget customAppBar() {
     return PreferredSize(
-        preferredSize: const Size.fromHeight(80),
+        preferredSize: const Size.fromHeight(70),
         child:Container(
           color: AppColors.kPrimary,
           width: double.infinity,
@@ -417,7 +417,10 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
     }
   }
   Widget _CustomerResultWidget() {
-    return Container(
+    return Scaffold(
+    appBar: customAppBar(),
+    backgroundColor: AppColors.kPrimary,
+    body: Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
         borderRadius: BorderRadius.only(
@@ -426,6 +429,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
         ),
       ),
       child: _searchResultWidget(),
+    )
     );
   }
   Widget _searchResultWidget() {

@@ -41,6 +41,7 @@ class AppImages {
 
   static String printer = "${svgFolder}printer.svg";
   static String share = "${svgFolder}share.svg";
+  static String download = "${svgFolder}download.svg";
   static String edit = "${svgFolder}edit.svg";
   static String camera = "${svgFolder}camera.svg";
   static String youtube = "${svgFolder}youtube.svg";

@@ -289,13 +289,3 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     );
   }
 }
-
-/// Helper to get initials
-String getInitials(String name) {
-  if (name.isEmpty) return "";
-  List<String> parts = name.trim().split(" ");
-  String initials = "";
-  if (parts.isNotEmpty) initials += parts[0][0];
-  if (parts.length > 1) initials += parts[1][0];
-  return initials.toUpperCase();
-}
