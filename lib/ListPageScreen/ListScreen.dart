@@ -1,9 +1,10 @@
 // Same imports as before...
 
 import 'package:image_cropper/image_cropper.dart';
+import 'package:intl/intl.dart';
 
 import '../Cart/ReceiptPrinterPage.dart';
-import '../Cart/receipt_pdf_generator.dart';
+import '../Cart/ReceiptPdfGenerator.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Expense/AddExpenseScreen.dart';
 import '../Expense/ExpenseListWidget.dart';
@@ -21,6 +22,7 @@ import '../Staff/AddStaffScreen.dart';
 import '../Staff/StaffListWidget.dart';
 import '../Staff/StaffModel.dart';
 import '../constant/all.dart';
+import 'FilterWidget.dart';
 import 'InvoiceListWidget.dart';
 import 'SaleListWidget.dart';
 
@@ -62,6 +64,10 @@ class _ListScreenState extends State<ListScreen>
   final saleReturnList = <CustomerReturnsResponse>[];
   final expenseList = <ExpenseResponse>[];
   final staffList = <StaffModel>[];
+
+  DateTime? fromDate;
+  DateTime? toDate;
+  String selectedRange = '';
 
   @override
   void initState() {
@@ -136,12 +142,15 @@ class _ListScreenState extends State<ListScreen>
     setState(() => isLoadingMore = true);
     final apiCubit = context.read<ApiCubit>();
 
+    String? from = fromDate != null ? DateFormat('yyyy-MM-dd').format(fromDate!) : null;
+    String? to = toDate != null ? DateFormat('yyyy-MM-dd').format(toDate!) : null;
+
     switch (widget.type) {
       case ListType.invoice:
         await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage);
         break;
       case ListType.sale:
-        await apiCubit.fetchSaleList(user_id: userId,page: currentPage);
+        await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'');
         break;
       case ListType.ledger:
         await apiCubit.fetchLedgerList(user_id: userId);
@@ -248,10 +257,11 @@ class _ListScreenState extends State<ListScreen>
 
           return Container(
             color: AppColors.kPrimary,
-            padding: EdgeInsets.only(top: screenWidth * 0.06),
+            padding: EdgeInsets.only(top: widget.type==ListType.ledger?0.05:screenWidth * 0.06),
             child: Column(
               children: [
                 _buildTopBar(screenWidth),
+                SizedBox(height: screenWidth * 0.01,),
                 _buildSearchBar(screenWidth),
                 Expanded(
                   child: RefreshIndicator(
@@ -271,10 +281,10 @@ class _ListScreenState extends State<ListScreen>
 
   Widget _buildTopBar(double screenWidth) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+      padding: EdgeInsets.only(left: screenWidth * 0.02,right: screenWidth * 0.02),
       child: Row(
         children: [
-          IconButton(
+          widget.type==ListType.ledger?SizedBox(height: screenWidth * 0.02,):IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pushAndRemoveUntil(
               context,
@@ -282,22 +292,79 @@ class _ListScreenState extends State<ListScreen>
                   (route) => false,
             ),
           ),
-          MyTextfield.textStyle_w400(
-            titleMap[widget.type] ?? '',
-            screenWidth * 0.055,
-            Colors.white,
+          Expanded(
+            child: MyTextfield.textStyle_w400(
+              titleMap[widget.type] ?? '',
+              screenWidth * 0.052,
+              Colors.white,
+            ),
           ),
-        ],
-      ),
+          if (_isFilterSupported(widget.type))
+          IconButton(
+          icon: const Icon(Icons.tune, color: Colors.white),
+          onPressed: _showFilterTopSheet,
+          )
+      ],
+    ));
+  }
+  bool _isFilterSupported(ListType type) {
+    return [
+      ListType.invoice,
+      ListType.sale,
+      ListType.stockReturn,
+      ListType.saleReturn,
+      ListType.expense,
+    ].contains(type);
+  }
+  void _showFilterTopSheet() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Dismiss",
+      transitionDuration: Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(50)),
+            color: AppColors.kWhiteColor,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.35,  // 30% height
+              width: double.infinity,
+              child: FilterWidget(
+                initialFrom: fromDate,
+                initialTo: toDate,
+                initialRange: selectedRange,
+                onApply: (from, to, range) {
+                  setState(() {
+                    fromDate = from;
+                    toDate = to;
+                    selectedRange = range;
+                  });
+                  _fetchRecord(refresh: true);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(0, -1),  // start above the screen
+            end: Offset(0, 0),     // slide to original position
+          ).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOut)),
+          child: child,
+        );
+      },
     );
   }
 
+
   Widget _buildSearchBar(double screenWidth) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04,
-        vertical: screenWidth * 0.02,
-      ),
+      padding: EdgeInsets.only(left: screenWidth * 0.03,right: screenWidth * 0.03,bottom:screenWidth * 0.03 ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

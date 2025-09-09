@@ -288,10 +288,10 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchSaleList({required String user_id,required int page}) async {
+  Future<void> fetchSaleList({required String user_id,required int page,required String from,required String to}) async {
     try {
       emit(SaleListLoading());
-      final response = await apiRepository.saleList(user_id,page);
+      final response = await apiRepository.saleList(user_id,page,from,to);
       final data = response['bills'] as List;
       final list = data.map((json) => SaleModel.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];

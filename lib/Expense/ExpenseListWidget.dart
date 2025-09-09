@@ -110,7 +110,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                     MyTextfield.textStyle_w800(item.title,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
                     MyTextfield.textStyle_w400('Dt: ${item.expanseDate}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
-                    MyTextfield.textStyle_w600("Reason: ${item.note}", screenWidth * 0.035, Colors.teal),
+                    MyTextfield.textStyle_w600("Reason: ${item.note}", screenWidth * 0.035, Colors.teal,maxLines: true),
                     SizedBox(height: screenWidth * 0.01)
                   ],
                 ),

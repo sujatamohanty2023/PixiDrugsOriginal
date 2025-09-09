@@ -388,7 +388,7 @@ PreferredSizeWidget customAppBar(
   }
 
   return PreferredSize(
-    preferredSize: const Size.fromHeight(92),
+    preferredSize: const Size.fromHeight(85),
     child: Container(
       color: AppColors.kPrimary,
       child: SafeArea(
@@ -417,7 +417,7 @@ PreferredSizeWidget customAppBar(
                 ],
               ),
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: SizeConfig.screenWidth! *0.02),
             Padding(
               padding: const EdgeInsets.only(left:10),
               child: Row(
@@ -460,7 +460,7 @@ PreferredSizeWidget customAppBar(
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: SizeConfig.screenWidth! *0.01),
           ],
         ),
       ),

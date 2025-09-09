@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/Ledger/show_transation_pdf.dart';
+import 'package:PixiDrugs/Ledger/LedgerPdfGenerator.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -494,8 +494,8 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                     height: screenWidth * 0.05,
                                                   ),
                                                   GestureDetector(
-                                                    onTap: () {
-                                                      _shareLast7Transactions(widget.ledger!);
+                                                    onTap: () async {
+                                                      await LedgerPdfGenerator.generateAndShareLedgerPdf(context, widget.ledger!);
                                                     },
                                                     child: SvgPicture.asset(
                                                       'assets/share.svg',
@@ -549,7 +549,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     }
 
     // ✅ Correct Net Due Logic (Credit - Debit)
-    double netDue = totalCredit - totalDebit;
+    // double netDue = totalCredit - totalDebit;
 
     showModalBottomSheet(
       context: context,
@@ -620,12 +620,15 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
               // Table Data
               ...last7.map((item) {
                 String typeText = "-";
+                Color amountColor = Colors.black;
                 final reason = (item.paymentReason ?? "").toLowerCase();
 
                 if (reason == "debit") {
                   typeText = "Payment Out";
+                  amountColor = Colors.red;
                 } else if (reason == "credit") {
                   typeText = "purchase in";
+                  amountColor = Colors.green;
                 }
 
                 return Padding(
@@ -636,7 +639,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                       MyTextfield.textStyle_w400(item.paymentDate ?? "-", screenWidth * 0.038, Colors.black,),
                       ),
                       Expanded(flex: 2, child:
-                      MyTextfield.textStyle_w400(typeText, screenWidth * 0.038, Colors.black,),
+                      MyTextfield.textStyle_w400(typeText, screenWidth * 0.038, amountColor,),
                       ),
                       Expanded(flex: 1, child: MyTextfield.textStyle_w400(item.paymentType ?? "-", screenWidth * 0.038, Colors.black,),
                       ),
@@ -644,7 +647,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: MyTextfield.textStyle_w400( item.amount ?? "0", screenWidth * 0.038, Colors.black,textAlign: TextAlign.right,),
+                        child: MyTextfield.textStyle_w400( item.amount ?? "0", screenWidth * 0.038, Colors.green,textAlign: TextAlign.right,),
                       ),
                     ],
                   ),
@@ -667,23 +670,24 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        MyTextfield.textStyle_w400( 'Total Debit:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400( '${ledger.totalDebit}', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400('Total Credit:', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400( '${ledger.totalCredit}', screenWidth * 0.038, Colors.green,),
                       ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        MyTextfield.textStyle_w400('Total Credit:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400( '${ledger.totalCredit}', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400( 'Total Debit:', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400( '${ledger.totalDebit}', screenWidth * 0.038, Colors.red,),
                       ],
                     ),
+
                     Divider(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         MyTextfield.textStyle_w400('Net Due:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400('${ledger.dueAmount}', screenWidth * 0.038, Colors.black,),
+                        MyTextfield.textStyle_w400('${ledger.dueAmount}', screenWidth * 0.038, Colors.green,),
                       ],
                     ),
 
@@ -697,7 +701,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   Expanded(
                     child: MyElevatedButton(
                       onPressed: () async {
-                        await _shareLast7Transactions(widget.ledger!);
+                        await LedgerPdfGenerator.generateAndShareLedgerPdf(context, widget.ledger!);
                       },
                       buttonText: 'Share',
                     ),
@@ -706,7 +710,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   Expanded(
                     child: MyElevatedButton(
                       onPressed: () async {
-                        await generateAndSaveLedgerPdf(ledger,context);
+                        await LedgerPdfGenerator.downloadLedgerPdf(context, ledger);
                       },
                       buttonText: 'Download',
                     ),
@@ -720,253 +724,6 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
       },
     );
   }
-
-  Future<void> _shareLast7Transactions(LedgerModel ledger) async {
-    final pdf = pw.Document();
-    final fontData = await rootBundle.load('assets/fonts/Signika-Regular.ttf');
-    final ttf = pw.Font.ttf(fontData);
-
-    pw.MemoryImage? logoImage;
-    try {
-      final bytes = (await rootBundle.load(AppImages.AppIcon)).buffer.asUint8List();
-      logoImage = pw.MemoryImage(bytes);
-    } catch (_) {}
-
-    // Sort and get last 7 transactions
-    List<History> recentTransactions = ledger.history
-        .where((t) => t.paymentDate != null && t.paymentDate.isNotEmpty)
-        .toList();
-
-    recentTransactions.sort((a, b) =>
-        DateTime.parse(b.paymentDate).compareTo(DateTime.parse(a.paymentDate)));
-
-    List<History> last7 = recentTransactions.take(7).toList();
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(16),
-        build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              if (logoImage != null)
-                pw.Align(
-                  alignment: pw.Alignment.topRight,
-                  child: pw.Image(logoImage, height: 80),
-                ),
-              pw.Align(
-                alignment: pw.Alignment.topRight,
-                child: pw.Text('PixiDrugs',
-                    style: pw.TextStyle(
-                        font: ttf,
-                        fontSize: 20,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColor.fromInt(0xFF062A49))),
-              ),
-              pw.Align(
-                alignment: pw.Alignment.topRight,
-                child: pw.Text('GSTIN: 1234567890',
-                    style: pw.TextStyle(font: ttf, fontSize: 9)),
-              ),
-              pw.Align(
-                alignment: pw.Alignment.topRight,
-                child: pw.Text('Phone: 123456789',
-                    style: pw.TextStyle(font: ttf, fontSize: 9)),
-              ),
-              pw.Align(
-                alignment: pw.Alignment.topRight,
-                child: pw.Text('Address: Berhampur',
-                    style: pw.TextStyle(font: ttf, fontSize: 9)),
-              ),
-              pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
-
-              // Payment History Title
-              pw.Text('Payment History',
-                  style: pw.TextStyle(
-                      font: ttf,
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 16)),
-              pw.SizedBox(height: 10),
-
-              // Supplier Info
-              pw.Text('Supplier Details',
-                  style: pw.TextStyle(
-                      font: ttf,
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 12,
-                      color: PdfColor.fromInt(0xFF062A49))),
-              pw.Text('Name: ${ledger.sellerName}',
-                  style: pw.TextStyle(font: ttf, fontSize: 11)),
-              pw.Text('Phone: ${ledger.phone}',
-                  style: pw.TextStyle(font: ttf, fontSize: 11)),
-              pw.Text('GSTIN: ${ledger.gstNo}',
-                  style: pw.TextStyle(font: ttf, fontSize: 11)),
-              pw.SizedBox(height: 20),
-
-              // Table Header
-              pw.Container(
-                color: PdfColor.fromInt(0xFF062A49),
-                padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                child: pw.Row(
-                  children: [
-                    pw.Expanded(flex: 2, child: pw.Text('Date', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
-                    pw.Expanded(flex: 2, child: pw.Text('Type', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
-                    // pw.Expanded(flex: 2, child: pw.Text('Invoice No.', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.center)),
-                    pw.Expanded(flex: 1, child: pw.Text('Mode', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
-                    pw.Expanded(flex: 1, child: pw.Text('Ref No', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white))),
-                    pw.Expanded(flex: 2, child: pw.Text('Amount', style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, color: PdfColors.white), textAlign: pw.TextAlign.right)),
-                  ],
-                ),
-              ),
-
-              // Table Rows
-              ...last7.map((item) {
-                return pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
-                  ),
-                  child: pw.Row(
-                    children: [
-                      pw.Expanded(flex: 2, child: pw.Text(item.paymentDate, style: pw.TextStyle(font: ttf, fontSize: 11))),
-                      pw.Expanded(flex: 2, child: pw.Text(
-                        item.paymentReason == 'debit' ? 'Payment Out' : 'Purchase In',
-                        style: pw.TextStyle(font: ttf, fontSize: 11),
-                      )),
-                      // pw.Expanded(flex: 2, child: pw.Text('#${item.invoiceNo}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.center)),
-                      pw.Expanded(flex: 1, child: pw.Text('${item.paymentType}', style: pw.TextStyle(font: ttf, fontSize: 11))),
-                      pw.Expanded(flex: 1, child: pw.Text('${item.paymentReference }', style: pw.TextStyle(font: ttf, fontSize: 11))),
-                      pw.Expanded(flex: 2, child: pw.Text('${item.amount}', style: pw.TextStyle(font: ttf, fontSize: 11), textAlign: pw.TextAlign.right)),
-                    ],
-                  ),
-                );
-              }).toList(),
-
-              pw.SizedBox(height: 20),
-
-              // Summary Box
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFFC4DAF6),
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
-                  children: [
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Total Debit:',
-                            style: pw.TextStyle(
-                                font: ttf,
-                                fontSize: 14,
-                                fontWeight: pw.FontWeight.bold)),
-                        pw.Text(
-                            '${ledger.totalDebit}',
-                            style: pw.TextStyle(font: ttf, fontSize: 14)),
-                      ],
-                    ),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Total Credit:',
-                            style: pw.TextStyle(
-                                font: ttf,
-                                fontSize: 14,
-                                fontWeight: pw.FontWeight.bold)),
-                        pw.Text(
-                            '${ledger.totalCredit}',
-                            style: pw.TextStyle(font: ttf, fontSize: 14)),
-                      ],
-                    ),
-                    pw.Divider(),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Net Due:',
-                            style: pw.TextStyle(
-                                font: ttf,
-                                fontSize: 16,
-                                fontWeight: pw.FontWeight.bold)),
-                        pw.Text(
-                            '${ledger.dueAmount}',
-                            style: pw.TextStyle(
-                                font: ttf,
-                                fontSize: 16,
-                                fontWeight: pw.FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Footer Message
-              pw.Container(
-                margin: const pw.EdgeInsets.only(top: 30),
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  border:
-                  pw.Border.all(color: PdfColor.fromInt(0xFFC4DAF6)),
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'Terms and Conditions',
-                      style: pw.TextStyle(
-                        fontSize: 14,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColor.fromInt(0xFF062A49),
-                      ),
-                    ),
-                    pw.SizedBox(height: 8),
-                    pw.Text(
-                      '1. Payments are subject to verification.\n'
-                          '2. Contact us for any disputes or queries.\n'
-                          '3. Thank you for your business.',
-                      style: pw.TextStyle(
-                        fontSize: 10,
-                        color: PdfColors.grey800,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              pw.SizedBox(height: 20),
-              pw.Center(
-                child: pw.Text('Thank you for choosing PixiDrugs!',
-                    style: pw.TextStyle(
-                        font: ttf,
-                        fontSize: 12,
-                        color: PdfColors.grey600)),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-
-    // Save & share the PDF
-    final output = await getTemporaryDirectory();
-    final file = File('${output.path}/payment_history_${ledger.sellerName}.pdf');
-    await file.writeAsBytes(await pdf.save());
-
-    _sharePdfViaWhatsApp(ledger,file.path);
-  }
-
-  Future<void> _sharePdfViaWhatsApp(LedgerModel ledger, String filePath1) async {
-    await shareFileToWhatsApp(
-      phoneNumber: "91${ledger.phone.replaceAll("+91", '')}",
-      filePath: filePath1,
-      message: 'Dear Sir/Madam,\nPlease find attached the payment history for ${ledger.sellerName}.\n\nNet Due: ₹${ledger.dueAmount}\n\nThank you for your continued support.\n\nPixiDrugs',
-    );
-  }
-
   void _deleteRecord(String id) async {
     try {
       deleteId = int.parse(id);

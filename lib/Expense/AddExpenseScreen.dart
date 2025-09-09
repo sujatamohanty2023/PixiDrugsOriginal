@@ -41,8 +41,52 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
       _amountController.text = widget.expenseResponse!.amount;
       _noteController.text = widget.expenseResponse!.note;
       selectedCategory=widget.expenseResponse?.title??'Select Expense Category';
+
+      if (widget.expenseResponse!.title.toLowerCase().contains('referral')) {
+        selectedCategory = 'Referrals/Commissions';
+        final extractedData = extractReferralData(widget.expenseResponse!.note);
+        _referralNameController.text = extractedData['referralName'] ?? '';
+        _referralMobileController.text = extractedData['referralPhone'] ?? '';
+        final cleanedNoteLines = widget.expenseResponse!.note
+            .split('\n')
+            .where((line) =>
+        !line.startsWith('Referral Person:') &&
+            !line.startsWith('Referral Contact No.:') )
+            .toList();
+
+        _noteController.text = cleanedNoteLines.join('\n').trim();
+      }
     }
   }
+
+  Map<String, String> extractReferralData(String note) {
+    final Map<String, String> data = {};
+
+    final lines = note.split('\n');
+    for (final line in lines) {
+      if (line.startsWith('Customer Name:')) {
+        data['customerName'] = line.replaceFirst('Customer Name:', '').trim();
+      } else if (line.startsWith('Customer Contact No.:')) {
+        data['customerPhone'] = line.replaceFirst('Customer Contact No.:', '').trim();
+      } else if (line.startsWith('Referral Person:')) {
+        data['referralName'] = line.replaceFirst('Referral Person:', '').trim();
+      } else if (line.startsWith('Referral Contact No.:')) {
+        data['referralPhone'] = line.replaceFirst('Referral Contact No.:', '').trim();
+      } else if (line.startsWith('Referral Amount:')) {
+        final amountInfo = line.replaceFirst('Referral Amount:', '').trim();
+        if (amountInfo.toLowerCase().contains('given')) {
+          data['referralAmount'] = amountInfo.replaceAll('Given', '').trim();
+          data['amountGiven'] = 'true';
+        } else {
+          data['referralAmount'] = '';
+          data['amountGiven'] = 'false';
+        }
+      }
+    }
+
+    return data;
+  }
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -298,7 +342,7 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                             maxLines: 3,
                             readOnly: !edit && widget.expenseResponse!=null,
                           ),
-                          if ((selectedCategory == 'Referrals/Commissions' || selectedCategory == 'Others') && (edit || widget.expenseResponse == null)) ...[
+                          if ((selectedCategory == 'Referrals/Commissions' || selectedCategory == 'Others')) ...[
                             SizedBox(height: 14),
                             MyTextfield.textStyle_w400("Referral Person Name", AppUtils.size_16, Colors.black),
                             SizedBox(height: 6),

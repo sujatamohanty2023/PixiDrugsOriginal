@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/Cart/receipt_pdf_generator.dart';
+import 'package:PixiDrugs/Cart/ReceiptPdfGenerator.dart';
 import 'package:flutter/services.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -573,8 +573,8 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                     Expanded(
                       child: MyElevatedButton(
                         buttonText: 'Share',
-                        onPressed: (){
-                          ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                        onPressed: () async {
+                          await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
                           context.read<CartCubit>().clearCart(type: CartType.main);
                           Navigator.pop(context);
                         },

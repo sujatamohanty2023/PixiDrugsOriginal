@@ -4,7 +4,7 @@ import 'package:PixiDrugs/constant/all.dart'; // adjust this import path to your
 class CustomerDetailBottomSheet extends StatefulWidget {
   final ScrollController scrollController;
   final Function(String name, String phone, String address,String paymentType,
-      String referenceNumber, String referralName, String referralPhone,String referralAmount)? onSubmit;
+      String referenceNumber, String referralName, String referralPhone,String referralAmount,bool isReferralAmountGiven)? onSubmit;
 
   const CustomerDetailBottomSheet({Key? key, this.onSubmit, String? name, String? phone, String? address,
     String? paymentType, String? referenceNumber, String? referralName, String? referralPhone,String? referralAmount,
@@ -39,68 +39,65 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
   }
 
   Future<void> _submit() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Trimmed values
-      String name = _nameController.text.trim();
-      String phone = _phoneController.text.trim();
-      String address = _addressController.text.trim();
-      String referralName = _referralNameController.text.trim();
-      String referralPhone = _referralPhoneController.text.trim();
-      String referralAmount = _referralAmountController.text.trim();
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      // Default customer name to "N/A" if empty
-      if (name.isEmpty) {
-        name = "N/A";
-      }
-      if (phone.isEmpty ) {
-        phone = "N/A";
-      }
-      if (address.isEmpty ) {
-        address = "N/A";
-      }
+    String name = _nameController.text.trim();
+    String phone = _phoneController.text.trim();
+    String address = _addressController.text.trim();
+    String referralName = _referralNameController.text.trim();
+    String referralPhone = _referralPhoneController.text.trim();
+    String referralAmount = _referralAmountController.text.trim();
 
-      // Check if any referral data is provided
-      bool hasReferralData = referralName.isNotEmpty || referralPhone.isNotEmpty || referralAmount.isNotEmpty;
+    // Normalize empty values
+    name = name.isEmpty ? "NA" : name;
+    phone = phone.isEmpty ? "NA" : phone;
+    address = address.isEmpty ? "NA" : address;
 
-      // Conditional validation: if referral exists, phone must be provided (name can be "N/A")
-      if (hasReferralData && (phone.isEmpty || name.isEmpty)) {
-        AppUtils.showSnackBar(context, "Please enter customer name/phone if referral info is provided.");
+    bool referralExists = referralName.isNotEmpty || referralPhone.isNotEmpty || referralAmount.isNotEmpty|| isReferralAmountGiven;
+
+    if (referralExists) {
+      // Must provide customer name & phone
+      if (name == "NA" || phone == "NA") {
+        AppUtils.showSnackBar(context, "Please enter customer name and phone for referral.");
         return;
       }
-      if (isReferralAmountGiven) {
-        // Referral amount must be provided and referral name + phone mandatory
-        if (referralAmount.isEmpty) {
-          AppUtils.showSnackBar(context, "Please enter referral amount.");
-          return;
-        }
-        if (referralName.isEmpty || referralPhone.isEmpty) {
-          AppUtils.showSnackBar(context, "Please enter referral name/phone if referral amount is provided.");
-          return;
-        }
-      } else {
-        // If not given, clear referral fields to be safe
-        _referralAmountController.clear();
-        _referralNameController.clear();
-        _referralPhoneController.clear();
-        referralAmount = "";
-        referralName = "";
-        referralPhone = "";
+
+      // Referral name and phone mandatory
+      if (referralName.isEmpty || referralPhone.isEmpty) {
+        AppUtils.showSnackBar(context, "Please enter referral name and phone.");
+        return;
       }
 
-      FocusScope.of(context).unfocus();
-      widget.onSubmit?.call(
-        name,
-        phone,
-        address,
-        selectedPaymentType,
-        referenceNumberController.text.trim(),
-        referralName,
-        referralPhone,
-        referralAmount,
-      );
+      // If marked as 'Referral Amount Given', amount is required
+      if (isReferralAmountGiven && referralAmount.isEmpty) {
+        AppUtils.showSnackBar(context, "Please enter referral amount.");
+        return;
+      }
+    } else {
+      // No referral — clear referral fields
+      referralAmount = "";
+      referralName = "";
+      referralPhone = "";
+      _referralAmountController.clear();
+      _referralNameController.clear();
+      _referralPhoneController.clear();
     }
+
+    FocusScope.of(context).unfocus();
+    widget.onSubmit?.call(
+      name,
+      phone,
+      address,
+      selectedPaymentType,
+      referenceNumberController.text.trim(),
+      referralName,
+      referralPhone,
+      referralAmount,
+      isReferralAmountGiven
+    );
   }
-    Widget build(BuildContext context) {
+
+  Widget build(BuildContext context) {
       return Container(
         decoration: AppStyles.bg_radius_50_decoration(),
         child: AnimatedPadding(
@@ -261,6 +258,7 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
       {'label': 'Cash', 'icon': Icons.money},
       {'label': 'Bank', 'icon': Icons.account_balance},
       {'label': 'UPI', 'icon': Icons.qr_code},
+      {'label': 'Due', 'icon': Icons.calendar_month},
     ];
 
     return Column(

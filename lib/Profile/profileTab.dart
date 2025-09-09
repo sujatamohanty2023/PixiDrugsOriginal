@@ -73,15 +73,14 @@ class ProfileScreen extends StatefulWidget {
         body: Container(
           color: AppColors.kPrimary,
           width: double.infinity,
-          padding: EdgeInsets.only(top: 20),
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 10, bottom: 16, left: 10),
+                padding: EdgeInsets.only(top: SizeConfig.screenWidth! * 0.01, left:  SizeConfig.screenWidth! * 0.02),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 40,
+                      radius:  SizeConfig.screenWidth! * 0.07,
                       backgroundColor: AppColors.kWhiteColor,
                       backgroundImage: image!.isNotEmpty
                           ? image!.contains('https://')
@@ -96,10 +95,10 @@ class ProfileScreen extends StatefulWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         MyTextfield.textStyle_w800(
-                            name!, SizeConfig.screenWidth! * 0.055, Colors.white,
+                            name!, SizeConfig.screenWidth! * 0.050, Colors.white,
                             maxLines: 1),
                         MyTextfield.textStyle_w600(
-                            email!, SizeConfig.screenWidth! * 0.045, Colors.white70),
+                            email!, SizeConfig.screenWidth! * 0.040, Colors.white70),
                       ],
                     )
                   ],

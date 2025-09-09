@@ -230,7 +230,7 @@ class _HomeTabState extends State<HomeTab> {
       preferredSize: const Size.fromHeight(70),
       child: Container(
         color: AppColors.kPrimary,
-        padding: const EdgeInsets.only(top: 10.0, left: 12, right: 12),
+        padding: EdgeInsets.only(left: SizeConfig.screenWidth! * 0.02, right: SizeConfig.screenWidth! * 0.02),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

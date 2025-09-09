@@ -17,7 +17,7 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteAware {
   String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
-
+  bool isReferralAmountGiven=false;
   @override
   void initState() {
     super.initState();
@@ -180,7 +180,18 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         AppUtils.showSnackBar(context,'Your cart is empty');
         return;
       }
-
+      String referralNote = '';
+      if (referralName.isNotEmpty || referralPhone.isNotEmpty) {
+        referralNote = 'Customer Name: $name\n';
+        referralNote += 'Customer Contact No.: $phone\n';
+        referralNote += 'Referral Person: $referralName\n';
+        referralNote += 'Referral Contact No.: $referralPhone\n';
+        if (isReferralAmountGiven && referralAmount.isNotEmpty) {
+          referralNote += 'Referral Amount: ₹$referralAmount Given';
+        } else {
+          referralNote += 'Referral Amount: Not Given';
+        }
+      }
       final model = OrderPlaceModel(
         cartItems: cartState.cartItems,
         seller_id: userId!,
@@ -191,7 +202,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         payment_type:paymentType,
         amount:referralAmount,
         title:'Referral Bonus',
-        note:referralName.isNotEmpty?'$referralName/$referralPhone':'',
+        note:referralNote,
       );
       print('API URL: ${model.toString()}');
       _showLoadingDialog(); // Show loading
@@ -278,7 +289,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
             address: address,
             scrollController: scrollController,
             onSubmit: (name1, phone1, submittedAddress1,paymentType1, referenceNumber1,
-                referralName1, referralPhone1,referralAmount1) async {
+                referralName1, referralPhone1,referralAmount1,isReferralAmountGiven1) async {
 
               setState(() {
                 name = name1;
@@ -289,6 +300,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
                 referralName= referralName1;
                 referralPhone= referralPhone1;
                 referralAmount= referralAmount1;
+                isReferralAmountGiven= isReferralAmountGiven1;
               });
 
               context.read<CartCubit>().setBarcodeCustomerDetails(

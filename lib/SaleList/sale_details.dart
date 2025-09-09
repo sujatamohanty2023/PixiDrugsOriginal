@@ -24,9 +24,11 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
   List<InvoiceItem> cartItems=[];
   int billingid=0;
   String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
+  bool isReferralAmountGiven=false;
   double totalPrice = 0.0;
   double subtotalPrice = 0.0;
   double discountAmount = 0.0;
+  final TextEditingController _refferralController = TextEditingController();
 
   List<InvoiceItem> convertSaleToInvoiceItems(SaleModel sale) {
     return sale.items.map((item) => InvoiceItem(
@@ -56,6 +58,16 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     billingid=widget.sale?.invoiceNo??0;
 
     _recalculateTotals(cartItems);
+
+    if (widget.sale!.customer.name.toLowerCase().contains('referral')) {
+      final cleanedNoteLines = widget.sale!.customer.name
+          .split('\n')
+          .where((line) =>
+      !line.startsWith('Customer Name:') &&
+          !line.startsWith('Customer Contact No.:') )
+          .toList();
+      _refferralController.text = cleanedNoteLines.join('\n').trim();
+    }
   }
   void _recalculateTotals(List<InvoiceItem> cartItems) {
     subtotalPrice = cartItems.fold(0.0, (sum, item) {
@@ -128,19 +140,27 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Invoice No: ${widget.sale?.invoiceNo ?? ''}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                        const SizedBox(height: 8),
-                        Text("Date: ${widget.sale?.date ?? ''}"),
-                        const SizedBox(height: 8),
-
+                        MyTextfield.textStyle_w600("Invoice No: ${widget.sale?.invoiceNo ?? ''}",18,AppColors.kPrimary),
+                        MyTextfield.textStyle_w400("Date: ${widget.sale?.date ?? ''}",14,AppColors.secondaryColor),
+                        const SizedBox(height: 6),
                         /// Address Widget with Edit Option
-                        customerDetailWidget(name:name!,phone: phone!,address: address!,
+                        customerDetailWidget(name:name,phone: phone,address: address,
                             paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
                             referralAmount: referralAmount,
                           tap: () async {
-                            await checkUserData(name!, phone!, address!);
+                            await checkUserData(name, phone, address);
                           },),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 6),
+
+                        _refferralController.text.isNotEmpty?MyTextfield.textStyle_w400('Reference Detail: ', 18, Colors.black54):SizedBox(),
+                        _refferralController.text.isNotEmpty?SizedBox(height: 6):SizedBox(),
+                        _refferralController.text.isNotEmpty?MyEdittextfield(
+                          controller: _refferralController,
+                          hintText: "",
+                          maxLines: 3,
+                          readOnly: true,
+                        ):SizedBox(),
+                        _refferralController.text.isNotEmpty?SizedBox(height: 6):SizedBox(),
 
                         /// Cart Items
                         CustomListView<InvoiceItem>(
@@ -263,7 +283,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
             address: address,
             scrollController: scrollController,
             onSubmit: (name1, phone1, submittedAddress1,paymentType1, referenceNumber1,
-                referralName1, referralPhone1,referralAmount1) async {
+                referralName1, referralPhone1,referralAmount1,isReferralAmountGiven1) async {
               Navigator.pop(context); // Close bottom sheet
 
               setState(() {
@@ -275,6 +295,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                 referralName= referralName1;
                 referralPhone= referralPhone1;
                 referralAmount= referralAmount1;
+                isReferralAmountGiven=isReferralAmountGiven1;
               });
 
               context.read<CartCubit>().setBarcodeCustomerDetails(

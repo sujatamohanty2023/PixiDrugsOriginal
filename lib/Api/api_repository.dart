@@ -194,13 +194,13 @@ class ApiRepository {
       queryParameters: {'term': query,'store_id':storeId},
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> saleList(String userId,int page) async {
+  Future<Map<String, dynamic>> saleList(String userId,int page,String from,String to) async {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/salelist/',
       queryParameters: {
         'user_id': userId,
-        'from_date': '',
-        'to_date': '',
+        'from_date': from,
+        'to_date': to,
         'range': '',
         'page': page,
         'per_page': 10,
