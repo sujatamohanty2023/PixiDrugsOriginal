@@ -1,13 +1,22 @@
 import 'package:intl/intl.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../customWidget/PaymentTypeWidget.dart';
+
 class FilterWidget extends StatefulWidget {
-  final void Function(DateTime? from, DateTime? to, String range) onApply;
+  final void Function(
+      DateTime? from,
+      DateTime? to,
+      String range,
+      String? paymentType,
+      ) onApply;
   final DateTime? initialFrom;
   final DateTime? initialTo;
   final String? initialRange;
+  final String? initialPaymentType;
 
-  const FilterWidget({Key? key, required this.onApply, this.initialFrom, this.initialTo, this.initialRange,}) : super(key: key);
+  const FilterWidget({Key? key, required this.onApply, this.initialFrom, this.initialTo,
+    this.initialRange,this.initialPaymentType,}) : super(key: key);
 
   @override
   State<FilterWidget> createState() => _FilterWidgetState();
@@ -17,6 +26,8 @@ class _FilterWidgetState extends State<FilterWidget> {
   DateTime? fromDate;
   DateTime? toDate;
   String selectedRange = 'Today';
+  String selectedPaymentType = "Cash";
+  String selectedPaymentStatus='All';
 
   final List<String> quickRanges = [
     'Today',
@@ -28,7 +39,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   ];
 
 
-  final _dateFormat = DateFormat('dd MMM yy');
+  final _dateFormat = DateFormat('dd MMM yyyy');
 
   @override
   void initState() {
@@ -120,6 +131,8 @@ class _FilterWidgetState extends State<FilterWidget> {
   void _resetFilters() {
     setState(() {
       selectedRange = 'Today';
+      selectedPaymentType = "Cash";
+      selectedPaymentStatus='All';
       _setDatesForRange(selectedRange);
     });
   }
@@ -168,7 +181,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                       MyTextfield.textStyle_w400(
                         "From Date",
                         AppUtils.size_16,
-                        Colors.black,
+                        Colors.black54,
                       ),
                       SizedBox(height: 6),
                       GestureDetector(
@@ -180,12 +193,10 @@ class _FilterWidgetState extends State<FilterWidget> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.kPrimaryDark, width: 1),
                           ),
-                          child: Text(
-                            fromDate != null ? _dateFormat.format(fromDate!) : "mm/dd/yyyy",
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: fromDate != null ? Colors.black : Colors.grey,
-                            ),
+                          child: MyTextfield.textStyle_w400(
+                              fromDate != null ? _dateFormat.format(fromDate!) : "mm/dd/yyyy",
+                              AppUtils.size_16,
+                              fromDate != null ? Colors.black : Colors.grey
                           ),
                         ),
                       ),
@@ -199,7 +210,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                       MyTextfield.textStyle_w400(
                         "To Date",
                         AppUtils.size_16,
-                        Colors.black,
+                        Colors.black54,
                       ),
                       SizedBox(height: 6),
                       GestureDetector(
@@ -211,12 +222,10 @@ class _FilterWidgetState extends State<FilterWidget> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.kPrimaryDark, width: 1),
                           ),
-                          child: Text(
-                            toDate != null ? _dateFormat.format(toDate!) : "mm/dd/yyyy",
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: toDate != null ? Colors.black : Colors.grey,
-                            ),
+                          child: MyTextfield.textStyle_w400(
+                              toDate != null ? _dateFormat.format(toDate!) : "mm/dd/yyyy",
+                              AppUtils.size_16,
+                              toDate != null ? Colors.black : Colors.grey
                           ),
                         ),
                       ),
@@ -230,7 +239,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                       MyTextfield.textStyle_w400(
                         "Quick Range",
                         AppUtils.size_16,
-                        Colors.black,
+                        Colors.black54,
                       ),
                       SizedBox(height: 6),
                       Container(
@@ -306,8 +315,38 @@ class _FilterWidgetState extends State<FilterWidget> {
                 ),
               ],
             ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: PaymentPopupMenu(
+                    label: "Payment Method",
+                    selectedValue: selectedPaymentType,
+                    onChanged: (val) {
+                      setState(() {
+                        selectedPaymentType = val;
+                      });
+                    },
+                    items: AppString.paymentTypes,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: PaymentPopupMenu(
+                    label: "Payment Status",
+                    selectedValue: selectedPaymentStatus,
+                    onChanged: (val) {
+                      setState(() {
+                        selectedPaymentStatus = val;
+                      });
+                    },
+                    items: AppString.paymentStatus,
+                  ),
+                ),
+              ],
+            ),
 
-            SizedBox(height: 20),
+            SizedBox(height: 15),
 
             // Buttons: Apply Filters & Reset
             Row(
@@ -338,7 +377,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           return;
                         }
                       }
-                      widget.onApply(fromDate, toDate, selectedRange);
+                      widget.onApply(fromDate, toDate, selectedRange,selectedPaymentType);
                     },
                     buttonText: 'Apply Filters'),
                   ),

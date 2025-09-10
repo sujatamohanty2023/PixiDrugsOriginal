@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:PixiDrugs/constant/all.dart'; // adjust this import path to your project
+import 'package:PixiDrugs/constant/all.dart';
+
+import '../customWidget/PaymentTypeWidget.dart'; // adjust this import path to your project
 
 class CustomerDetailBottomSheet extends StatefulWidget {
   final ScrollController scrollController;
@@ -171,7 +173,16 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
                           _buildTextField(_addressController, 'Address', TextInputType.streetAddress,
                               manadatory: false, maxLines: 1, validator: null),
                           const SizedBox(height: 5),
-                          _buildPaymentTypeDropdown(),
+                          PaymentPopupMenu(
+                            label: "Payment Method",
+                            selectedValue: selectedPaymentType,
+                            onChanged: (val) {
+                              setState(() {
+                                selectedPaymentType = val;
+                              });
+                            },
+                            items: AppString.paymentTypes,
+                          ),
                           if (selectedPaymentType != "Cash") ...[
                             const SizedBox(height: 16),
                             _buildTextField(
@@ -248,78 +259,6 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
             ),
             MyTextfield.textStyle_w600('Not Given', AppUtils.size_16, Colors.black),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentTypeDropdown() {
-    final paymentTypes = [
-      {'label': 'Cash', 'icon': Icons.money},
-      {'label': 'Bank', 'icon': Icons.account_balance},
-      {'label': 'UPI', 'icon': Icons.qr_code},
-      {'label': 'Due', 'icon': Icons.calendar_month},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            MyTextfield.textStyle_w600("Payment Method ", AppUtils.size_16, Colors.black),
-            //MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.kPrimaryDark, width: 1),
-            boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: selectedPaymentType,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.kPrimaryDark),
-              items: paymentTypes.map((item) {
-                return DropdownMenuItem<String>(
-                  value: item['label'].toString(),
-                  child: Row(
-                    children: [
-                      Icon(item['icon'] as IconData, size: 20),
-                      const SizedBox(width: 10),
-                      Text(
-                        item['label'].toString(),
-                        style: MyTextfield.textStyle(14, Colors.black, FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedPaymentType = value;
-                    if (value == "Cash") {
-                      referenceNumberController.clear();
-                    }
-
-                    // Auto-scroll to bottom when reference appears
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      widget.scrollController.animateTo(
-                        widget.scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                      );
-                    });
-                  });
-                }
-              },
-            ),
-          ),
         ),
       ],
     );

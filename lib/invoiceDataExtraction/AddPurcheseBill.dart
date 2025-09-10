@@ -149,7 +149,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         items: allItems);
     return updatedInvoice;
   }
-    Future<Invoice> _readMultipleInvoicesAI(List<String> paths) async {
+  Future<Invoice> _readMultipleInvoicesAI(List<String> paths) async {
     final allItems = <InvoiceItem>[];
     final allInvoices = <Invoice>[];
     final invoiceIds = <String>{};
@@ -157,6 +157,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
     for (String path in paths) {
       multipartFiles.add(await createMultipartFile(path));
+    }
+
+    if (multipartFiles.isNotEmpty) {
       try {
         var formData = FormData.fromMap({
           'files': multipartFiles,
@@ -169,16 +172,41 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           'https://pixi.dexcy.in/api/process',
           data: formData,
         );
+
         if (response.statusCode == 200) {
           var jsonData = response.data['data'];
-          print("Data: ${response.data['data'].toString()}");
-          String prettyJson = const JsonEncoder.withIndent('  ').convert(jsonData);
-          debugPrint(prettyJson, wrapWidth: 1024);
+          print("Raw Data: ${jsonData.runtimeType} - $jsonData");
 
-          final List<InvoiceData> data = (response.data['data'] as List)
-              .map((x) => InvoiceData.fromJson(x))
-              .toList();
-          for(var item in data) {
+          List<dynamic> invoiceJsonList;
+
+          if (jsonData is List) {
+            invoiceJsonList = jsonData;
+          } else if (jsonData is Map<String, dynamic>) {
+            invoiceJsonList = [jsonData];
+          } else {
+            print("⚠️ Unexpected data format: ${jsonData.runtimeType}");
+            throw Exception("API returned unexpected data format.");
+          }
+
+          final List<InvoiceData> data = <InvoiceData>[];
+          for (var innerList in invoiceJsonList) {
+            if (innerList is List && innerList.isNotEmpty) {
+              // Assume the first element of the inner list is the invoice data map
+              final invoiceMap = innerList[0];
+              if (invoiceMap is Map<String, dynamic>) {
+                data.add(InvoiceData.fromJson(invoiceMap));
+              } else {
+                print("⚠️ Inner list element is not a Map: $invoiceMap");
+                // Optionally skip or throw
+              }
+            } else {
+              print("⚠️ Expected a non-empty List, got: $innerList");
+              // Optionally skip or throw
+            }
+          }
+          // --- FIX END ---
+
+          for (var item in data) {
             final invoice = convertFromOcrInvoiceData(item);
             allInvoices.add(invoice);
             if (invoice.invoiceId != null && invoice.invoiceId!.isNotEmpty) {
@@ -187,7 +215,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           }
         }
       } catch (e) {
-        print("❌ Error processing $path: $e");
+        print("❌ Error processing: $e");
+        // Optionally re-throw or handle gracefully
+        // For now, we let it continue to process other files if possible.
       }
     }
 
@@ -195,7 +225,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     if (invoiceIds.length > 1) {
       print("⚠ Error: Multiple different invoice IDs found: $invoiceIds");
       AppUtils.showSnackBar(context, 'Multiple different invoice IDs found');
-      // You could throw an exception, return empty, or handle differently
       return Invoice(items: []);
     }
 
@@ -203,10 +232,18 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     for (final inv in allInvoices) {
       allItems.addAll(inv.items);
     }
+
+    // --- FIX: Check if allInvoices is empty before accessing .first ---
+    if (allInvoices.isEmpty) {
+      print("⚠️ No invoices were successfully processed.");
+      return Invoice(items: []);
+    }
+
     final updatedInvoice = allInvoices.first.copyWith(
         items: allItems);
     return updatedInvoice;
   }
+
   Future<MultipartFile> createMultipartFile(String path) async {
     String extension = path.split('.').last.toLowerCase();
     MediaType contentType;

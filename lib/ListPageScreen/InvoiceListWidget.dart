@@ -1,5 +1,6 @@
 import '../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
 
 class InvoiceListWidget extends StatefulWidget {
@@ -98,6 +99,29 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
       ],
     );
   }
+  String getTimeDifference(String invoiceDateStr) {
+    try {
+      final invoiceDate = DateTime.parse(invoiceDateStr); // assuming format is "yyyy-MM-dd"
+      final now = DateTime.now();
+      Duration diff = now.difference(invoiceDate);
+
+      int totalDays = diff.inDays;
+
+      int years = totalDays ~/ 365;
+      int months = (totalDays % 365) ~/ 30;
+      int days = (totalDays % 365) % 30;
+
+      List<String> parts = [];
+
+      if (years > 0) parts.add("$years ${years == 1 ? 'year' : 'years'}");
+      if (months > 0) parts.add("$months ${months == 1 ? 'month' : 'months'}");
+      if (days > 0 || parts.isEmpty) parts.add("$days ${days == 1 ? 'day' : 'days'}");
+
+      return parts.join(", ") + " ago";
+    } catch (e) {
+      return ""; // Fallback in case of parsing error
+    }
+  }
 
   Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index) {
     return GestureDetector(
@@ -139,51 +163,44 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
                         'Invoice No. #${invoice.invoiceId!}',
                         screenWidth * 0.035,
                         Colors.grey.shade700),
-                    MyTextfield.textStyle_w400('Dt.${invoice.invoiceDate!}',
-                        screenWidth * 0.035, Colors.grey.shade700),
+                    MyTextfield.textStyle_w400(
+                      'Dt. ${invoice.invoiceDate!} (${getTimeDifference(invoice.invoiceDate!)})',
+                      screenWidth * 0.035,
+                      Colors.red.shade700,
+                    ),
                     SizedBox(height: screenWidth * 0.01),
                     MyTextfield.textStyle_w600(
                         "₹${invoice.netAmount!}", screenWidth * 0.049, Colors.green),
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                color: AppColors.kWhiteColor,
-                elevation: 10,
+              CustomPopupMenu(
+                iconSize: screenWidth * 0.05,
+                backgroundColor: AppColors.kWhiteColor,
                 onSelected: (value) {
-                  if (value == 'edit') widget.onEditPressed(invoice);
-                  if (value == 'delete') widget.onDeletePressed(invoice.id!);
+                  switch (value) {
+                    case 'edit':
+                      widget.onEditPressed(invoice);
+                      break;
+                    case 'delete':
+                      widget.onDeletePressed(invoice.id!);
+                      break;
+                  }
                 },
-                itemBuilder: (_) => [
-                  PopupMenuItem(
+                items: [
+                  CustomPopupMenuItemData(
                     value: 'edit',
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(AppImages.edit,
-                            height: 18, color: AppColors.kPrimary),
-                        SizedBox(width: 8),
-                        MyTextfield.textStyle_w600('Edit', 13, AppColors.kPrimary),
-                      ],
-                    ),
+                    label: 'Edit',
+                    iconAsset: AppImages.edit,
                   ),
                   if (role == 'owner')
-                    PopupMenuItem(
+                    CustomPopupMenuItemData(
                       value: 'delete',
-                      child: Row(
-                        children: [
-                          SvgPicture.asset(AppImages.delete,
-                              height: 18, width: 18, color: AppColors.kRedColor),
-                          SizedBox(width: 8),
-                          MyTextfield.textStyle_w600(
-                              'Delete', 13, AppColors.kRedColor),
-                        ],
-                      ),
+                      label: 'Delete',
+                      iconAsset: AppImages.delete,
+                      textColor: AppColors.kRedColor,
                     ),
                 ],
-                icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
               ),
             ],
           ),

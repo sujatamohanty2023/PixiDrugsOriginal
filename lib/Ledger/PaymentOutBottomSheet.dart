@@ -5,6 +5,8 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../customWidget/PaymentTypeWidget.dart';
+
 class PaymentOutEntryPage extends StatefulWidget {
   final LedgerModel? ledger;
   final bool? edit;
@@ -104,7 +106,16 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
                     const SizedBox(height: 10),
                     _buildAmountCard(),
                     const SizedBox(height: 20),
-                    _buildPaymentTypeDropdown(),
+                    PaymentPopupMenu(
+                      label: "Payment Method",
+                      selectedValue: selectedPaymentType,
+                      onChanged: (val) {
+                        setState(() {
+                          selectedPaymentType = val;
+                        });
+                      },
+                      items: AppString.paymentTypes,
+                    ),
                     if (selectedPaymentType != "Cash") ...[
                       const SizedBox(height: 16),
                       _buildEditTextField(

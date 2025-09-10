@@ -1,3 +1,6 @@
+import '../customWidget/PaymentTypeWidget.dart';
+import 'all.dart';
+
 class AppString {
   static String baseUrl = 'https://pixidrugs.com/';
 
@@ -25,5 +28,20 @@ class AppString {
   static String enterRegNo = 'Enter your Licence NO.';
   static String enterEmail = 'Enter your email';
   static String upDate = 'Update';
+
+
+  static List<PaymentPopupMenuItemData> paymentTypes = [
+    PaymentPopupMenuItemData(value: 'Cash', icon: Icons.money),
+    PaymentPopupMenuItemData(value: 'Card', icon: Icons.credit_card_outlined),
+    PaymentPopupMenuItemData(value: 'Bank', icon: Icons.account_balance),
+    PaymentPopupMenuItemData(value: 'UPI', icon: Icons.qr_code),
+    PaymentPopupMenuItemData(value: 'Due', icon: Icons.calendar_month),
+  ];
+  static List<PaymentPopupMenuItemData> paymentStatus = [
+    PaymentPopupMenuItemData(value: 'All', icon: Icons.all_inbox),
+    PaymentPopupMenuItemData(value: 'Pending', icon: Icons.hourglass_empty),
+    PaymentPopupMenuItemData(value: 'Completed', icon: Icons.check_circle_outline),
+    PaymentPopupMenuItemData(value: 'Failed', icon: Icons.error_outline),
+  ];
 
 }

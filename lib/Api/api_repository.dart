@@ -9,7 +9,7 @@ class ApiRepository {
 
   ApiRepository({Dio? dio}) : dio = dio ?? Dio();
 
-  Future<T> _safeApiCall<T>(Future<Response> Function() request) async {
+   Future<T> _safeApiCall<T>(Future<Response> Function() request) async {
     if (!await ConnectivityService.isConnected()) {
       throw ApiException('No internet connection');
     }
@@ -17,13 +17,10 @@ class ApiRepository {
     try {
       final response = await request();
 
-      // ✅ Log URL + Method
       print('📡 API CALL: ${response.requestOptions.method} ${response.requestOptions.uri}');
-      // ✅ Log request data (if present)
       if (response.requestOptions.data != null) {
         print('📦 Request Data: ${response.requestOptions.data}');
       }
-      // ✅ Log response
       print('✅ API RESPONSE [${response.statusCode}]: ${response.data}');
 
       if (response.statusCode == 200) {
@@ -35,8 +32,21 @@ class ApiRepository {
           data: response.data,
         );
       }
-    }on DioError catch (dioError) {
-      // ❌ Log DioError details
+    } on DioError catch (dioError) {
+      // 👇 Handle 401 token expiration
+      if (dioError.response?.statusCode == 401) {
+        try {
+          print('🔁 Token expired. Refreshing...');
+          await _refreshToken();
+
+          // 👇 Retry the original request with updated token
+          final retryResponse = await request();
+          return retryResponse.data;
+        } catch (e) {
+          throw ApiException('Authentication failed after token refresh.');
+        }
+      }
+
       print('🚨 API ERROR: ${dioError.message}');
       if (dioError.response != null) {
         print('❌ API RESPONSE ERROR: ${dioError.response?.data}');
@@ -46,6 +56,31 @@ class ApiRepository {
       throw ApiException('Unexpected error: $e');
     }
   }
+
+  Future<void> _refreshToken() async {
+    final accessToken = SessionManager.getAccessToken();
+
+    try {
+      final response = await dio.post(
+        '${AppString.baseUrl}api/refresh-token',
+        data: {'refresh_token': accessToken},
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+        }),
+      );
+
+      final newAccessToken = response.data['access_token'];
+
+     // await SessionManager.setAccessToken(newAccessToken);
+
+      print('🔄 Token refreshed successfully');
+    } catch (e) {
+      print('❌ Failed to refresh token: $e');
+      rethrow;
+    }
+  }
+
+
   Future<Map<String, dynamic>> loginUser(String text, String fcmToken) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/login',
@@ -58,12 +93,16 @@ class ApiRepository {
   Future<Map<String, dynamic>> fetchBanner() {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/getbanners',
+      queryParameters: {'access_token': SessionManager.getAccessToken()},
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> GetUserProfile(String userId) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/userprofile',
-      queryParameters: {'user_id': userId},
+      queryParameters: {
+        'user_id': userId,
+        'access_token': SessionManager.getAccessToken()
+      },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> EditUserProfile(
@@ -83,6 +122,7 @@ class ApiRepository {
         'gander': gender,
         'dob': dob,
         'profile_picture': profilePicture,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -92,6 +132,7 @@ class ApiRepository {
       queryParameters: {
         'user_id': userId,
         'fcm_token': fcmToken,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -102,7 +143,8 @@ class ApiRepository {
         'barcode': barcode,
         'store_id': storeId,
         'seller_id': seller_id,
-        'customer_id':customer_id
+        'customer_id':customer_id,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -112,7 +154,8 @@ class ApiRepository {
       queryParameters: {
         'barcode': barcode,
         'store_id': storeId,
-        'customer_id':customer_id
+        'customer_id':customer_id,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -134,6 +177,7 @@ class ApiRepository {
           'note': model.note,
           'store_id': model.seller_id,
         },
+        'access_token': SessionManager.getAccessToken()
       },
       options: Options(headers: {
         'Content-Type': 'application/json',
@@ -141,9 +185,11 @@ class ApiRepository {
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> post_Invoice(Invoice invoice) {
+    final invoiceData = invoice.toJson();
+    invoiceData['access_token'] = SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/invoicebillupload',
-      data: invoice.toJson(),
+      data: invoiceData,
       options: Options(
         headers: {
           'Content-Type': 'application/json',
@@ -152,9 +198,11 @@ class ApiRepository {
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> edit_Invoice(Invoice invoice) {
+    final invoiceData = invoice.toJson();
+    invoiceData['access_token'] = SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/updateitem',
-      data: invoice.toJson(),
+      data: invoiceData,
       options: Options(
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +213,10 @@ class ApiRepository {
   Future<Map<String, dynamic>> invoiceDelete(String invoiceId) {
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/deleteitem',
-      queryParameters: {'invoice_id': invoiceId},
+      queryParameters: {
+        'invoice_id': invoiceId,
+        'access_token': SessionManager.getAccessToken()
+      },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> invoiceList(String userId,int page) {
@@ -175,6 +226,7 @@ class ApiRepository {
         'user_id': userId,
         'page': page,
         'per_page': 10,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -185,13 +237,19 @@ class ApiRepository {
         'user_id': userId,
         'page': page,
         'per_page': 10,
-        'search':query},
+        'search':query,
+        'access_token': SessionManager.getAccessToken()
+      },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> searchDetail(String query, String storeId,String apiName) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/$apiName/',
-      queryParameters: {'term': query,'store_id':storeId},
+      queryParameters: {
+        'term': query,
+        'store_id':storeId,
+        'access_token': SessionManager.getAccessToken()
+      },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> saleList(String userId,int page,String from,String to) async {
@@ -204,6 +262,7 @@ class ApiRepository {
         'range': '',
         'page': page,
         'per_page': 10,
+        'access_token': SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -218,6 +277,7 @@ class ApiRepository {
         'email': model.email,
         'address': model.address,
         'items': model.toApiFormatProductOrder(),
+        'access_token': SessionManager.getAccessToken()
       },
     ));
   }
@@ -225,20 +285,28 @@ class ApiRepository {
   Future<Map<String, dynamic>> saleDelete(String billingid) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/saleldelete/',
-      queryParameters: {'billingid': billingid},
+      queryParameters: {
+        'billingid': billingid,
+        'access_token': SessionManager.getAccessToken()
+      },
     ));
   }
   Future<Map<String, dynamic>> leadgerList(String userId) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/lesarlisthistory/',
-      queryParameters: {'user_id': userId},
+      queryParameters: {
+        'user_id': userId,
+        'access_token': SessionManager.getAccessToken()
+      },
     ));
   }
 
   Future<Map<String, dynamic>> payment(Payment payment, String apiName) {
+    final paymentData = payment.toJson();
+    paymentData['access_token'] = SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/$apiName',
-      data: payment.toJson(),
+      data: paymentData,
       options: Options(
         headers: {'Content-Type': 'application/json'},
       ),
@@ -248,7 +316,10 @@ class ApiRepository {
   Future<Map<String, dynamic>> paymentDelete(String id) {
     return _safeApiCall(() => dio.get(
       '${AppString.baseUrl}api/deletepayment/',
-      queryParameters: {'id': id},
+      queryParameters: {
+        'id': id,
+        'access_token': SessionManager.getAccessToken()
+      },
     ));
   }
   Future<Map<String, dynamic>> invoiceDetail(String invoiceNo, String storeId) {
@@ -257,6 +328,7 @@ class ApiRepository {
       queryParameters: {
         'invoice_no': invoiceNo,
         'store_id': storeId,
+        'access_token': SessionManager.getAccessToken()
       },
     ));
   }
@@ -267,6 +339,7 @@ class ApiRepository {
       queryParameters: {
         'billing_id': billId,
         'store_id': storeId,
+        'access_token': SessionManager.getAccessToken()
       },
     ));
   }
@@ -277,15 +350,18 @@ class ApiRepository {
       queryParameters: {
         'store_id': storeId,
         'page': page,
+        'access_token': SessionManager.getAccessToken()
       },
     ));
   }
 
   Future<Map<String, dynamic>> stockReturn(
       PurchaseReturnModel returnModel, String apiName) {
+    final returnModelData = returnModel.toJson();
+    returnModelData['access_token'] = SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/stockist-returns/$apiName',
-      data: returnModel.toJson(),
+      data: returnModelData,
       options: Options(
         headers: {'Content-Type': 'application/json'},
       ),
@@ -295,14 +371,19 @@ class ApiRepository {
   Future<Map<String, dynamic>> stockReturnDelete(String id) {
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/stockist-returns/delete',
-      queryParameters: {'id': id},
+      queryParameters: {
+        'id': id,
+        'access_token': SessionManager.getAccessToken()
+      },
     ));
   }
   Future<Map<String, dynamic>> saleReturn(
       SaleReturnRequest returnModel, String apiName) {
+    final returnModelData = returnModel.toJson();
+    returnModelData['access_token'] = SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/customer-returns/$apiName',
-      data: returnModel.toJson(),
+      data: returnModelData,
       options: Options(headers: {'Content-Type': 'application/json'}),
     ));
   }
@@ -323,6 +404,7 @@ class ApiRepository {
       'expanse_date': expanseDate,
       'note': note,
       if (id.isNotEmpty) 'id': id,
+      'access_token': SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.post(
@@ -357,6 +439,7 @@ class ApiRepository {
       'store_id': storeId,
       if (status.isNotEmpty) 'status': status,
       if (id.isNotEmpty) 'id': id,
+      'access_token': SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.post(
@@ -373,7 +456,8 @@ class ApiRepository {
       'page': 1,
       'range': range,
       'from_date': '',
-      'to_date': ''
+      'to_date': '',
+      'access_token': SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.get(

@@ -3,6 +3,7 @@ import 'package:PixiDrugs/SaleList/sale_model.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
 
 class SaleListWidget extends StatefulWidget {
@@ -136,46 +137,58 @@ class _SaleListWidgetState extends State<SaleListWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  PopupMenuButton<String>(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16), // Rounded shape
-                    ),
-                    color: AppColors.kWhiteColor, // so gradient shows
-                    elevation: 10,
+                  CustomPopupMenu(
+                    iconSize: screenWidth * 0.05,
+                    backgroundColor: AppColors.kWhiteColor,
                     onSelected: (value) {
-                      if (value == 'print') {
-                        widget.onPrintPressed(sale);
-                      }else if (value == 'share') {
-                        widget.onSharePressed(sale);
-                      }else if (value == 'edit') {
-                        widget.onEditPressed(sale);
-                      } else if (value == 'delete') {
-                        widget.onDeletePressed(sale.invoiceNo!);
-                      }else if (value == 'download') {
-                        widget.onDownloadPressed(sale.invoiceNo!);
+                      switch (value) {
+                        case 'print':
+                          widget.onPrintPressed(sale);
+                          break;
+                        case 'share':
+                          widget.onSharePressed(sale);
+                          break;
+                        case 'edit':
+                          widget.onEditPressed(sale);
+                          break;
+                        case 'delete':
+                          widget.onDeletePressed(sale.invoiceNo!);
+                          break;
+                        case 'download':
+                          widget.onDownloadPressed(sale.invoiceNo!);
+                          break;
                       }
                     },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(value: 'print', height: 30,
-                          padding: EdgeInsets.zero,
-                          child:MenuItem(AppImages.printer,'Print Bill')),
-                      if(sale.customer.phone.isNotEmpty && sale.customer.phone!='no number')
-                      PopupMenuItem(value: 'share',height: 30,
-                          padding: EdgeInsets.zero,
-                          child:MenuItem(AppImages.share,'Share')),
-                      PopupMenuItem(value: 'download',height: 30,
-                          padding: EdgeInsets.zero,
-                          child:MenuItem(AppImages.download,'Download')),
-                      PopupMenuItem(value: 'edit',height: 30,
-                          padding: EdgeInsets.zero,
-                          child:MenuItem(AppImages.edit,'Edit')),
-                      if(role=='owner')
-                      PopupMenuItem(
-                          value: 'delete',height: 30,
-                          padding: EdgeInsets.zero,
-                          child: MenuItem(AppImages.delete,'Delete',color:AppColors.kRedColor)),
+                    items: [
+                      CustomPopupMenuItemData(
+                        value: 'print',
+                        label: 'Print Bill',
+                        iconAsset: AppImages.printer,
+                      ),
+                      if (sale.customer.phone.isNotEmpty && sale.customer.phone != 'no number')
+                        CustomPopupMenuItemData(
+                          value: 'share',
+                          label: 'Share',
+                          iconAsset: AppImages.share,
+                        ),
+                      CustomPopupMenuItemData(
+                        value: 'download',
+                        label: 'Download',
+                        iconAsset: AppImages.download,
+                      ),
+                      CustomPopupMenuItemData(
+                        value: 'edit',
+                        label: 'Edit',
+                        iconAsset: AppImages.edit,
+                      ),
+                      if (role == 'owner')
+                        CustomPopupMenuItemData(
+                          value: 'delete',
+                          label: 'Delete',
+                          iconAsset: AppImages.delete,
+                          textColor: AppColors.kRedColor,
+                        ),
                     ],
-                    icon: Icon(Icons.more_vert, size: screenWidth * 0.05),
                   ),
                   SizedBox(height: screenWidth * 0.015),
                   Container(
@@ -201,18 +214,6 @@ class _SaleListWidgetState extends State<SaleListWidget> {
             ],
           ),
         ),
-      ),
-    );
-  }
-  Widget MenuItem(String icon,String Tittle, {Color color=AppColors.kPrimary}){
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Row(
-        children: [
-          SvgPicture.asset(icon, height: 18,color: color),
-          SizedBox(width: 8),
-          MyTextfield.textStyle_w600(Tittle, 13, AppColors.kPrimary),
-        ],
       ),
     );
   }

@@ -68,6 +68,7 @@ class _ListScreenState extends State<ListScreen>
   DateTime? fromDate;
   DateTime? toDate;
   String selectedRange = '';
+  String selectedPaymentType = '';
 
   @override
   void initState() {
@@ -329,17 +330,18 @@ class _ListScreenState extends State<ListScreen>
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(50)),
             color: AppColors.kWhiteColor,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.35,  // 30% height
+              height: MediaQuery.of(context).size.height * 0.45,  // 30% height
               width: double.infinity,
               child: FilterWidget(
                 initialFrom: fromDate,
                 initialTo: toDate,
                 initialRange: selectedRange,
-                onApply: (from, to, range) {
+                onApply: (from, to, range, paymentType) {
                   setState(() {
                     fromDate = from;
                     toDate = to;
                     selectedRange = range;
+                    selectedPaymentType = paymentType??'';
                   });
                   _fetchRecord(refresh: true);
                   Navigator.pop(context);

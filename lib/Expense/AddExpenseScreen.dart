@@ -29,7 +29,6 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
     'GST Charges',
     'Referrals/Commissions',
     'Office Expenses',
-    'Medicine Purchase',
     'Others'
   ];
   String? selectedCategory='Select Expense Category';
