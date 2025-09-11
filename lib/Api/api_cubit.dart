@@ -53,7 +53,7 @@ class ApiCubit extends Cubit<ApiState> {
 
   UserProfileResponse? get cachedUser => _cachedUserModel;
 
-  Future<void> GetUserData({required String userId, bool useCache = true}) async {
+  Future<void> GetUserData({required String userId,bool useCache = true}) async {
     if (useCache && _cachedUserModel != null) {
       emit(UserProfileLoaded(userModel: _cachedUserModel!));
       return;
@@ -288,10 +288,11 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchSaleList({required String user_id,required int page,required String from,required String to}) async {
+  Future<void> fetchSaleList({required String user_id,required int page,required String from,required String to,required String payment_type,
+  required String filter}) async {
     try {
       emit(SaleListLoading());
-      final response = await apiRepository.saleList(user_id,page,from,to);
+      final response = await apiRepository.saleList(user_id,page,from,to,payment_type,filter);
       final data = response['bills'] as List;
       final list = data.map((json) => SaleModel.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];
@@ -325,13 +326,15 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchLedgerList({required String user_id}) async {
+  Future<void> fetchLedgerList({required String user_id,required int page,required String from,required String to,required String payment_type,
+    required String payment_reason,required String filter}) async {
     try {
       emit(LedgerListLoading());
-      final response = await apiRepository.leadgerList(user_id);
+      final response = await apiRepository.leadgerList(user_id,page,from,to,payment_type,payment_reason,filter);
       final data = response['data'] as List;
       final list = data.map((json) => LedgerModel.fromJson(json)).toList();
-      emit(LedgerListLoaded(leadgerList: list));
+      final last_page = response['pagination']['last_page'];
+      emit(LedgerListLoaded(leadgerList: list,last_page: last_page));
     } catch (e) {
       emit(LedgerListError('Error: $e'));
     }

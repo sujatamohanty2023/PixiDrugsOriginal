@@ -2,6 +2,7 @@ import 'package:PixiDrugs/Ledger/LedgerDetailsPage.dart';
 import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../customWidget/BottomLoader.dart';
 import '../customWidget/GradientInitialsBox.dart';
 
 class LedgerListWidget extends StatefulWidget {
@@ -9,12 +10,16 @@ class LedgerListWidget extends StatefulWidget {
   final List<LedgerModel> items;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
+  final ScrollController? scrollController;
+  final bool hasMoreData;
 
   const LedgerListWidget({
     required this.isLoading,
     required this.items,
     required this.searchQuery,
     required this.onSearchChanged,
+    this.scrollController,
+    required this.hasMoreData,
   });
 
 @override
@@ -27,11 +32,11 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final filteredSales = widget.items
+    final filteredLedger = widget.items
         .where((i) =>
         i.sellerName.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
-
+    final itemCount = filteredLedger.length + (widget.hasMoreData  ? 1 : 0);
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -52,11 +57,14 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
         button_tittle: 'Add New Party',
       )
           : ListView.builder(
+        controller: widget.scrollController,
         padding: EdgeInsets.zero,
-        itemCount: filteredSales.length,
+        itemCount: itemCount,
         itemBuilder: (_, index) {
-          final item = filteredSales[index];
-          return _buildLedgerCard(item, screenWidth,context);
+          if (index >= filteredLedger.length) {
+            return BottomLoader();
+          }
+          return _buildLedgerCard(filteredLedger[index], screenWidth,context);
         },
       ),
     );

@@ -69,11 +69,15 @@ class _ListScreenState extends State<ListScreen>
   DateTime? toDate;
   String selectedRange = '';
   String selectedPaymentType = '';
+  String selectedPaymentReason = '';
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _searchController.addListener(_onSearch);
     _scrollController.addListener(_onScroll);
     _fetchRecord(refresh: true);
   }
@@ -82,6 +86,8 @@ class _ListScreenState extends State<ListScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
+    _searchController.removeListener(_onSearch);
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -105,6 +111,7 @@ class _ListScreenState extends State<ListScreen>
       ListType.saleReturn,
       ListType.expense,
       ListType.staff,
+      ListType.ledger,
     }.contains(widget.type) && searchQuery.isEmpty;
   }
 
@@ -121,12 +128,7 @@ class _ListScreenState extends State<ListScreen>
 
   @override
   void didPopNext() => _fetchRecord();
-
-  Future<void> _fetchRecord({bool refresh = false}) async {
-    final userId = await SessionManager.getParentingId();
-    if (userId == null) return;
-
-    if (refresh) {
+  Future<void> _ClearList() async {
       currentPage = 1;
       hasMoreData = true;
       invoiceList.clear();
@@ -136,6 +138,14 @@ class _ListScreenState extends State<ListScreen>
       saleReturnList.clear();
       expenseList.clear();
       staffList.clear();
+  }
+
+  Future<void> _fetchRecord({bool refresh = false}) async {
+    final userId = await SessionManager.getParentingId();
+    if (userId == null) return;
+
+    if (refresh) {
+      _ClearList();
     }
 
     if (isLoadingMore || !hasMoreData) return;
@@ -151,10 +161,10 @@ class _ListScreenState extends State<ListScreen>
         await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage);
         break;
       case ListType.sale:
-        await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'');
+        await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,filter: searchQuery);
         break;
       case ListType.ledger:
-        await apiCubit.fetchLedgerList(user_id: userId);
+        await apiCubit.fetchLedgerList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,payment_reason:selectedPaymentReason,filter: searchQuery);
         break;
       case ListType.stockReturn:
         await apiCubit.fetchStockReturnList(store_id: userId, page: currentPage);
@@ -243,9 +253,7 @@ class _ListScreenState extends State<ListScreen>
           } else if (state is SaleListLoaded) {
             _updatePaginatedList(saleList, state.saleList, state.last_page);
           } else if (state is LedgerListLoaded) {
-            ledgerList
-              ..clear()
-              ..addAll(state.leadgerList);
+            _updatePaginatedList(ledgerList, state.leadgerList, state.last_page);
           } else if (state is StockReturnListLoaded) {
             _updatePaginatedList(stockReturnList, state.returnList, state.last_page);
           } else if (state is SaleReturnListLoaded) {
@@ -312,6 +320,7 @@ class _ListScreenState extends State<ListScreen>
     return [
       ListType.invoice,
       ListType.sale,
+      ListType.ledger,
       ListType.stockReturn,
       ListType.saleReturn,
       ListType.expense,
@@ -333,19 +342,33 @@ class _ListScreenState extends State<ListScreen>
               height: MediaQuery.of(context).size.height * 0.45,  // 30% height
               width: double.infinity,
               child: FilterWidget(
+                type:widget.type,
                 initialFrom: fromDate,
                 initialTo: toDate,
                 initialRange: selectedRange,
-                onApply: (from, to, range, paymentType) {
+                initialPaymentType:selectedPaymentType,
+                initialPaymentReason: selectedPaymentReason,
+                onApply: (from, to, range, paymentType,paymentReason) {
                   setState(() {
                     fromDate = from;
                     toDate = to;
                     selectedRange = range;
                     selectedPaymentType = paymentType??'';
+                    selectedPaymentReason = paymentReason??'';
                   });
                   _fetchRecord(refresh: true);
                   Navigator.pop(context);
                 },
+                onReset:(){
+                  setState(() {
+                    fromDate = null;
+                    toDate = null;
+                    selectedRange = '';
+                    selectedPaymentType = '';
+                    selectedPaymentReason='';
+                  });
+                  _fetchRecord(refresh: true);
+                }
               ),
             ),
           ),
@@ -362,29 +385,90 @@ class _ListScreenState extends State<ListScreen>
       },
     );
   }
-
-
   Widget _buildSearchBar(double screenWidth) {
     return Padding(
       padding: EdgeInsets.only(left: screenWidth * 0.03,right: screenWidth * 0.03,bottom:screenWidth * 0.03 ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(screenWidth * 0.07),
+          borderRadius: BorderRadius.circular(30),
         ),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: "Search by name",
-            hintStyle: MyTextfield.textStyle(16, Colors.grey, FontWeight.w300),
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
-          ),
-          onChanged: _updateSearchQuery,
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
+            const Icon(Icons.search, color: Colors.grey),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: _getSearchHint(),
+                  hintStyle: MyTextfield.textStyle(
+                      16, Colors.grey, FontWeight.w300),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            if (_searchController.text.isNotEmpty)
+              IconButton(
+                onPressed: _onclearTap,
+                icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+              ),
+          ],
         ),
       ),
     );
   }
+  String _getSearchHint() {
+    switch (widget.type) {
+      case ListType.invoice:
+        return "Search by invoice no./supplier name";
+      case ListType.sale:
+        return "Search by customer name/mobile no.";
+      case ListType.ledger:
+        return "Search by party name";
+      case ListType.stockReturn:
+        return "Search by supplier name";
+      case ListType.saleReturn:
+        return "Search by customer name";
+      case ListType.expense:
+        return "Search by expense title or category";
+      case ListType.staff:
+        return "Search by staff name";
+      default:
+        return "Search";
+    }
+  }
+  void _onSearch() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    setState(() {}); // show clear button
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final query = _searchController.text.trim();
+      String? userId = await SessionManager.getParentingId();
+
+      if (query.isNotEmpty && query.length >= 3 ) {
+        setState(() {
+          searchQuery=query;
+        });
+      }else{
+        searchQuery='';
+        _ClearList();
+      }
+      _fetchRecord(refresh: true);
+    });
+  }
+
+  Future<void> _onclearTap() async {
+    setState(() {
+      _searchController.clear();
+      searchQuery='';
+      _ClearList();
+    });
+    _fetchRecord(refresh: true);
+  }
+
 
   Widget _buildListBody(bool isLoading) {
     switch (widget.type) {
@@ -419,7 +503,9 @@ class _ListScreenState extends State<ListScreen>
       case ListType.ledger:
         return LedgerListWidget(
           items: ledgerList,
-          isLoading: isLoading,
+          isLoading: isLoading && currentPage == 1,
+          hasMoreData: hasMoreData,
+          scrollController: _scrollController,
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
         );

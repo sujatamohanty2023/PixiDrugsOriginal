@@ -29,6 +29,10 @@ class SessionManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_accessTokenKey);
   }
+  static Future<void> setAccessToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_accessTokenKey,token);
+  }
 
   // Load role
   static Future<String?> getRole() async {

@@ -194,20 +194,10 @@ class _SaleListWidgetState extends State<SaleListWidget> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
                     decoration: BoxDecoration(
-                      //color: invoice.status == "Paid" ? Colors.green.shade100 : Colors.red.shade100,
-                      color: Colors.green.shade100,
+                      color: sale.paymentType != "Due" ? Colors.green.shade100 : Colors.red.shade100,
                       borderRadius: BorderRadius.circular(screenWidth * 0.01),
                     ),
-                    child: Text(
-                      //invoice.status,
-                      'Paid',
-                      style: TextStyle(
-                        //color: invoice.status == "Paid" ? Colors.green : Colors.red,
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: screenWidth * 0.03,
-                      ),
-                    ),
+                    child: MyTextfield.textStyle_w400( sale.paymentType,screenWidth * 0.03,sale.paymentType != "Due" ? Colors.green : Colors.red),
                   ),
                 ],
               ),

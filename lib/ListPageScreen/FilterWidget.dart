@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:intl/intl.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
@@ -9,14 +10,18 @@ class FilterWidget extends StatefulWidget {
       DateTime? to,
       String range,
       String? paymentType,
+      String? paymentReason,
       ) onApply;
+  final void Function() onReset;
   final DateTime? initialFrom;
   final DateTime? initialTo;
   final String? initialRange;
   final String? initialPaymentType;
+  final String? initialPaymentReason;
+  final ListType? type;
 
   const FilterWidget({Key? key, required this.onApply, this.initialFrom, this.initialTo,
-    this.initialRange,this.initialPaymentType,}) : super(key: key);
+    this.initialRange,this.initialPaymentType,this.initialPaymentReason, required this.onReset, required this.type}) : super(key: key);
 
   @override
   State<FilterWidget> createState() => _FilterWidgetState();
@@ -27,7 +32,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   DateTime? toDate;
   String selectedRange = 'Today';
   String selectedPaymentType = "Cash";
-  String selectedPaymentStatus='All';
+  String selectedPaymentReason='All';
 
   final List<String> quickRanges = [
     'Today',
@@ -57,6 +62,12 @@ class _FilterWidgetState extends State<FilterWidget> {
     } else {
       selectedRange = 'Today';
       _setDatesForRange(selectedRange);
+    }
+    if (widget.initialPaymentType != null){
+      selectedPaymentType=widget.initialPaymentType??'Cash';
+    }
+    if (widget.initialPaymentReason != null){
+      selectedPaymentReason=widget.initialPaymentReason??'All';
     }
   }
 
@@ -132,9 +143,10 @@ class _FilterWidgetState extends State<FilterWidget> {
     setState(() {
       selectedRange = 'Today';
       selectedPaymentType = "Cash";
-      selectedPaymentStatus='All';
+      selectedPaymentReason='All';
       _setDatesForRange(selectedRange);
     });
+    widget.onReset();
   }
 
   @override
@@ -332,16 +344,16 @@ class _FilterWidgetState extends State<FilterWidget> {
                 ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: PaymentPopupMenu(
-                    label: "Payment Status",
-                    selectedValue: selectedPaymentStatus,
+                  child: widget.type==ListType.ledger?PaymentPopupMenu(
+                    label: "Payment Reason",
+                    selectedValue: selectedPaymentReason,
                     onChanged: (val) {
                       setState(() {
-                        selectedPaymentStatus = val;
+                        selectedPaymentReason = val;
                       });
                     },
-                    items: AppString.paymentStatus,
-                  ),
+                    items: AppString.paymentReason,
+                  ):SizedBox(),
                 ),
               ],
             ),
@@ -377,7 +389,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           return;
                         }
                       }
-                      widget.onApply(fromDate, toDate, selectedRange,selectedPaymentType);
+                      widget.onApply(fromDate, toDate, selectedRange,selectedPaymentType,selectedPaymentReason);
                     },
                     buttonText: 'Apply Filters'),
                   ),

@@ -42,7 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       gstController.text = user!.gstin;
       regController.text = user!.license;
       addressController.text = user!.address;
-      String imageUrl = user!.profilePicture;
+      _imageFile = user!.profilePicture;
     });
   }
 
@@ -67,7 +67,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       },
     );
     setState(() {
-      _UploadUrl = _urlList[0];
+      if(_urlList.isNotEmpty) {
+        _UploadUrl = _urlList[0];
+      }
     });
     if (_urlList.isNotEmpty) {
       print(_UploadUrl);

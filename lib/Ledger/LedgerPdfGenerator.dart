@@ -12,7 +12,7 @@ import 'LedgerModel.dart';
 
 class LedgerPdfGenerator {
   /// 🔹 Internal function to generate and return PDF file path
-  static Future<String> _generateLedgerPdf(LedgerModel ledger) async {
+  static Future<String> _generateLedgerPdf(LedgerModel ledger,UserProfile user) async {
     final pdf = pw.Document();
     final last7 = (ledger.history ?? []).take(7).toList();
 
@@ -34,6 +34,7 @@ class LedgerPdfGenerator {
         build: (context) => _buildLedgerLayout(
           logoBytes: logoBytes,
           ledger: ledger,
+          user:user,
           last7: last7,
           ttf:ttf
         ),
@@ -55,9 +56,9 @@ class LedgerPdfGenerator {
   }
 
   /// 📥 Download and open PDF
-  static Future<void> downloadLedgerPdf(BuildContext context, LedgerModel ledger) async {
+  static Future<void> downloadLedgerPdf(BuildContext context, LedgerModel ledger,UserProfile user) async {
     try {
-      final path = await _generateLedgerPdf(ledger);
+      final path = await _generateLedgerPdf(ledger,user);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("PDF saved to Downloads")),
       );
@@ -70,9 +71,9 @@ class LedgerPdfGenerator {
   }
 
   /// 📤 Share via WhatsApp
-  static Future<void> generateAndShareLedgerPdf(BuildContext context, LedgerModel ledger) async {
+  static Future<void> generateAndShareLedgerPdf(BuildContext context, LedgerModel ledger,UserProfile user) async {
     try {
-      final path = await _generateLedgerPdf(ledger);
+      final path = await _generateLedgerPdf(ledger,user);
       if (ledger.phone.isNotEmpty) {
         await shareFileToWhatsApp(
           phoneNumber: "91${ledger.phone.replaceAll('+91', '')}",
@@ -104,36 +105,67 @@ PixiDrugs
   static pw.Widget _buildLedgerLayout({
     required Uint8List logoBytes,
     required LedgerModel ledger,
+    required UserProfile user,
     required List<History> last7,
     required pw.Font ttf,
   }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Align(
-          alignment: pw.Alignment.topRight,
-          child: pw.Image(pw.MemoryImage(logoBytes), width: 80),
+
+        // 🟦 Header Row with Logo and User Info
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Image(pw.MemoryImage(logoBytes), width: 80),
+                pw.Text(
+                  user.name ?? "-",
+                  style: pw.TextStyle(font: ttf, fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text("Phone: ${user.phoneNumber ?? '-'}", style: pw.TextStyle(fontSize: 12, font: ttf)),
+                pw.Text("Address: ${user.address ?? '-'}", style: pw.TextStyle(fontSize: 12, font: ttf)),
+              ],
+            ),
+          ],
         ),
+
+        pw.SizedBox(height: 4),
+
+        // 🟨 Divider Line
+        pw.Divider(thickness: 1, color: PdfColors.grey),
+
+        pw.SizedBox(height: 10),
+
+        // 🧾 Seller Info
         pw.Text(
           ledger.sellerName ?? "-",
-          style: pw.TextStyle(font: ttf,fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue),
+          style: pw.TextStyle(font: ttf, fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue),
         ),
         pw.SizedBox(height: 8),
         pw.Row(children: [
-          pw.Text("Phone: ", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold,font: ttf,)),
-          pw.Text(ledger.phone ?? "-", style: pw.TextStyle(fontSize: 14,font: ttf,)),
+          pw.Text("Phone: ", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: ttf)),
+          pw.Text(ledger.phone ?? "-", style: pw.TextStyle(fontSize: 14, font: ttf)),
         ]),
         pw.Row(children: [
-          pw.Text("GST No: ", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold,font: ttf,)),
-          pw.Text(ledger.gstNo ?? "-", style: pw.TextStyle(fontSize: 14,font: ttf,)),
+          pw.Text("GST No: ", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: ttf)),
+          pw.Text(ledger.gstNo ?? "-", style: pw.TextStyle(fontSize: 14, font: ttf)),
         ]),
+
         pw.SizedBox(height: 12),
-        _buildLedgerTable(last7,ttf),
+
+        // 📊 Ledger Table and Summary
+        _buildLedgerTable(last7, ttf),
         pw.SizedBox(height: 12),
-        _buildLedgerSummary(ledger,ttf),
+        _buildLedgerSummary(ledger, ttf),
       ],
     );
   }
+
 
   /// 🔹 Ledger Table
   static pw.Widget _buildLedgerTable(List<History> entries, pw.Font ttf) {

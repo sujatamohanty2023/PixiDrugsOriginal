@@ -135,7 +135,7 @@ void AddPurchaseBottomSheet(
                       }
                     },
                   ),
-                SizedBox(height: 15,)
+                SizedBox(height: 30,)
               ],
             ),
           ),

@@ -40,6 +40,7 @@ class UserModel {
   final String fcmToken;
   final String dob;
   final String gander;
+  final String address;
   final int? parentId;
   final String createdAt;
   final String updatedAt;
@@ -60,6 +61,7 @@ class UserModel {
     required this.fcmToken,
     required this.dob,
     required this.gander,
+    required this.address,
     required this.parentId,
     required this.createdAt,
     required this.updatedAt,
@@ -81,7 +83,8 @@ class UserModel {
       rememberToken: ApiParserUtils.parseString(json['remember_token']),
       fcmToken: ApiParserUtils.parseString(json['fcm_token']),
       dob: ApiParserUtils.parseString(json['dob']),
-      gander: ApiParserUtils.parseString(json['gander']), // or gender
+      gander: ApiParserUtils.parseString(json['gander']),
+      address:ApiParserUtils.parseString(json['address']),
       parentId: ApiParserUtils.parseInt(json['parent_id']),
       createdAt: ApiParserUtils.parseString(json['created_at']),
       updatedAt: ApiParserUtils.parseString(json['updated_at']),

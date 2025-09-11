@@ -154,7 +154,7 @@ class _HomeTabState extends State<HomeTab> {
     String? userId = await SessionManager.getParentingId();
     String? role = await SessionManager.getRole();
     if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
+      context.read<ApiCubit>().GetUserData(userId: userId,useCache: false);
     }
 
     await _profileSubscription?.cancel();
@@ -177,7 +177,7 @@ class _HomeTabState extends State<HomeTab> {
     String? userId = await SessionManager.getUserId();
     String? role = await SessionManager.getRole();
     if (role == 'staff' && userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId);
+      context.read<ApiCubit>().GetUserData(userId: userId,);
     }
 
     await _profileSubscription?.cancel();

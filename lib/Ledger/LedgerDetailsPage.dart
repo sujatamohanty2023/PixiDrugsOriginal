@@ -22,6 +22,8 @@ class LedgerDetailsPage extends StatefulWidget {
 }
 
 class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
+  UserProfile? user;
+
   String truncateWords(String text, int wordLimit) {
     List<String> words = text.split(" ");
     if (words.length <= wordLimit) return text;
@@ -39,6 +41,10 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
 
   void loadUserData() async {
     role = await SessionManager.getRole();
+    String? userId = await SessionManager.getUserId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -55,6 +61,10 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
             });
           } else if (state is DeletePaymentError) {
             AppUtils.showSnackBar(context,'Failed: ${state.error}');
+          }else if (state is UserProfileLoaded) {
+            setState(() {
+              user=state.userModel.user;
+            });
           }
         },
         child: Container(
@@ -273,7 +283,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _showTransactionsBottomSheet(context, widget.ledger!);
+                                        _showTransactionsBottomSheet(context);
                                       });
                                       print("Options tapped");
                                     },
@@ -495,7 +505,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () async {
-                                                      await LedgerPdfGenerator.generateAndShareLedgerPdf(context, widget.ledger!);
+                                                      await LedgerPdfGenerator.generateAndShareLedgerPdf(context,  widget.ledger!,user!);
                                                     },
                                                     child: SvgPicture.asset(
                                                       'assets/share.svg',
@@ -529,10 +539,10 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     );
   }
 
-  Future<void> _showTransactionsBottomSheet(BuildContext context, LedgerModel ledger) async {
+  Future<void> _showTransactionsBottomSheet(BuildContext context) async {
 
     double screenWidth = MediaQuery.of(context).size.width;
-    final last7 = (ledger.history ?? []).take(7).toList();
+    final last7 = (widget.ledger!.history ?? []).take(7).toList();
 
     double totalDebit = 0;
     double totalCredit = 0;
@@ -564,7 +574,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               MyTextfield.textStyle_w800(
-                ledger.sellerName ?? "-",
+                widget.ledger!.sellerName ?? "-",
                 screenWidth * 0.038,
                 Colors.black,
               ),
@@ -671,14 +681,14 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         MyTextfield.textStyle_w400('Total Credit:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400( '${ledger.totalCredit}', screenWidth * 0.038, Colors.green,),
+                        MyTextfield.textStyle_w400( '${widget.ledger!.totalCredit}', screenWidth * 0.038, Colors.green,),
                       ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         MyTextfield.textStyle_w400( 'Total Debit:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400( '${ledger.totalDebit}', screenWidth * 0.038, Colors.red,),
+                        MyTextfield.textStyle_w400( '${widget.ledger!.totalDebit}', screenWidth * 0.038, Colors.red,),
                       ],
                     ),
 
@@ -687,7 +697,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         MyTextfield.textStyle_w400('Net Due:', screenWidth * 0.038, Colors.black,),
-                        MyTextfield.textStyle_w400('${ledger.dueAmount}', screenWidth * 0.038, Colors.green,),
+                        MyTextfield.textStyle_w400('${widget.ledger!.dueAmount}', screenWidth * 0.038, Colors.green,),
                       ],
                     ),
 
@@ -701,7 +711,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   Expanded(
                     child: MyElevatedButton(
                       onPressed: () async {
-                        await LedgerPdfGenerator.generateAndShareLedgerPdf(context, widget.ledger!);
+                        await LedgerPdfGenerator.generateAndShareLedgerPdf(context,  widget.ledger!,user!);
                       },
                       buttonText: 'Share',
                     ),
@@ -710,7 +720,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   Expanded(
                     child: MyElevatedButton(
                       onPressed: () async {
-                        await LedgerPdfGenerator.downloadLedgerPdf(context, ledger);
+                        await LedgerPdfGenerator.downloadLedgerPdf(context,  widget.ledger!,user!);
                       },
                       buttonText: 'Download',
                     ),

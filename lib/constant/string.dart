@@ -37,11 +37,10 @@ class AppString {
     PaymentPopupMenuItemData(value: 'UPI', icon: Icons.qr_code),
     PaymentPopupMenuItemData(value: 'Due', icon: Icons.calendar_month),
   ];
-  static List<PaymentPopupMenuItemData> paymentStatus = [
+  static List<PaymentPopupMenuItemData> paymentReason = [
     PaymentPopupMenuItemData(value: 'All', icon: Icons.all_inbox),
-    PaymentPopupMenuItemData(value: 'Pending', icon: Icons.hourglass_empty),
-    PaymentPopupMenuItemData(value: 'Completed', icon: Icons.check_circle_outline),
-    PaymentPopupMenuItemData(value: 'Failed', icon: Icons.error_outline),
+    PaymentPopupMenuItemData(value: 'Credit', icon: Icons.arrow_downward_rounded),
+    PaymentPopupMenuItemData(value: 'Debit', icon: Icons.arrow_upward_rounded),
   ];
 
 }

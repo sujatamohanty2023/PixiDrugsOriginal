@@ -280,7 +280,8 @@ class LedgerListLoading extends ApiState {}
 
 class LedgerListLoaded extends ApiState {
   final List<LedgerModel> leadgerList;
-  LedgerListLoaded({required this.leadgerList});
+  final int last_page;
+  LedgerListLoaded({required this.leadgerList,required this.last_page});
 }
 
 class LedgerListError extends ApiState {

@@ -58,20 +58,17 @@ class ApiRepository {
   }
 
   Future<void> _refreshToken() async {
-    final accessToken = SessionManager.getAccessToken();
 
     try {
-      final response = await dio.post(
+      final response = await dio.get(
         '${AppString.baseUrl}api/refresh-token',
-        data: {'refresh_token': accessToken},
         options: Options(headers: {
           'Content-Type': 'application/json',
         }),
       );
 
-      final newAccessToken = response.data['access_token'];
-
-     // await SessionManager.setAccessToken(newAccessToken);
+      final token = response.data['access_token'];
+      await SessionManager.setAccessToken(token);
 
       print('🔄 Token refreshed successfully');
     } catch (e) {
@@ -91,17 +88,17 @@ class ApiRepository {
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> fetchBanner() {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/getbanners',
-      queryParameters: {'access_token': SessionManager.getAccessToken()},
+      queryParameters: {'access_token': await SessionManager.getAccessToken()},
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> GetUserProfile(String userId) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/userprofile',
       queryParameters: {
         'user_id': userId,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
@@ -113,7 +110,7 @@ class ApiRepository {
       String dob,
       String profilePicture,
       ) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/updateuserprofile',
       queryParameters: {
         'user_id': userId,
@@ -122,45 +119,45 @@ class ApiRepository {
         'gander': gender,
         'dob': dob,
         'profile_picture': profilePicture,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> UpdateFCM(String userId, String fcmToken) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/updatefcmtoken',
       queryParameters: {
         'user_id': userId,
         'fcm_token': fcmToken,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> barcodeScan(String barcode, String storeId,String seller_id,String customer_id) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/barcodepro',
       queryParameters: {
         'barcode': barcode,
         'store_id': storeId,
         'seller_id': seller_id,
         'customer_id':customer_id,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> customerbarcode(String barcode, String storeId,String customer_id) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/customer-returns/customerbarcode',
       queryParameters: {
         'barcode': barcode,
         'store_id': storeId,
         'customer_id':customer_id,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) {
-    return _safeApiCall(() => dio.post(
+    return _safeApiCall(() async => dio.post(
       '${AppString.baseUrl}api/checkout',
       data: {
         'seller_id': model.seller_id,
@@ -177,16 +174,16 @@ class ApiRepository {
           'note': model.note,
           'store_id': model.seller_id,
         },
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
       options: Options(headers: {
         'Content-Type': 'application/json',
       }),
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> post_Invoice(Invoice invoice) {
+  Future<Map<String, dynamic>> post_Invoice(Invoice invoice) async {
     final invoiceData = invoice.toJson();
-    invoiceData['access_token'] = SessionManager.getAccessToken();
+    invoiceData['access_token'] = await SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/invoicebillupload',
       data: invoiceData,
@@ -197,9 +194,9 @@ class ApiRepository {
       ),
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> edit_Invoice(Invoice invoice) {
+  Future<Map<String, dynamic>> edit_Invoice(Invoice invoice) async {
     final invoiceData = invoice.toJson();
-    invoiceData['access_token'] = SessionManager.getAccessToken();
+    invoiceData['access_token'] = await SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/updateitem',
       data: invoiceData,
@@ -211,63 +208,65 @@ class ApiRepository {
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> invoiceDelete(String invoiceId) {
-    return _safeApiCall(() => dio.post(
+    return _safeApiCall(() async => dio.post(
       '${AppString.baseUrl}api/deleteitem',
       queryParameters: {
         'invoice_id': invoiceId,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> invoiceList(String userId,int page) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/invoicelist/',
       queryParameters: {
         'user_id': userId,
         'page': page,
         'per_page': 10,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> stockList(String userId, String apiName,int page,String query) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {
         'user_id': userId,
         'page': page,
         'per_page': 10,
         'search':query,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> searchDetail(String query, String storeId,String apiName) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {
         'term': query,
         'store_id':storeId,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> saleList(String userId,int page,String from,String to) async {
-    return _safeApiCall(() => dio.get(
+  Future<Map<String, dynamic>> saleList(String userId,int page,String from,String to,String payment_type,String filter) async {
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/salelist/',
       queryParameters: {
         'user_id': userId,
         'from_date': from,
         'to_date': to,
         'range': '',
+        'filter':filter,
+        'payment_type':payment_type,
         'page': page,
         'per_page': 10,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> saleEdit(String billingid, OrderPlaceModel model) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/saleupdate',
       queryParameters: {
         'billingid': billingid,
@@ -277,33 +276,41 @@ class ApiRepository {
         'email': model.email,
         'address': model.address,
         'items': model.toApiFormatProductOrder(),
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
 
   Future<Map<String, dynamic>> saleDelete(String billingid) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/saleldelete/',
       queryParameters: {
         'billingid': billingid,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
-  Future<Map<String, dynamic>> leadgerList(String userId) {
-    return _safeApiCall(() => dio.get(
+  Future<Map<String, dynamic>> leadgerList(String userId,int page,String from,String to,String payment_type,String payment_reason,String filter) {
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/lesarlisthistory/',
       queryParameters: {
         'user_id': userId,
-        'access_token': SessionManager.getAccessToken()
+        'from_date': from,
+        'to_date': to,
+        'range': '',
+        'filter':filter,
+        'payment_type':payment_type,
+        'payment_reason':payment_reason,
+        'page': page,
+        'per_page': 10,
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
 
-  Future<Map<String, dynamic>> payment(Payment payment, String apiName) {
+  Future<Map<String, dynamic>> payment(Payment payment, String apiName) async {
     final paymentData = payment.toJson();
-    paymentData['access_token'] = SessionManager.getAccessToken();
+    paymentData['access_token'] = await SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/$apiName',
       data: paymentData,
@@ -314,51 +321,51 @@ class ApiRepository {
   }
 
   Future<Map<String, dynamic>> paymentDelete(String id) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/deletepayment/',
       queryParameters: {
         'id': id,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
   Future<Map<String, dynamic>> invoiceDetail(String invoiceNo, String storeId) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/getinvoicedetails/',
       queryParameters: {
         'invoice_no': invoiceNo,
         'store_id': storeId,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
 
   Future<Map<String, dynamic>> billDetail(String billId, String storeId) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/getsalesetails/',
       queryParameters: {
         'billing_id': billId,
         'store_id': storeId,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
 
   Future<Map<String, dynamic>> fetchList(String storeId, String apiName,int page) {
-    return _safeApiCall(() => dio.get(
+    return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {
         'store_id': storeId,
         'page': page,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
 
   Future<Map<String, dynamic>> stockReturn(
-      PurchaseReturnModel returnModel, String apiName) {
+      PurchaseReturnModel returnModel, String apiName) async {
     final returnModelData = returnModel.toJson();
-    returnModelData['access_token'] = SessionManager.getAccessToken();
+    returnModelData['access_token'] = await SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/stockist-returns/$apiName',
       data: returnModelData,
@@ -369,18 +376,18 @@ class ApiRepository {
   }
 
   Future<Map<String, dynamic>> stockReturnDelete(String id) {
-    return _safeApiCall(() => dio.post(
+    return _safeApiCall(() async => dio.post(
       '${AppString.baseUrl}api/stockist-returns/delete',
       queryParameters: {
         'id': id,
-        'access_token': SessionManager.getAccessToken()
+        'access_token': await SessionManager.getAccessToken()
       },
     ));
   }
   Future<Map<String, dynamic>> saleReturn(
-      SaleReturnRequest returnModel, String apiName) {
+      SaleReturnRequest returnModel, String apiName) async {
     final returnModelData = returnModel.toJson();
-    returnModelData['access_token'] = SessionManager.getAccessToken();
+    returnModelData['access_token'] = await SessionManager.getAccessToken();
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/customer-returns/$apiName',
       data: returnModelData,
@@ -396,7 +403,7 @@ class ApiRepository {
     String id = '',
     String note = '',
     required String apiName,
-  }) {
+  }) async {
     final params = {
       'store_id': storeId,
       'title': title,
@@ -404,7 +411,7 @@ class ApiRepository {
       'expanse_date': expanseDate,
       'note': note,
       if (id.isNotEmpty) 'id': id,
-      'access_token': SessionManager.getAccessToken()
+      'access_token': await SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.post(
@@ -426,7 +433,7 @@ class ApiRepository {
     required String password,
     required String passwordConfirmation,
     required String storeId,
-  }) {
+  }) async {
     final params = {
       'name': name,
       'email': email,
@@ -439,7 +446,7 @@ class ApiRepository {
       'store_id': storeId,
       if (status.isNotEmpty) 'status': status,
       if (id.isNotEmpty) 'id': id,
-      'access_token': SessionManager.getAccessToken()
+      'access_token': await SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.post(
@@ -450,14 +457,14 @@ class ApiRepository {
   }
   Future<Map<String, dynamic>> ReportApi({
     required String storeId,required String range
-  }) {
+  }) async {
     final params = {
       'store_id': storeId,
       'page': 1,
       'range': range,
       'from_date': '',
       'to_date': '',
-      'access_token': SessionManager.getAccessToken()
+      'access_token': await SessionManager.getAccessToken()
     };
 
     return _safeApiCall(() => dio.get(
