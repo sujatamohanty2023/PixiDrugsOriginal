@@ -59,6 +59,7 @@ class _ListScreenState extends State<ListScreen>
   // Lists for different types
   final invoiceList = <Invoice>[];
   final saleList = <SaleModel>[];
+  List<Map<String, dynamic>> summaryItems=[];
   final ledgerList = <LedgerModel>[];
   final stockReturnList = <PurchaseReturnModel>[];
   final saleReturnList = <CustomerReturnsResponse>[];
@@ -167,13 +168,13 @@ class _ListScreenState extends State<ListScreen>
         await apiCubit.fetchLedgerList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,payment_reason:selectedPaymentReason,filter: searchQuery);
         break;
       case ListType.stockReturn:
-        await apiCubit.fetchStockReturnList(store_id: userId, page: currentPage);
+        await apiCubit.fetchStockReturnList(store_id: userId, page: currentPage,from:from??'',to:to??'',reason:selectedPaymentReason,filter: searchQuery);
         break;
       case ListType.saleReturn:
-        await apiCubit.fetchSaleReturnList(store_id: userId, page: currentPage);
+        await apiCubit.fetchSaleReturnList(store_id: userId, page: currentPage,from:from??'',to:to??'',reason:selectedPaymentReason,filter: searchQuery);
         break;
       case ListType.expense:
-        await apiCubit.fetchExpenseList(store_id: userId, page: currentPage);
+        await apiCubit.fetchExpenseList(store_id: userId, page: currentPage,from:from??'',to:to??'',reason:selectedPaymentReason,filter: searchQuery);
         break;
       case ListType.staff:
         await apiCubit.fetchStaffList(store_id: userId, page: currentPage);
@@ -251,6 +252,11 @@ class _ListScreenState extends State<ListScreen>
           if (state is InvoiceListLoaded) {
             _updatePaginatedList(invoiceList, state.invoiceList, state.last_page);
           } else if (state is SaleListLoaded) {
+            summaryItems = [
+              {"title": 'Cash', "value": state.totals['cash']},
+              {"title": 'Upi', "value": state.totals['upi']},
+              {"title": 'Due', "value":state.totals['due']},
+            ];
             _updatePaginatedList(saleList, state.saleList, state.last_page);
           } else if (state is LedgerListLoaded) {
             _updatePaginatedList(ledgerList, state.leadgerList, state.last_page);
@@ -318,12 +324,12 @@ class _ListScreenState extends State<ListScreen>
   }
   bool _isFilterSupported(ListType type) {
     return [
-      ListType.invoice,
       ListType.sale,
       ListType.ledger,
       ListType.stockReturn,
       ListType.saleReturn,
       ListType.expense,
+      //ListType.invoice,
     ].contains(type);
   }
   void _showFilterTopSheet() {
@@ -339,7 +345,6 @@ class _ListScreenState extends State<ListScreen>
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(50)),
             color: AppColors.kWhiteColor,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.45,  // 30% height
               width: double.infinity,
               child: FilterWidget(
                 type:widget.type,
@@ -487,6 +492,7 @@ class _ListScreenState extends State<ListScreen>
       case ListType.sale:
         return SaleListWidget(
           sales: saleList,
+          summaryItems:summaryItems,
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,

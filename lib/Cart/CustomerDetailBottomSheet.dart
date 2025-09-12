@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../ListPageScreen/FilterWidget.dart';
 import '../customWidget/PaymentTypeWidget.dart'; // adjust this import path to your project
 
 class CustomerDetailBottomSheet extends StatefulWidget {
@@ -87,136 +88,136 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
 
     FocusScope.of(context).unfocus();
     widget.onSubmit?.call(
-      name,
-      phone,
-      address,
-      selectedPaymentType,
-      referenceNumberController.text.trim(),
-      referralName,
-      referralPhone,
-      referralAmount,
-      isReferralAmountGiven
+        name,
+        phone,
+        address,
+        selectedPaymentType,
+        referenceNumberController.text.trim(),
+        referralName,
+        referralPhone,
+        referralAmount,
+        isReferralAmountGiven
     );
   }
 
   Widget build(BuildContext context) {
-      return Container(
-        decoration: AppStyles.bg_radius_50_decoration(),
-        child: AnimatedPadding(
-          duration: const Duration(milliseconds: 150),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 10,
-            right: 10,
-            top: 10,
-          ),
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [ // Give space for the skip button
-                      const Text(
-                        'Customer Details',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 15.0),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.kPrimary,
-                                  AppColors.secondaryColor,
-                                ],
-                                stops: [0.0, 1.0],
-                                tileMode: TileMode.clamp,
-                              ),
-                              borderRadius: BorderRadius.circular(50),
-                              border: Border.all(width: 0.5, color: AppColors.secondaryColor),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))
+    return Container(
+      decoration: AppStyles.bg_radius_50_decoration(),
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 150),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 10,
+          right: 10,
+          top: 10,
+        ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [ // Give space for the skip button
+                    const Text(
+                      'Customer Details',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppColors.kPrimary,
+                                AppColors.secondaryColor,
                               ],
+                              stops: [0.0, 1.0],
+                              tileMode: TileMode.clamp,
                             ),
-                            child: GestureDetector(
-                              onTap: _submit,
-                              child: MyTextfield.textStyle_w600(
-                                "Skip",
-                                AppUtils.size_16,
-                                AppColors.kWhiteColor,
-                              ),
+                            borderRadius: BorderRadius.circular(50),
+                            border: Border.all(width: 0.5, color: AppColors.secondaryColor),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))
+                            ],
+                          ),
+                          child: GestureDetector(
+                            onTap: _submit,
+                            child: MyTextfield.textStyle_w600(
+                              "Skip",
+                              AppUtils.size_16,
+                              AppColors.kWhiteColor,
                             ),
                           ),
                         ),
                       ),
+                    ),
 
-                      Column(
-                        children: [
-                          _buildTextField(_nameController, 'Customer Name', TextInputType.name, manadatory: false, validator: null),
-                          const SizedBox(height: 5),
-                          _buildTextField(_phoneController, 'Phone Number', TextInputType.phone,
-                              manadatory: false,
-                              validator: (value) {
-                                if (value != null && value.isNotEmpty && !RegExp(r'^\d{10,}$').hasMatch(value)) {
-                                  return 'Enter valid phone number';
-                                }
-                                return null;
-                              }),
-                          const SizedBox(height: 5),
-                          _buildTextField(_addressController, 'Address', TextInputType.streetAddress,
-                              manadatory: false, maxLines: 1, validator: null),
-                          const SizedBox(height: 5),
-                          PaymentPopupMenu(
-                            label: "Payment Method",
-                            selectedValue: selectedPaymentType,
-                            onChanged: (val) {
-                              setState(() {
-                                selectedPaymentType = val;
-                              });
-                            },
-                            items: AppString.paymentTypes,
+                    Column(
+                      children: [
+                        _buildTextField(_nameController, 'Customer Name', TextInputType.name, manadatory: false, validator: null),
+                        const SizedBox(height: 5),
+                        _buildTextField(_phoneController, 'Phone Number', TextInputType.phone,
+                            manadatory: false,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty && !RegExp(r'^\d{10,}$').hasMatch(value)) {
+                                return 'Enter valid phone number';
+                              }
+                              return null;
+                            }),
+                        const SizedBox(height: 5),
+                        _buildTextField(_addressController, 'Address', TextInputType.streetAddress,
+                            manadatory: false, maxLines: 1, validator: null),
+                        const SizedBox(height: 5),
+                        PaymentPopupMenu(
+                          label: "Payment Method",
+                          selectedValue: selectedPaymentType,
+                          onChanged: (val) {
+                            setState(() {
+                              selectedPaymentType = val;
+                            });
+                          },
+                          items: paymentTypes,
+                        ),
+                        if (selectedPaymentType != "Cash") ...[
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            referenceNumberController,
+                            "Reference Number",
+                            TextInputType.text,
+                            manadatory: false,
+                            validator: null,
                           ),
-                          if (selectedPaymentType != "Cash") ...[
-                            const SizedBox(height: 16),
-                            _buildTextField(
-                              referenceNumberController,
-                              "Reference Number",
-                              TextInputType.text,
-                              manadatory: false,
-                              validator: null,
-                            ),
-                          ],
-                          const SizedBox(height: 5),
-                          _buildTextField(_referralNameController, 'Referral Doctor/Partner Name', TextInputType.name, manadatory:false,validator: null),
-                          const SizedBox(height: 5),
-                          _buildTextField(_referralPhoneController, 'Referral Contact Number', TextInputType.phone, manadatory:false,validator: null),
-                          const SizedBox(height: 5),
-                          _buildTextField(_referralAmountController, 'Referral Amount', TextInputType.number, manadatory:false,validator: null),
-                          const SizedBox(height: 5),
-                          _buildReferralAmountRadioButtons(),
-                          const SizedBox(height: 30),
-                          MyElevatedButton(
-                            buttonText: 'Submit',
-                            onPressed: _submit,
-                          ),
-                          const SizedBox(height: 30),
                         ],
-                      ),
-                    ],
-                  ),
+                        const SizedBox(height: 5),
+                        _buildTextField(_referralNameController, 'Referral Doctor/Partner Name', TextInputType.name, manadatory:false,validator: null),
+                        const SizedBox(height: 5),
+                        _buildTextField(_referralPhoneController, 'Referral Contact Number', TextInputType.phone, manadatory:false,validator: null),
+                        const SizedBox(height: 5),
+                        _buildTextField(_referralAmountController, 'Referral Amount', TextInputType.number, manadatory:false,validator: null),
+                        const SizedBox(height: 5),
+                        _buildReferralAmountRadioButtons(),
+                        const SizedBox(height: 30),
+                        MyElevatedButton(
+                          buttonText: 'Submit',
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
   Widget _buildReferralAmountRadioButtons() {
     return Column(

@@ -4,6 +4,18 @@ import 'package:PixiDrugs/constant/all.dart';
 
 import '../customWidget/PaymentTypeWidget.dart';
 
+List<PaymentPopupMenuItemData> paymentTypes = [
+  PaymentPopupMenuItemData(value: 'Cash', icon: Icons.money),
+  PaymentPopupMenuItemData(value: 'Card', icon: Icons.credit_card_outlined),
+  PaymentPopupMenuItemData(value: 'Bank', icon: Icons.account_balance),
+  PaymentPopupMenuItemData(value: 'UPI', icon: Icons.qr_code),
+  PaymentPopupMenuItemData(value: 'Due', icon: Icons.calendar_month),
+];
+List<PaymentPopupMenuItemData> paymentReason = [
+  PaymentPopupMenuItemData(value: 'All', icon: Icons.all_inbox),
+  PaymentPopupMenuItemData(value: 'Credit', icon: Icons.arrow_downward_rounded),
+  PaymentPopupMenuItemData(value: 'Debit', icon: Icons.arrow_upward_rounded),
+];
 class FilterWidget extends StatefulWidget {
   final void Function(
       DateTime? from,
@@ -21,7 +33,7 @@ class FilterWidget extends StatefulWidget {
   final ListType? type;
 
   const FilterWidget({Key? key, required this.onApply, this.initialFrom, this.initialTo,
-    this.initialRange,this.initialPaymentType,this.initialPaymentReason, required this.onReset, required this.type}) : super(key: key);
+    this.initialRange,this.initialPaymentType='Cash',this.initialPaymentReason='All', required this.onReset, required this.type}) : super(key: key);
 
   @override
   State<FilterWidget> createState() => _FilterWidgetState();
@@ -64,10 +76,10 @@ class _FilterWidgetState extends State<FilterWidget> {
       _setDatesForRange(selectedRange);
     }
     if (widget.initialPaymentType != null){
-      selectedPaymentType=widget.initialPaymentType??'Cash';
+      selectedPaymentType = widget.initialPaymentType!;
     }
     if (widget.initialPaymentReason != null){
-      selectedPaymentReason=widget.initialPaymentReason??'All';
+      selectedPaymentReason = widget.initialPaymentReason!;
     }
   }
 
@@ -151,6 +163,7 @@ class _FilterWidgetState extends State<FilterWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final reasonItems = ReasonMap[widget.type] ?? [];
     return Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient
@@ -164,6 +177,7 @@ class _FilterWidgetState extends State<FilterWidget> {
           top: 30,
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -192,7 +206,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                     children: [
                       MyTextfield.textStyle_w400(
                         "From Date",
-                        AppUtils.size_16,
+                        SizeConfig.screenWidth! *0.035,
                         Colors.black54,
                       ),
                       SizedBox(height: 6),
@@ -207,7 +221,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           ),
                           child: MyTextfield.textStyle_w400(
                               fromDate != null ? _dateFormat.format(fromDate!) : "mm/dd/yyyy",
-                              AppUtils.size_16,
+                              SizeConfig.screenWidth! *0.035,
                               fromDate != null ? Colors.black : Colors.grey
                           ),
                         ),
@@ -221,7 +235,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                     children: [
                       MyTextfield.textStyle_w400(
                         "To Date",
-                        AppUtils.size_16,
+                        SizeConfig.screenWidth! *0.035,
                         Colors.black54,
                       ),
                       SizedBox(height: 6),
@@ -236,7 +250,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                           ),
                           child: MyTextfield.textStyle_w400(
                               toDate != null ? _dateFormat.format(toDate!) : "mm/dd/yyyy",
-                              AppUtils.size_16,
+                              SizeConfig.screenWidth! *0.035,
                               toDate != null ? Colors.black : Colors.grey
                           ),
                         ),
@@ -250,7 +264,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                     children: [
                       MyTextfield.textStyle_w400(
                         "Quick Range",
-                        AppUtils.size_16,
+                        SizeConfig.screenWidth! *0.035,
                         Colors.black54,
                       ),
                       SizedBox(height: 6),
@@ -293,7 +307,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                                 children: [
                                   MyTextfield.textStyle_w400(
                                     item.toUpperCase(),
-                                    15,
+                                    SizeConfig.screenWidth! *0.035,
                                     AppColors.kPrimary,
                                   ),
                                   if (index < quickRanges.length - 1)
@@ -330,7 +344,7 @@ class _FilterWidgetState extends State<FilterWidget> {
             SizedBox(height: 10),
             Row(
               children: [
-                Expanded(
+                _needsPaymentType()?Expanded(
                   child: PaymentPopupMenu(
                     label: "Payment Method",
                     selectedValue: selectedPaymentType,
@@ -339,22 +353,85 @@ class _FilterWidgetState extends State<FilterWidget> {
                         selectedPaymentType = val;
                       });
                     },
-                    items: AppString.paymentTypes,
+                    items: paymentTypes,
                   ),
-                ),
+                ):SizedBox(),
                 SizedBox(width: 12),
-                Expanded(
-                  child: widget.type==ListType.ledger?PaymentPopupMenu(
-                    label: "Payment Reason",
-                    selectedValue: selectedPaymentReason,
-                    onChanged: (val) {
-                      setState(() {
-                        selectedPaymentReason = val;
-                      });
-                    },
-                    items: AppString.paymentReason,
-                  ):SizedBox(),
-                ),
+                _needsReason()?Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MyTextfield.textStyle_w400(
+                        "Reason",
+                        SizeConfig.screenWidth! *0.035,
+                        Colors.black54,
+                      ),
+                      SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.kPrimaryDark, width: 1),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        child: PopupMenuButton<String>(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          color: AppColors.kWhiteColor,
+                          elevation: 8,
+                          onSelected: (value) {
+                            setState(() {
+                              selectedPaymentReason = value;
+                            });
+                          },
+                          itemBuilder: (_) => reasonItems
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+
+                            return PopupMenuItem<String>(
+                              value: item,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  MyTextfield.textStyle_w400(
+                                    item.toUpperCase(),
+                                    SizeConfig.screenWidth! *0.035,
+                                    AppColors.kPrimary,
+                                  ),
+                                  if (index < quickRanges.length - 1)
+                                    Divider(
+                                      color: AppColors.kPrimaryLight,
+                                      height: 4,
+                                      thickness: 1,
+                                    ),
+                                ],
+                              ),
+                            );
+                          })
+                              .toList(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: MyTextfield.textStyle_w400(
+                                  selectedPaymentReason,
+                                  15,
+                                  Colors.black,
+                                ),
+                              ),
+                              Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ):SizedBox(),
               ],
             ),
 
@@ -403,9 +480,50 @@ class _FilterWidgetState extends State<FilterWidget> {
                 ),
               ],
             ),
+            SizedBox(height: 12),
           ],
         ),
       ),
     );
   }
+  bool _needsPaymentType() {
+    return {
+      ListType.sale,
+    }.contains(widget.type);
+  }
+  bool _needsReason() {
+    return ReasonMap.containsKey(widget.type);
+  }
+
+  final Map<ListType, List<String>> ReasonMap = {
+    ListType.stockReturn: [
+      'Expired Product',
+      'Damaged Product',
+      'Wrong Item Delivered',
+      'Excess Quantity',
+      'Other',
+    ],
+    ListType.saleReturn:  [
+      'Expired Product',
+      'Damaged Product',
+      'Wrong Item Delivered',
+      'Excess Quantity',
+      'Other',
+    ],
+    ListType.expense: [
+      'Select Expense Category',
+      'Staff Salaries',
+      'Shop Rent',
+      'Electric Bill',
+      'Fuel',
+      'Food',
+      'GST Charges',
+      'Referrals/Commissions',
+      'Office Expenses',
+      'Others'
+    ],
+    ListType.ledger: ['All','Credit','Debit']
+
+  };
+
 }

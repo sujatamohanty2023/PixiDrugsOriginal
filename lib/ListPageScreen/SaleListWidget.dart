@@ -9,6 +9,7 @@ import '../customWidget/GradientInitialsBox.dart';
 class SaleListWidget extends StatefulWidget {
   final bool isLoading;
   final List<SaleModel> sales;
+  final List<Map<String, dynamic>> summaryItems;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
@@ -23,6 +24,7 @@ class SaleListWidget extends StatefulWidget {
   const SaleListWidget({
     required this.isLoading,
     required this.sales,
+    required this.summaryItems,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onAddPressed,
@@ -58,12 +60,13 @@ class _SaleListWidgetState extends State<SaleListWidget> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final filteredSales = widget.sales
-        .where((i) =>
-        i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
+        .where((i) => i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
         .toList();
-    final itemCount = filteredSales.length + (widget.hasMoreData  ? 1 : 0);
 
-    return  Container(
+    final itemCount = 1 + filteredSales.length + (widget.hasMoreData ? 1 : 0);
+    // 1 for summary, rest for sale items and maybe a BottomLoader
+
+    return Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
         borderRadius: BorderRadius.only(
@@ -72,30 +75,78 @@ class _SaleListWidgetState extends State<SaleListWidget> {
         ),
       ),
       child: widget.isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
+          ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
           : widget.sales.isEmpty
           ? NoItemPage(
         onTap: widget.onAddPressed,
         image: AppImages.no_sale,
         tittle: 'No Sale Record Found',
-        description:
-        "Please add important details about the sale such as cusomer name, products, quantity, total amount, and payment status.",
+        description: "Please add important details about the sale such as customer name, products, quantity, total amount, and payment status.",
         button_tittle: 'Add Sale Record',
       )
-          : ListView.builder(
-        controller: widget.scrollController,
-        padding: EdgeInsets.zero,
-        itemCount: itemCount,
-        itemBuilder: (_, index) {
-          if (index >= filteredSales.length) {
-            return BottomLoader();
-          }
-          return _buildSaleCard(filteredSales[index], screenWidth,context);
-        },
+          : MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView.builder(
+          controller: widget.scrollController,
+          itemCount: itemCount,
+          padding: EdgeInsets.zero,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              // Summary grid
+              return Padding(
+                padding: const EdgeInsets.all( 8.0),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: screenWidth > 600 ? 4 : 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: screenWidth < 360 ? 1.5 : 1.1,
+                  ),
+                  itemCount: widget.summaryItems.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, summaryIndex) {
+                    final item = widget.summaryItems[summaryIndex];
+                    return _buildSummaryContainer(item['title'], item['value']);
+                  },
+                ),
+              );
+            } else if (index == itemCount - 1 && widget.hasMoreData) {
+              return BottomLoader();
+            } else {
+              final sale = filteredSales[index - 1];
+              return _buildSaleCard(sale, screenWidth, context);
+            }
+          },
+      ),
       ),
     );
   }
 
+  Widget _buildSummaryContainer(String title, dynamic value) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    return Container(
+      decoration: BoxDecoration(
+        color: title=='Cash'?Colors.green:title=='Upi'?Colors.orange:Colors.red,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          MyTextfield.textStyle_w600(
+              '₹$value',
+              screenWidth * 0.045,
+              Colors.white),
+          const SizedBox(height: 4),
+          MyTextfield.textStyle_w400(
+              title,
+              screenWidth * 0.035,
+              Colors.white),
+        ],
+      ),
+    );
+  }
   Widget _buildSaleCard(sale, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: (){

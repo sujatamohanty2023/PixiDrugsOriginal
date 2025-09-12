@@ -5,6 +5,7 @@ import 'package:PixiDrugs/Ledger/LedgerModel.dart';
 import 'package:PixiDrugs/Ledger/Payment.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
+import '../ListPageScreen/FilterWidget.dart';
 import '../customWidget/PaymentTypeWidget.dart';
 
 class PaymentOutEntryPage extends StatefulWidget {
@@ -114,7 +115,7 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
                           selectedPaymentType = val;
                         });
                       },
-                      items: AppString.paymentTypes,
+                      items: paymentTypes,
                     ),
                     if (selectedPaymentType != "Cash") ...[
                       const SizedBox(height: 16),

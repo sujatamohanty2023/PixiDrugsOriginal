@@ -242,7 +242,8 @@ class SaleListLoading extends ApiState {}
 class SaleListLoaded extends ApiState {
   final List<SaleModel> saleList;
   final int last_page;
-  SaleListLoaded({required this.saleList,required this.last_page});
+  final Map<String, dynamic> totals;
+  SaleListLoaded({required this.saleList,required this.last_page,required this.totals});
 }
 
 class SaleListError extends ApiState {

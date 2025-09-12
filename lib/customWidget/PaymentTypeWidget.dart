@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/constant/color.dart';
+import 'package:PixiDrugs/customWidget/size_confige.dart';
 import 'package:flutter/material.dart';
 
 import '../constant/utils.dart';
@@ -20,7 +21,10 @@ class PaymentPopupMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedItem = items.firstWhere((item) => item.value == selectedValue);
+    final selectedItem = items.firstWhere(
+          (item) => item.value == selectedValue,
+      orElse: () => items.first,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +74,7 @@ class PaymentPopupMenu extends StatelessWidget {
                         const SizedBox(width: 10),
                         MyTextfield.textStyle_w400(
                           item.value,
-                          AppUtils.size_16,
+                          SizeConfig.screenWidth! *0.035,
                           AppColors.kPrimary,
                         ),
                       ],
@@ -88,7 +92,7 @@ class PaymentPopupMenu extends StatelessWidget {
                     const SizedBox(width: 10),
                     MyTextfield.textStyle_w400(
                       selectedValue,
-                      AppUtils.size_16,
+                      SizeConfig.screenWidth! *0.035,
                       AppColors.kPrimary,
                     ),
                   ],

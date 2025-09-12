@@ -2,6 +2,7 @@ import '../Ledger/Payment.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
 import '../constant/all.dart';
+import '../login/FCMService.dart';
 import 'ApiUtil/api_exception.dart';
 
 class ApiRepository {
@@ -58,16 +59,19 @@ class ApiRepository {
   }
 
   Future<void> _refreshToken() async {
-
     try {
       final response = await dio.get(
-        '${AppString.baseUrl}api/refresh-token',
+        '${AppString.baseUrl}api/refresh',
+        queryParameters: {
+          'token': await SessionManager.getAccessToken(),
+          'fcm_token': await FCMService.getFCMToken()
+        },
         options: Options(headers: {
           'Content-Type': 'application/json',
         }),
       );
 
-      final token = response.data['access_token'];
+      final token = response.data['token'];
       await SessionManager.setAccessToken(token);
 
       print('🔄 Token refreshed successfully');
@@ -295,10 +299,10 @@ class ApiRepository {
       '${AppString.baseUrl}api/lesarlisthistory/',
       queryParameters: {
         'user_id': userId,
-        'from_date': from,
-        'to_date': to,
         'range': '',
         'filter':filter,
+        'from_date': from,
+        'to_date': to,
         'payment_type':payment_type,
         'payment_reason':payment_reason,
         'page': page,
@@ -351,12 +355,17 @@ class ApiRepository {
     ));
   }
 
-  Future<Map<String, dynamic>> fetchList(String storeId, String apiName,int page) {
+  Future<Map<String, dynamic>> fetchList(String storeId, String apiName,int page,{ String from='',String to='',String reason='',String filter=''}) {
     return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: {
         'store_id': storeId,
+        'filter':filter,
+        'from_date': from,
+        'to_date': to,
+        'reason':reason,
         'page': page,
+        'per_page': 10,
         'access_token': await SessionManager.getAccessToken()
       },
     ));

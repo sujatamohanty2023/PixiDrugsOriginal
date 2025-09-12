@@ -296,7 +296,9 @@ class ApiCubit extends Cubit<ApiState> {
       final data = response['bills'] as List;
       final list = data.map((json) => SaleModel.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];
-      emit(SaleListLoaded(saleList: list,last_page: last_page));
+      final totals = response['totals'];
+      print(totals['cash']);
+      emit(SaleListLoaded(saleList: list,last_page: last_page,totals:totals));
     } catch (e) {
       emit(SaleListError('Error: $e'));
     }
@@ -418,10 +420,11 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchStockReturnList({required String store_id,required int page}) async {
+  Future<void> fetchStockReturnList({required String store_id,required int page,required String from,required String to,
+    required String reason,required String filter}) async {
     try {
       emit(StockReturnListLoading());
-      final response = await apiRepository.fetchList(store_id,'stockist-returns',page);
+      final response = await apiRepository.fetchList(store_id,'stockist-returns',page,from:from,to:to,reason:reason,filter:filter);
       final data = response['data'] as List;
       final list = data.map((json) => PurchaseReturnModel.fromJson(json)).toList();
       var last_page=response['meta']['last_page'];
@@ -487,10 +490,11 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchSaleReturnList({required String store_id,required int page}) async {
+  Future<void> fetchSaleReturnList({required String store_id,required int page,required String from,required String to,
+    required String reason,required String filter}) async {
     try {
       emit(SaleReturnListLoading());
-      final response = await apiRepository.fetchList(store_id,'customer-returns',page);
+      final response = await apiRepository.fetchList(store_id,'customer-returns',page,from:from,to:to,reason:reason,filter:filter);
       final data = response['data'] as List;
       final list = data.map((json) => CustomerReturnsResponse.fromJson(json)).toList();
       var last_page=response['last_page'];
@@ -524,10 +528,11 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchExpenseList({required String store_id,required int page}) async {
+  Future<void> fetchExpenseList({required String store_id,required int page,required String from,required String to,
+    required String reason,required String filter}) async {
     try {
       emit(ExpenseListLoading());
-      final response = await apiRepository.fetchList(store_id,'expense',page);
+      final response = await apiRepository.fetchList(store_id,'expense',page,from:from,to:to,reason:reason,filter:filter);
       final data = response['data'] as List;
       final list = data.map((json) => ExpenseResponse.fromJson(json)).toList();
       var last_page=response['last_page'];

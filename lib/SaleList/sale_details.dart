@@ -32,13 +32,13 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
 
   List<InvoiceItem> convertSaleToInvoiceItems(SaleModel sale) {
     return sale.items.map((item) => InvoiceItem(
-      id: item.productId,
-      product: item.productName,
-      unitMrp: item.price.toString(),
-      mrp: item.mrp.toString(),
-      qty: item.quantity,
-      discountSale: item.discount.toString(),
-      unitType: parseUnitType(item.unitType)
+        id: item.productId,
+        product: item.productName,
+        unitMrp: item.price.toString(),
+        mrp: item.mrp.toString(),
+        qty: item.quantity,
+        discountSale: item.discount.toString(),
+        unitType: parseUnitType(item.unitType)
     )).toList();
   }
   UnitType parseUnitType(String unit) {
@@ -129,7 +129,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
                   decoration: BoxDecoration(
-                   gradient: AppColors.myGradient,
+                    gradient: AppColors.myGradient,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(screenWidth * 0.07),
                       topRight: Radius.circular(screenWidth * 0.07),
@@ -145,8 +145,8 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                         const SizedBox(height: 6),
                         /// Address Widget with Edit Option
                         customerDetailWidget(name:name,phone: phone,address: address,
-                            paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
-                            referralAmount: referralAmount,
+                          paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
+                          referralAmount: referralAmount,isSaleCart: widget.edit!,
                           tap: () async {
                             await checkUserData(name, phone, address);
                           },),
@@ -206,11 +206,11 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: widget.edit!
             ? Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                        height: 50,
-                        width: double.infinity,
-                        child: MyElevatedButton(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            height: 50,
+            width: double.infinity,
+            child: MyElevatedButton(
               onPressed: () {
                 if (address != null && address.isNotEmpty) {
                   _UpdateApiCall();
@@ -220,9 +220,9 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
               },
               custom_design: false,
               buttonText: "Update" ,
-                        ),
-                      ),
-            )
+            ),
+          ),
+        )
             : const SizedBox(),
       ),
     );
@@ -231,22 +231,22 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     String? userId = await SessionManager.getParentingId();
 
 
-      if (cartItems.isEmpty) {
-        AppUtils.showSnackBar(context,'Your cart is empty');
-        return;
-      }
+    if (cartItems.isEmpty) {
+      AppUtils.showSnackBar(context,'Your cart is empty');
+      return;
+    }
 
-      final model = OrderPlaceModel(
-        cartItems: cartItems,
-        seller_id: userId!,
-        name: name,
-        phone: phone,
-        email: '',
-        address: address,
-      );
-      print('API URL: ${model.toString()}');
-      _showLoadingDialog(); // Show loading
-      context.read<ApiCubit>().SaleEdit(billingid:billingid.toString(),orderPlaceModel: model);
+    final model = OrderPlaceModel(
+      cartItems: cartItems,
+      seller_id: userId!,
+      name: name,
+      phone: phone,
+      email: '',
+      address: address,
+    );
+    print('API URL: ${model.toString()}');
+    _showLoadingDialog(); // Show loading
+    context.read<ApiCubit>().SaleEdit(billingid:billingid.toString(),orderPlaceModel: model);
 
   }
   void _showLoadingDialog() {

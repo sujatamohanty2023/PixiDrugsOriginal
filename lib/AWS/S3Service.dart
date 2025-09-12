@@ -21,7 +21,7 @@ class S3UploadService {
       } else {
         File imageFile = File(images[i]);
         String fileName =
-            'prescription/${DateTime.now().millisecondsSinceEpoch}_${imageFile.uri.pathSegments.last}';
+            'pixidrugs_profile_pic/${DateTime.now().millisecondsSinceEpoch}_${imageFile.uri.pathSegments.last}';
 
         try {
           await uploadFileToS3(

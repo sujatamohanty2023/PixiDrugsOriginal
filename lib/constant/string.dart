@@ -29,18 +29,4 @@ class AppString {
   static String enterEmail = 'Enter your email';
   static String upDate = 'Update';
 
-
-  static List<PaymentPopupMenuItemData> paymentTypes = [
-    PaymentPopupMenuItemData(value: 'Cash', icon: Icons.money),
-    PaymentPopupMenuItemData(value: 'Card', icon: Icons.credit_card_outlined),
-    PaymentPopupMenuItemData(value: 'Bank', icon: Icons.account_balance),
-    PaymentPopupMenuItemData(value: 'UPI', icon: Icons.qr_code),
-    PaymentPopupMenuItemData(value: 'Due', icon: Icons.calendar_month),
-  ];
-  static List<PaymentPopupMenuItemData> paymentReason = [
-    PaymentPopupMenuItemData(value: 'All', icon: Icons.all_inbox),
-    PaymentPopupMenuItemData(value: 'Credit', icon: Icons.arrow_downward_rounded),
-    PaymentPopupMenuItemData(value: 'Debit', icon: Icons.arrow_upward_rounded),
-  ];
-
 }

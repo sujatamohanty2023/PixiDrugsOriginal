@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/Cart/ReceiptPdfGenerator.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -13,7 +14,7 @@ class ReceiptPrinterPage extends StatefulWidget {
   SaleModel sale;
 
   ReceiptPrinterPage({Key? key, required this.sale, this.scrollController})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<ReceiptPrinterPage> createState() => _ReceiptPrinterPageState();
@@ -146,15 +147,15 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       context: context,
       builder:
           (_) => EditValueDialog(
-            title: 'IP Address',
-            initialValue: printerIp,
-            onSave: (value) {
-              setState(() {
-                printerIp = value;
-              });
-              savePrinterIp(value);
-            },
-          ),
+        title: 'IP Address',
+        initialValue: printerIp,
+        onSave: (value) {
+          setState(() {
+            printerIp = value;
+          });
+          savePrinterIp(value);
+        },
+      ),
     );
   }
 
@@ -311,315 +312,348 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppStyles.bg_radius_50_decoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              controller: widget.scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  children: [
-                    MyTextfield.textStyle_w600(
-                      "Print Details",
-                      AppUtils.size_16,
-                      Colors.black,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    double screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(
+      body: Container(
+        color: AppColors.kPrimary,
+        width: double.infinity,
+        padding: EdgeInsets.only(top: screenWidth * 0.12),
+        // decoration: AppStyles.bg_radius_50_decoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white, size: screenWidth * 0.065),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Text(
+                  'Printer',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: screenWidth * 0.055,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
+                decoration: BoxDecoration(
+                  gradient: AppColors.myGradient,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(screenWidth * 0.07),
+                    topRight: Radius.circular(screenWidth * 0.07),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  controller: widget.scrollController,
+                  child: Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
                       children: [
                         MyTextfield.textStyle_w600(
-                          '',
-                          16,
-                          AppColors.kBlackColor900,
+                          "Print Details",
+                          AppUtils.size_16,
+                          Colors.black,
                         ),
-                        GestureDetector(
-                          onTap: _showManualEntryIPAddress,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: AppColors.myGradient,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: AppColors.kPrimary),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: MyTextfield.textStyle_w600(
-                                "Find IP Address",
-                                AppUtils.size_14,
-                                AppColors.kPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                                MyTextfield.textStyle_w800(
-                                  Medical_Name.toUpperCase(),
-                                  18,
-                                  AppColors.kPrimary,
-                                ),
-                                MyTextfield.textStyle_w400(
-                                  'GSTIN: $Medical_GST',
-                                  16,
-                                  AppColors.kBlackColor900,
-                                ),
-                                MyTextfield.textStyle_w400(
-                                  'Ph: $Medical_Phone',
-                                  16,
-                                  AppColors.kBlackColor900,
-                                ),
-                                MyTextfield.textStyle_w400(
-                                  'Address: $Medical_Address',
-                                  16,
-                                  AppColors.kBlackColor900,
-                                ),
-                        const Divider(),
-
-                        MyTextfield.textStyle_w800(
-                          'Bill No: #${products.invoiceNo}',
-                          18,
-                          AppColors.kPrimary,
-                        ),
-                        MyTextfield.textStyle_w400(
-                          'Date: ${products.date}',
-                          16,
-                          AppColors.kBlackColor900,
-                        ),
-                        MyTextfield.textStyle_w400(
-                          'Customer: $name',
-                          16,
-                          AppColors.kBlackColor900,
-                        ),
-                        MyTextfield.textStyle_w400(
-                          'Phone: $phone',
-                          16,
-                          AppColors.kBlackColor900,
-                        ),
-                        MyTextfield.textStyle_w400(
-                          'Address: $address',
-                          16,
-                          AppColors.kBlackColor900,
-                        ),
-                        MyTextfield.textStyle_w400(
-                          'Payment Mode: $paymentType',
-                          16,
-                          AppColors.kBlackColor900,
-                        ),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                    // Header Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: MyTextfield.textStyle_w600(
-                            'Item',
-                            18,
-                            Colors.black,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: MyTextfield.textStyle_w600(
-                            'Qty',
-                            18,
-                            Colors.black,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: MyTextfield.textStyle_w600(
-                            'MRP',
-                            18,
-                            Colors.black,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: MyTextfield.textStyle_w600(
-                            'Disc',
-                            18,
-                            Colors.black,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: MyTextfield.textStyle_w600(
-                            'Total',
-                            18,
-                            Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-
-                    ...products.items.map((item) {
-                      final subtotal = calculateSubtotal(item);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
+                        const SizedBox(height: 20),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              flex: 2,
-                              child: MyTextfield.textStyle_w300(
-                                item.productName,
-                                16,
-                                AppColors.kBlackColor800,
-                              ),
+                            MyTextfield.textStyle_w600(
+                              '',
+                              16,
+                              AppColors.kBlackColor900,
                             ),
-                            Expanded(
-                              flex: 1,
-                              child: MyTextfield.textStyle_w300(
-                                'x${item.quantity}',
-                                16,
-                                AppColors.kBlackColor800,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: MyTextfield.textStyle_w300(
-                                '₹${item.price}',
-                                16,
-                                AppColors.kBlackColor800,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: MyTextfield.textStyle_w300(
-                                '${item.discount}%',
-                                16,
-                                AppColors.kBlackColor800,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: MyTextfield.textStyle_w300(
-                                '₹${subtotal.toStringAsFixed(2)}',
-                                16,
-                                AppColors.kBlackColor800,
+                            GestureDetector(
+                              onTap: _showManualEntryIPAddress,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.myGradient,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: AppColors.kPrimary),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: MyTextfield.textStyle_w600(
+                                    "Find IP Address",
+                                    AppUtils.size_14,
+                                    AppColors.kPrimary,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }).toList(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            MyTextfield.textStyle_w800(
+                              Medical_Name.toUpperCase(),
+                              18,
+                              AppColors.kPrimary,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'GSTIN: $Medical_GST',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Ph: $Medical_Phone',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Address: $Medical_Address',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            const Divider(),
 
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: MyTextfield.textStyle_w400(
-                        'SubTotal: ₹${calculateItemTotal(products.items).toStringAsFixed(2)}',
-                        16,
-                        Colors.black,
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: MyTextfield.textStyle_w400(
-                        'Total Discount: -₹${calculateTotalDiscount(products.items).toStringAsFixed(2)}',
-                        16,
-                        Colors.black,
-                      ),
-                    ),
-                    const Divider(),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: MyTextfield.textStyle_w400(
-                        'Total: ₹${totalAmount.toStringAsFixed(2)}',
-                        18,
-                        Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: MyTextfield.textStyle_w400(
-                        'PixiDrugs by PixiZip 🙏',
-                        20,
-                        AppColors.kPrimary,
-                      ),
-                    ),
+                            MyTextfield.textStyle_w800(
+                              'Bill No: #${products.invoiceNo}',
+                              18,
+                              AppColors.kPrimary,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Date: ${products.date}',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Customer: $name',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Phone: $phone',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Address: $address',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Payment Mode: $paymentType',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                        // Header Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: MyTextfield.textStyle_w600(
+                                'Item',
+                                18,
+                                Colors.black,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: MyTextfield.textStyle_w600(
+                                'Qty',
+                                18,
+                                Colors.black,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: MyTextfield.textStyle_w600(
+                                'MRP',
+                                18,
+                                Colors.black,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: MyTextfield.textStyle_w600(
+                                'Disc',
+                                18,
+                                Colors.black,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: MyTextfield.textStyle_w600(
+                                'Total',
+                                18,
+                                Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
 
-                    const SizedBox(height: 20),
-                  ],
+                        ...products.items.map((item) {
+                          final subtotal = calculateSubtotal(item);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: MyTextfield.textStyle_w300(
+                                    item.productName,
+                                    16,
+                                    AppColors.kBlackColor800,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: MyTextfield.textStyle_w300(
+                                    'x${item.quantity}',
+                                    16,
+                                    AppColors.kBlackColor800,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: MyTextfield.textStyle_w300(
+                                    '₹${item.price}',
+                                    16,
+                                    AppColors.kBlackColor800,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: MyTextfield.textStyle_w300(
+                                    '${item.discount}%',
+                                    16,
+                                    AppColors.kBlackColor800,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: MyTextfield.textStyle_w300(
+                                    '₹${subtotal.toStringAsFixed(2)}',
+                                    16,
+                                    AppColors.kBlackColor800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+
+                        const Divider(),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: MyTextfield.textStyle_w400(
+                            'SubTotal: ₹${calculateItemTotal(products.items).toStringAsFixed(2)}',
+                            16,
+                            Colors.black,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: MyTextfield.textStyle_w400(
+                            'Total Discount: -₹${calculateTotalDiscount(products.items).toStringAsFixed(2)}',
+                            16,
+                            Colors.black,
+                          ),
+                        ),
+                        const Divider(),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: MyTextfield.textStyle_w400(
+                            'Total: ₹${totalAmount.toStringAsFixed(2)}',
+                            18,
+                            Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: MyTextfield.textStyle_w400(
+                            'PixiDrugs by PixiZip 🙏',
+                            20,
+                            AppColors.kPrimary,
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              left: 16,
-              right: 16,
-              top: 10,
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 16,
+                right: 16,
+                top: 10,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: MyElevatedButton(
+                          buttonText: 'Share',
+                          onPressed: () async {
+                            await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                            context.read<CartCubit>().clearCart(type: CartType.main);
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 20,),
+                      Expanded(
+                        child: MyElevatedButton(
+                            buttonText: 'Thermal Print',
+                            onPressed: () {
+                              _printBill(context);
+                            }
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: MyElevatedButton(
+                          buttonText: 'Download',
+                          onPressed: (){
+                            ReceiptPdfGenerator.downloadPdf(context, widget.sale);
+                            context.read<CartCubit>().clearCart(type: CartType.main);
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 20,),
+                      Expanded(
+                        child: MyElevatedButton(
+                            buttonText: 'Normal Print',
+                            onPressed: () {
+                              _printBill(context);
+                            }
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: MyElevatedButton(
-                        buttonText: 'Share',
-                        onPressed: () async {
-                          await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
-                          context.read<CartCubit>().clearCart(type: CartType.main);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                    SizedBox(width: 20,),
-                    Expanded(
-                      child: MyElevatedButton(
-                        buttonText: 'Thermal Print',
-                        onPressed: () {
-                          _printBill(context);
-                        }
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: MyElevatedButton(
-                        buttonText: 'Download',
-                        onPressed: (){
-                          ReceiptPdfGenerator.downloadPdf(context, widget.sale);
-                          context.read<CartCubit>().clearCart(type: CartType.main);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                    SizedBox(width: 20,),
-                    Expanded(
-                      child: MyElevatedButton(
-                          buttonText: 'Normal Print',
-                          onPressed: () {
-                            _printBill(context);
-                          }
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

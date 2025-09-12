@@ -1,4 +1,5 @@
 import 'package:PixiDrugs/constant/all.dart';
+import '../ListPageScreen/ListScreen.dart';
 import 'DashboardCardModel.dart';
 
 class ReportPage extends StatefulWidget {
@@ -20,7 +21,7 @@ class _ReportPageState extends State<ReportPage> {
 
   final List<DashboardCardModel> cards = [
     DashboardCardModel(title: 'Stock Value', amount: '₹0.00',color:Colors.teal),
-    DashboardCardModel(title: 'cash+Online Balance', amount: '₹0.00',color:Colors.deepOrangeAccent),
+    DashboardCardModel(title: 'Cash+Online Balance', amount: '₹0.00',color:Colors.deepOrangeAccent),
     DashboardCardModel(title: 'Sales Amt.', amount: '₹0.00',color:Colors.blue),
     DashboardCardModel(title: 'Purchase Amt.', amount: '₹0.00',color:Colors.pink),
     DashboardCardModel(title: 'Profit', amount: '₹0.00',color:Colors.deepPurple),
@@ -134,40 +135,51 @@ class _ReportPageState extends State<ReportPage> {
   Widget _buildCard(String title, String amount, Color colorValue) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorValue.withOpacity(0.08),
-        border: Border.all(color: colorValue, width: 0.5),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          MyTextfield.textStyle_w800(amount, screenWidth * 0.04, colorValue),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+        onTap: () {
+          print('Tapped on: $title');
+          if (title == 'Cash+Online Balance') {
+            AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorValue.withOpacity(0.08),
+            border: Border.all(color: colorValue, width: 0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded( // allow long titles to wrap
-                child: MyTextfield.textStyle_w400(
-                  title.toUpperCase(),
-                  screenWidth * 0.032,
-                  colorValue,
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: screenWidth * 0.033,
-                color: colorValue,
+              MyTextfield.textStyle_w800(amount, screenWidth * 0.04, colorValue),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: MyTextfield.textStyle_w400(
+                      title.toUpperCase(),
+                      screenWidth * 0.032,
+                      colorValue,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: screenWidth * 0.033,
+                    color: colorValue,
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
+
   }
 
 }
