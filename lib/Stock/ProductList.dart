@@ -42,6 +42,9 @@ class _ProductListPageState extends State<ProductListPage> {
         case 'Expiry - last to first':
           _products.sort((a, b) => b.expiry.compareTo(a.expiry));
           break;
+        case 'Out of stock':
+          _products.retainWhere((item) => item.stock <= 0);
+          break;
       }
     });
   }
