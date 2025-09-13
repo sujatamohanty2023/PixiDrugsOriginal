@@ -506,7 +506,9 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           onPrintPressed: (sale) => /*_onButtonPrintPressed(context, sale)*/AppRoutes.navigateTo(context,
             ReceiptPrinterPage(sale: sale)),
           onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
-          onDownloadPressed: (sale) => ReceiptPdfGenerator.downloadPdf(context, sale),
+          onDownloadPressed: (sale) => (){
+              ReceiptPdfGenerator.downloadPdf(context, sale);
+          },
           onAddPressed: () {},
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );

@@ -210,9 +210,9 @@ class _SaleListWidgetState extends State<SaleListWidget> {
                         case 'delete':
                           widget.onDeletePressed(sale.invoiceNo!);
                           break;
-                        case 'download':
+                        /*case 'download':
                           widget.onDownloadPressed(sale.invoiceNo!);
-                          break;
+                          break;*/
                       }
                     },
                     items: [
@@ -227,11 +227,11 @@ class _SaleListWidgetState extends State<SaleListWidget> {
                           label: 'Share',
                           iconAsset: AppImages.share,
                         ),
-                      CustomPopupMenuItemData(
+                     /* CustomPopupMenuItemData(
                         value: 'download',
                         label: 'Download',
                         iconAsset: AppImages.download,
-                      ),
+                      ),*/
                       CustomPopupMenuItemData(
                         value: 'edit',
                         label: 'Edit',
