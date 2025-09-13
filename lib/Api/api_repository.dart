@@ -27,6 +27,7 @@ class ApiRepository {
       if (response.statusCode == 200) {
         return response.data;
       } else {
+        print('❌ API ERROR URL: ${response.requestOptions.uri}');
         throw ApiException(
           response.data['message'] ?? 'Unknown server error',
           statusCode: response.statusCode,
@@ -231,16 +232,24 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> stockList(String userId, String apiName,int page,String query) {
-    return _safeApiCall(() async => dio.get(
+  Future<Map<String, dynamic>> stockList(String userId, String apiName,int page,String query,Map<String, String?> filters) async {
+    Map<String, dynamic> queryParameters = {
+      'user_id': userId,
+      'page': page,
+      'per_page': 10,  // Adjust the number of results per page as needed
+      'search': query,
+      'access_token': await SessionManager.getAccessToken(),
+    };
+
+    // Add filters dynamically to the query parameters
+    filters.forEach((key, value) {
+      if (value != null && value.isNotEmpty) {
+        queryParameters['filters[$key]'] = value;
+      }
+    });
+     return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
-      queryParameters: {
-        'user_id': userId,
-        'page': page,
-        'per_page': 10,
-        'search':query,
-        'access_token': await SessionManager.getAccessToken()
-      },
+      queryParameters: queryParameters,
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> searchDetail(String query, String storeId,String apiName) {
@@ -280,6 +289,13 @@ class ApiRepository {
         'email': model.email,
         'address': model.address,
         'items': model.toApiFormatProductOrder(),
+        if (model.note.isNotEmpty) ...{
+        'amount': model.amount,
+        'title': model.title,
+        'expanse_date': DateTime.now().toString(),
+        'note': model.note,
+        'store_id': model.seller_id,
+        },
         'access_token': await SessionManager.getAccessToken()
       },
     ));
@@ -375,6 +391,7 @@ class ApiRepository {
       PurchaseReturnModel returnModel, String apiName) async {
     final returnModelData = returnModel.toJson();
     returnModelData['access_token'] = await SessionManager.getAccessToken();
+    print('API=${returnModelData.toString()}');
     return _safeApiCall(() => dio.post(
       '${AppString.baseUrl}api/stockist-returns/$apiName',
       data: returnModelData,

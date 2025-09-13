@@ -1,5 +1,6 @@
 import '../constant/all.dart';
 import 'ProductTile.dart';
+import 'StockFilterWidget.dart';
 
 class ProductListPage extends StatefulWidget {
   final int flag;
@@ -18,36 +19,12 @@ class _ProductListPageState extends State<ProductListPage> {
   int currentPage = 1;
   bool isLoadingMore = false;
   bool hasMoreData = true;
-  String _selectedFilter='';
 
-  void _applyFilter(String filter) {
-    setState(() {
-      _selectedFilter = filter;
-      switch (filter) {
-        case 'Product name - A to Z':
-          _products.sort((a, b) => a.product.compareTo(b.product));
-          break;
-        case 'Product name - Z to A':
-          _products.sort((a, b) => b.product.compareTo(a.product));
-          break;
-        case 'Stock QTY - High to Low':
-          _products.sort((a, b) => b.stock.compareTo(a.stock));
-          break;
-        case 'Stock QTY - Low to High':
-          _products.sort((a, b) => a.stock.compareTo(b.stock));
-          break;
-        case 'Expiry  - first to last':
-          _products.sort((a, b) => a.expiry.compareTo(b.expiry));
-          break;
-        case 'Expiry - last to first':
-          _products.sort((a, b) => b.expiry.compareTo(a.expiry));
-          break;
-        case 'Out of stock':
-          _products.retainWhere((item) => item.stock <= 0);
-          break;
-      }
-    });
-  }
+  String? sellerName='';
+  String? medicineName='';
+  String? composition='';
+  String? selectedStockStatus='';
+  String? selectedExpiryStatus='';
 
   void _showFilterSheet() {
     showModalBottomSheet(
@@ -55,74 +32,47 @@ class _ProductListPageState extends State<ProductListPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        String selectedSort = _selectedFilter;
-        List<String> sortOptions = [
-          'Product name - A to Z',
-          'Product name - Z to A',
-          'Stock QTY - High to Low',
-          'Stock QTY - Low to High',
-          'Expiry  - first to last',
-          'Expiry - last to first',
-        ];
-
         return StatefulBuilder(builder: (context, setState) {
           return DraggableScrollableSheet(
-            initialChildSize: 0.7,
+            initialChildSize: 0.6,
             minChildSize: 0.4,
-            maxChildSize: 0.9,
+            maxChildSize: 0.6,
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
-                 gradient: AppColors.myGradient,
+                  gradient: AppColors.myGradient,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    const Text("Filter",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: ListView.separated(
-                        controller: scrollController,
-                        itemCount: sortOptions.length,
-                        separatorBuilder: (_, __) => const Divider(),
-                        itemBuilder: (context, index) {
-                          final option = sortOptions[index];
-                          return RadioListTile(
-                            title: Text(option),
-                            value: option,
-                            activeColor: AppColors.kPrimary,
-                            groupValue: selectedSort,
-                            onChanged: (value) {
-                              setState(() {
-                                selectedSort = value.toString();
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child:MyElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          _applyFilter(selectedSort);
-                        },
-                        buttonText: 'Apply',
-                      ),
-                    )
-                  ],
+                child: StockFilterWidget(
+                  onApply: (sellerName, medicineName, composition, stockStatus, expiryStatus) {
+                    setState(() {
+                      // Update the filter parameters
+                      this.sellerName = sellerName;
+                      this.medicineName = medicineName;
+                      this.composition = composition;
+                      this.selectedStockStatus = stockStatus;
+                      this.selectedExpiryStatus = expiryStatus;
+                    });
+                    _fetchStockList(refresh: true);
+                    Navigator.pop(context);  // Close the filter sheet
+                  },
+                  onReset: () {
+                    setState(() {
+                      // Reset all filters
+                      this.sellerName = '';
+                      this.medicineName = '';
+                      this.composition = '';
+                      this.selectedStockStatus = '';  // Default value for stock status
+                      this.selectedExpiryStatus = '';  // Default value for expiry status
+                    });
+                    _fetchStockList(refresh: true);
+                  },
+                  sellerName: sellerName,
+                  medicineName: medicineName,
+                  composition: composition,
+                  stockStatus: selectedStockStatus,
+                  expiryStatus: selectedExpiryStatus,
                 ),
               );
             },
@@ -172,7 +122,17 @@ class _ProductListPageState extends State<ProductListPage> {
 
     final query = _searchController.text.trim();
 
-    if (widget.flag == 1 || widget.flag == 4) {
+    final filters = {
+      'seller': sellerName,
+      'medicine': medicineName,
+      'composition': composition,
+      'stock_status': selectedStockStatus,
+      'expiry_status': selectedExpiryStatus,
+    };
+
+    if (widget.flag == 1) {
+      context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query,filters: filters );
+    }if (widget.flag == 4) {
       context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query);
     } else if (widget.flag == 2) {
       context.read<ApiCubit>().expiredStockList(user_id: userId, page: currentPage, query: query);
@@ -209,19 +169,120 @@ class _ProductListPageState extends State<ProductListPage> {
   void _onAddProduct() {
     AppRoutes.navigateTo(context, AddPurchaseBill());
   }
+  PreferredSizeWidget customAppBar(
+      BuildContext context,
+      TextEditingController searchController,
+      VoidCallback onclearTap,{
+        required int flag,
+      }) {
+    String getTitle(int flag) {
+      switch (flag) {
+        case 1:
+          return 'My Stock';
+        case 2:
+          return 'Expired Stock';
+        case 3:
+          return 'ExpireSoon Stock';
+        case 4:
+          return 'Search Product';
+        default:
+          return 'Stock';
+      }
+    }
 
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(85),
+      child: Container(
+        color: AppColors.kPrimary,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Row(
+                  children: [
+                    if (flag == 2 || flag == 3 || flag == 4)
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context,{'code':'manualAdd'}),
+                        child: SvgPicture.asset(
+                          AppImages.back,
+                          height: 24,
+                          color: AppColors.kWhiteColor,
+                        ),
+                      ),
+                    const SizedBox(width: 10),
+                    MyTextfield.textStyle_w600(
+                      getTitle(flag),
+                      SizeConfig.screenWidth! * 0.045,
+                      Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.screenWidth! *0.02),
+              Padding(
+                padding: const EdgeInsets.only(left:10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            const Icon(Icons.search, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Search Product/Stockiest Name...',
+                                  hintStyle: MyTextfield.textStyle(
+                                      16, Colors.grey, FontWeight.w300),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                            if (searchController.text.isNotEmpty)
+                              IconButton(
+                                onPressed: onclearTap,
+                                icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    flag==1?IconButton(
+                      icon: const Icon(Icons.tune, color: Colors.white),
+                      onPressed:_showFilterSheet,
+                    ):SizedBox(),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.screenWidth! *0.01),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-          // Same as AppBar back arrow
-          Navigator.pop(context, {'code':'manualAdd'});
-          // Return false to prevent default pop (optional, if you already pop manually)
-          return false;
+          if (widget.flag == 4) {
+            Navigator.pop(context, {'code': 'manualAdd'});
+            return false; // Prevent default pop
+          }
+          return true;
         },
         child:  Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBar(context, _searchController, _onclearTap, flag: widget.flag,_showFilterSheet),
+      appBar: customAppBar(context, _searchController, _onclearTap, flag: widget.flag,),
       body: BlocConsumer<ApiCubit, ApiState>(
         listener: (context, state) {
           if (state is StockListLoaded ||
@@ -369,106 +430,5 @@ Widget _buildEmptyPage({required int flag, required VoidCallback onAddProduct}) 
   );
 }
 
-PreferredSizeWidget customAppBar(
-    BuildContext context,
-    TextEditingController searchController,
-    VoidCallback onclearTap,VoidCallback _showFilterSheet,{
-      required int flag,
-    }) {
-  String getTitle(int flag) {
-    switch (flag) {
-      case 1:
-        return 'My Stock';
-      case 2:
-        return 'Expired Stock';
-      case 3:
-        return 'ExpireSoon Stock';
-      case 4:
-        return 'Search Product';
-      default:
-        return 'Stock';
-    }
-  }
-
-  return PreferredSize(
-    preferredSize: const Size.fromHeight(85),
-    child: Container(
-      color: AppColors.kPrimary,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Row(
-                children: [
-                  if (flag == 2 || flag == 3 || flag == 4)
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context,{'code':'manualAdd'}),
-                      child: SvgPicture.asset(
-                        AppImages.back,
-                        height: 24,
-                        color: AppColors.kWhiteColor,
-                      ),
-                    ),
-                  const SizedBox(width: 10),
-                  MyTextfield.textStyle_w600(
-                    getTitle(flag),
-                    SizeConfig.screenWidth! * 0.045,
-                    Colors.white,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: SizeConfig.screenWidth! *0.02),
-            Padding(
-              padding: const EdgeInsets.only(left:10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 12),
-                          const Icon(Icons.search, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: searchController,
-                              decoration: InputDecoration(
-                                hintText: 'Search Product/Stockiest Name...',
-                                hintStyle: MyTextfield.textStyle(
-                                    16, Colors.grey, FontWeight.w300),
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                          if (searchController.text.isNotEmpty)
-                            IconButton(
-                              onPressed: onclearTap,
-                              icon: const Icon(Icons.clear_rounded, color: Colors.grey),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.tune, color: Colors.white),
-                    onPressed:_showFilterSheet,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: SizeConfig.screenWidth! *0.01),
-          ],
-        ),
-      ),
-    ),
-  );
-}
 
 

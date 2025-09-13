@@ -13,6 +13,7 @@ class ExpenseListWidget extends StatefulWidget {
   final VoidCallback onAddPressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
   const ExpenseListWidget({
     required this.isLoading,
     required this.items,
@@ -21,6 +22,7 @@ class ExpenseListWidget extends StatefulWidget {
     required this.onAddPressed,
     this.scrollController,
     required this.hasMoreData,
+    required this.onRefreshRequested,
   });
 
   @override
@@ -28,6 +30,7 @@ class ExpenseListWidget extends StatefulWidget {
 }
 
 class _ExpenseListWidgetState extends State<ExpenseListWidget> {
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +75,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
         ),
         // FAB Positioned at bottom right
           widget.items.isNotEmpty?Positioned(
-            bottom: 16,
+            bottom: 40,
             right: 16,
             child: FloatingActionButton(
               onPressed: widget.onAddPressed,
@@ -86,8 +89,15 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
 
   Widget _buildExpenseCard(ExpenseResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(context, Addexpensescreen(expenseResponse: item));
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => Addexpensescreen(expenseResponse: item)),
+        );
+
+        if (result == true) {
+          widget.onRefreshRequested?.call();
+        }
       },
       child: Card(
         color: Colors.white,

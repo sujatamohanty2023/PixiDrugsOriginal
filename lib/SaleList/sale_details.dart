@@ -1,5 +1,4 @@
 import 'package:PixiDrugs/Cart/CustomerDetailBottomSheet.dart';
-import 'package:PixiDrugs/Cart/address_widget.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/SaleList/sale_model.dart';
 
@@ -59,14 +58,46 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
 
     _recalculateTotals(cartItems);
 
-    if (widget.sale!.customer.name.toLowerCase().contains('referral')) {
-      final cleanedNoteLines = widget.sale!.customer.name
-          .split('\n')
+    if (widget.sale!.expanses.isNotEmpty) {
+      final note = widget.sale!.expanses[0].note;
+
+      final lines = note.split('\n');
+      String? customerName;
+      String? customerPhone;
+      String? referralPerson;
+      String? referralContact;
+      String? referralAmountRaw;
+
+      for (var line in lines) {
+        if (line.startsWith('Customer Name:')) {
+          customerName = line.replaceFirst('Customer Name:', '').trim();
+        } else if (line.startsWith('Customer Contact No.:')) {
+          customerPhone = line.replaceFirst('Customer Contact No.:', '').trim();
+        } else if (line.startsWith('Referral Person:')) {
+          referralPerson = line.replaceFirst('Referral Person:', '').trim();
+        } else if (line.startsWith('Referral Contact No.:')) {
+          referralContact = line.replaceFirst('Referral Contact No.:', '').trim();
+        } else if (line.startsWith('Referral Amount:')) {
+          referralAmountRaw = line.replaceFirst('Referral Amount:', '').trim();
+        }
+      }
+
+      // Set extracted values to your controller/fields
+      _refferralController.text = lines
           .where((line) =>
       !line.startsWith('Customer Name:') &&
-          !line.startsWith('Customer Contact No.:') )
-          .toList();
-      _refferralController.text = cleanedNoteLines.join('\n').trim();
+          !line.startsWith('Customer Contact No.:'))
+          .join('\n')
+          .trim();
+
+      referralName = referralPerson ?? '';
+      referralPhone = referralContact ?? '';
+      var referralAmount1 = (referralAmountRaw != null && referralAmountRaw.toLowerCase() != 'not given')
+          ? referralAmountRaw
+          : '';
+      referralAmount=widget.sale!.expanses[0].amount.toString();
+      isReferralAmountGiven = referralAmount1.isNotEmpty;
+      //_refferralController.text =referralName+"\n"+referralPhone+"\n"+referralAmount+" ${isReferralAmountGiven?'Given':'not Given'}";
     }
   }
   void _recalculateTotals(List<InvoiceItem> cartItems) {
@@ -94,10 +125,10 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     return BlocListener<ApiCubit, ApiState>(
       listener: (context, state) {
         if (state is SaleEditLoaded) {
-          Navigator.pop(context); // Dismiss loading
+          Navigator.pop(context,true); // Dismiss loading
           AppUtils.showSnackBar(context,state.message);
         } else if (state is SaleEditError) {
-          Navigator.pop(context); // Dismiss loading
+          Navigator.pop(context,true); // Dismiss loading
           AppUtils.showSnackBar(context,'Error: ${state.error}');
         }
       },
@@ -148,7 +179,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                           paymentType: paymentType,referenceNumber: referenceNumber,referralName: referralName,referralPhone: referralPhone,
                           referralAmount: referralAmount,isSaleCart: widget.edit!,
                           tap: () async {
-                            await checkUserData(name, phone, address);
+                            await checkUserData();
                           },),
                         SizedBox(height: 6),
 
@@ -215,7 +246,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                 if (address != null && address.isNotEmpty) {
                   _UpdateApiCall();
                 } else {
-                  checkUserData(name, phone, address);
+                  checkUserData();
                 }
               },
               custom_design: false,
@@ -235,7 +266,18 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
       AppUtils.showSnackBar(context,'Your cart is empty');
       return;
     }
-
+    String referralNote = '';
+    if (referralName.isNotEmpty || referralPhone.isNotEmpty) {
+      referralNote = 'Customer Name: $name\n';
+      referralNote += 'Customer Contact No.: $phone\n';
+      referralNote += 'Referral Person: $referralName\n';
+      referralNote += 'Referral Contact No.: $referralPhone\n';
+      if (isReferralAmountGiven && referralAmount.isNotEmpty) {
+        referralNote += 'Referral Amount: ₹$referralAmount Given';
+      } else {
+        referralNote += 'Referral Amount: Not Given';
+      }
+    }
     final model = OrderPlaceModel(
       cartItems: cartItems,
       seller_id: userId!,
@@ -243,6 +285,10 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
       phone: phone,
       email: '',
       address: address,
+      payment_type:paymentType,
+      amount:referralAmount,
+      title:'Referral Bonus',
+      note:referralNote,
     );
     print('API URL: ${model.toString()}');
     _showLoadingDialog(); // Show loading
@@ -259,7 +305,7 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     );
   }
   void _onCartItemTap(InvoiceItem item) {}
-  Future<void> checkUserData(String name, String phone, String address) async {
+  Future<void> checkUserData() async {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.kWhiteColor,
@@ -268,19 +314,25 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
       ),
       constraints: BoxConstraints.loose(Size(
         SizeConfig.screenWidth!,
-        SizeConfig.screenHeight! * 0.60,
+        SizeConfig.screenHeight! * 0.90,
       )),
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.73,
-        minChildSize: 0.73,
-        maxChildSize: 0.85,
+        initialChildSize: 0.95,
+        minChildSize: 0.95,
+        maxChildSize: 0.95,
         builder: (context, scrollController) {
           return CustomerDetailBottomSheet(
             name: name,
             phone: phone,
             address: address,
+            paymentType:paymentType,
+            referenceNumber:referenceNumber,
+            referralName:referralName,
+            referralPhone:referralPhone,
+          referralAmount:referralAmount,
+          isReferralAmountGiven:isReferralAmountGiven,
             scrollController: scrollController,
             onSubmit: (name1, phone1, submittedAddress1,paymentType1, referenceNumber1,
                 referralName1, referralPhone1,referralAmount1,isReferralAmountGiven1) async {

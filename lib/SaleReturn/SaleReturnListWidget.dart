@@ -11,6 +11,7 @@ class SaleReturnListWidget extends StatefulWidget {
   final ValueChanged<String> onSearchChanged;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
 
   const SaleReturnListWidget({
     required this.isLoading,
@@ -19,6 +20,7 @@ class SaleReturnListWidget extends StatefulWidget {
     required this.onSearchChanged,
     this.scrollController,
     required this.hasMoreData,
+    required this.onRefreshRequested,
   });
 
   @override
@@ -70,8 +72,14 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
 
   Widget _buildReturnCard(CustomerReturnsResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(context, ReturnCustomerCart(customerReturnModel:item,detail: true,));
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ReturnCustomerCart(customerReturnModel:item,detail: true,),),
+        );
+        if (result==true) {
+          widget.onRefreshRequested?.call();
+        }
       },
       child: Card(
         color: Colors.white,

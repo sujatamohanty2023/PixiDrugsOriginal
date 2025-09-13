@@ -286,11 +286,25 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                   invoice1 = invoice1.copyWith(sellerAddress: val);
                 });
               })),
-              _buildKeyValueTile("Seller Phone", invoice1.sellerPhone ?? '', onEdit: () => showEditDialog("Seller Phone", invoice1.sellerPhone!, (val) {
-                setState(() {
-                  invoice1 = invoice1.copyWith(sellerPhone: val);
-                });
-              })),
+              _buildKeyValueTile(
+                "Seller Phone",
+                invoice1.sellerPhone ?? '',
+                onEdit: () => showEditDialog(
+                  "Seller Phone",invoice1.sellerPhone ?? '',
+                  (val) {
+                    final normalizedPhone = AppUtils().validateAndNormalizePhone(val);
+
+                    if (normalizedPhone.isEmpty && val.isNotEmpty == true) {
+                      AppUtils.showSnackBar(context, 'Invalid phone number. Please enter a valid 10-digit Indian mobile number.');
+                      return; // Prevent saving invalid data
+                    }
+
+                    setState(() {
+                      invoice1 = invoice1.copyWith(sellerPhone: normalizedPhone);
+                    });
+                  },
+                ),
+              ),
               if (items.isNotEmpty) _buildSectionTitle("📦 Product Details (${items.length})"),
               ...items.asMap().entries.map((entry) => _buildProductCard(entry.value, entry.key)),
               const SizedBox(height: 20),

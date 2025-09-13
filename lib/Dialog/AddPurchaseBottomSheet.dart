@@ -161,12 +161,19 @@ Future<List<File>> cropImages(List<File> files) async {
           activeControlsWidgetColor: AppColors.kPrimary,
           initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,
+          hideBottomControls: false, // ✅ show controls
+          showCropGrid: true,        // ✅ keep grid visible
           aspectRatioPresets: [
             CropAspectRatioPreset.original,
             CropAspectRatioPreset.square,
             CropAspectRatioPreset.ratio4x3,
             CropAspectRatioPreset.ratio16x9,
           ],
+          cropFrameStrokeWidth: 2,    // ✅ makes crop frame clearer
+          cropGridStrokeWidth: 1,
+          cropGridColor: Colors.white.withOpacity(0.5),
+          statusBarColor: Colors.black,
+          backgroundColor: Colors.black.withOpacity(0.8), // ✅ adds dim background instead of full white
         ),
       ],
     );

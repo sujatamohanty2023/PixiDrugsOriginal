@@ -7,6 +7,7 @@ class SaleModel {
   final double totalAmount;
   final double profit;
   final Customer customer;
+  final List<Expanses> expanses;
   final List<SaleItem> items;
 
   SaleModel({
@@ -16,6 +17,7 @@ class SaleModel {
     required this.totalAmount,
     required this.profit,
     required this.customer,
+    required this.expanses,
     required this.items,
   });
 
@@ -27,6 +29,7 @@ class SaleModel {
       totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
       profit: ApiParserUtils.parseDouble(json['profit']),
       customer: Customer.fromJson(json['customer']),
+      expanses: ApiParserUtils.parseList(json['expanses'], (e) => Expanses.fromJson(e)),
       items: ApiParserUtils.parseList(json['items'], (e) => SaleItem.fromJson(e)),
     );
   }
@@ -40,6 +43,7 @@ class SaleModel {
     totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
     profit: 0.0,
     customer: Customer.fromJson(json['customer']),
+    expanses: [],
     items: ApiParserUtils.parseList(json['items'], (item) {
     return SaleItem(
     productId: ApiParserUtils.parseInt(item['product_id']),
@@ -71,6 +75,26 @@ class Customer {
       email: ApiParserUtils.parseString(json['email']),
       phone: ApiParserUtils.parseString(json['phone']),
       address: ApiParserUtils.parseString(json['address']),
+    );
+  }
+}
+
+class Expanses {
+  final int id;
+  final String title;
+  final String note;
+  final double amount;
+  final String date;
+
+  Expanses({required this.id, required this.title, required this.note,required this.amount,required this.date});
+
+  factory Expanses.fromJson(Map<String, dynamic> json) {
+    return Expanses(
+      id: ApiParserUtils.parseInt(json['id']),
+      title: ApiParserUtils.parseString(json['title']),
+      note: ApiParserUtils.parseString(json['note']),
+      amount: ApiParserUtils.parseDouble(json['amount']),
+      date: ApiParserUtils.parseString(json['date']),
     );
   }
 }

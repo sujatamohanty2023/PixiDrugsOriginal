@@ -255,9 +255,9 @@ class SaleEditLoading extends ApiState {}
 
 class SaleEditLoaded extends ApiState {
   final String message;
-  final String billing_id;
+  //final String billing_id;
 
-  SaleEditLoaded({required this.message, required this.billing_id});
+  SaleEditLoaded({required this.message/*, required this.billing_id*/});
 }
 
 class SaleEditError extends ApiState {

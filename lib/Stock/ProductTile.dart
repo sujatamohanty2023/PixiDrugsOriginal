@@ -1,8 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-import '../customWidget/GradientInitialsBox.dart';
-
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;
   ProductTile({super.key, required this.product});

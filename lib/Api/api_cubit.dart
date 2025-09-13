@@ -184,10 +184,16 @@ class ApiCubit extends Cubit<ApiState> {
     try {
       emit(OrderPlaceLoading());
       final response = await apiRepository.PlaceOrderApi(orderPlaceModel);
-      final message = response['message'];
-      final saleModel = SaleModel.fromBillingResponse(response);
 
-      emit(OrderPlaceLoaded(message: message,saleModel: saleModel));
+      final success = response['success'];
+      final message = response['message'];
+      if(success==true) {
+        final saleModel = SaleModel.fromBillingResponse(response);
+        emit(OrderPlaceLoaded(message: message,saleModel: saleModel));
+      }else{
+        emit(OrderPlaceError('Error: $message'));
+      }
+
     } catch (e) {
       emit(OrderPlaceError('Error: $e'));
     }
@@ -249,10 +255,10 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchStockList({required String user_id,required int page,required String query}) async {
+  Future<void> fetchStockList({required String user_id,required int page,required String query, Map<String, String?> filters=const {}}) async {
     try {
       emit(StockListLoading());
-      final response = await apiRepository.stockList(user_id,'stocklist',page,query);
+      final response = await apiRepository.stockList(user_id,'stocklist',page,query,filters);
       final stocks = response['stocks'] as List;
       final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];
@@ -265,7 +271,7 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> expiredStockList({required String user_id,required int page,required String query}) async {
     try {
       emit(ExpiredStockListLoading());
-      final response = await apiRepository.stockList(user_id,'expired',page,query);
+      final response = await apiRepository.stockList(user_id,'expired',page,query,const{});
       final stocks = response['stocks'] as List;
       final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];
@@ -278,7 +284,7 @@ class ApiCubit extends Cubit<ApiState> {
   Future<void> expireSoonStockList({required String user_id,required int page,required String query}) async {
     try {
       emit(ExpireSoonStockListLoading());
-      final response = await apiRepository.stockList(user_id,'expiring',page,query);
+      final response = await apiRepository.stockList(user_id,'expiring',page,query,const{});
       final stocks = response['stocks'] as List;
       final list = stocks.map((json) => InvoiceItem.fromJson(json)).toList();
       final last_page = response['pagination']['last_page'];
@@ -309,9 +315,9 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleEditLoading());
       final response = await apiRepository.saleEdit(billingid,orderPlaceModel);
       final data = response['message'];
-      final billing_id = response['billing_id'];
+      //final billing_id = response['billing_id'];
 
-      emit(SaleEditLoaded(message: data, billing_id: billing_id));
+      emit(SaleEditLoaded(message: data/*, billing_id: billing_id*/));
     } catch (e) {
       emit(SaleEditError('Error: $e'));
     }
@@ -397,10 +403,9 @@ class ApiCubit extends Cubit<ApiState> {
       emit(StockReturnEditLoading());
       final response = await apiRepository.stockReturn(returnModel,'update');
       final success = response['success'];
-      String error='';
+      final message = response['message'];
       if(!success){
-        error = response['error'];
-        emit(StockReturnEditError('Error: $error'));
+        emit(StockReturnEditError('Error: $message'));
       }else {
         emit(StockReturnEditLoaded(success: success));
       }
@@ -478,10 +483,9 @@ class ApiCubit extends Cubit<ApiState> {
       emit(SaleReturnEditLoading());
       final response = await apiRepository.saleReturn(returnModel,'update');
       final success = response['success'];
-      String error='';
+      final message = response['message'];
       if(!success){
-        error = response['error'];
-        emit(SaleReturnEditError('Error: $error'));
+        emit(SaleReturnEditError('Error: $message'));
       }else {
         emit(SaleReturnEditLoaded(success: success));
       }

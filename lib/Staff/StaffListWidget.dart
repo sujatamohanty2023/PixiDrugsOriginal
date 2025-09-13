@@ -12,6 +12,7 @@ class StaffListWidget extends StatefulWidget {
   final VoidCallback onAddPressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
   const StaffListWidget({
     required this.isLoading,
     required this.list,
@@ -20,6 +21,7 @@ class StaffListWidget extends StatefulWidget {
     required this.onAddPressed,
     this.scrollController,
     required this.hasMoreData,
+  required this.onRefreshRequested,
   });
 
   @override
@@ -70,7 +72,7 @@ class _StaffListWidgetState extends State<StaffListWidget> {
           ),
           // FAB Positioned at bottom right
           widget.list.isNotEmpty?Positioned(
-            bottom: 16,
+            bottom: 40,
             right: 16,
             child: FloatingActionButton(
               onPressed: widget.onAddPressed,
@@ -84,8 +86,14 @@ class _StaffListWidgetState extends State<StaffListWidget> {
 
   Widget _buildStaffCard(StaffModel item, double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(context, AddStaffScreen(staff: item));
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AddStaffScreen(staff: item),),
+        );
+        if (result==true) {
+          widget.onRefreshRequested?.call();
+        }
       },
       child: Card(
         color: Colors.white,

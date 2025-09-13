@@ -20,6 +20,7 @@ class SaleListWidget extends StatefulWidget {
   final Function(SaleModel sale) onDownloadPressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
 
   const SaleListWidget({
     required this.isLoading,
@@ -35,6 +36,7 @@ class SaleListWidget extends StatefulWidget {
     required this.onDownloadPressed,
     this.scrollController,
     required this.hasMoreData,
+    required this.onRefreshRequested,
     Key? key,
   }) : super(key: key);
 
@@ -82,7 +84,7 @@ class _SaleListWidgetState extends State<SaleListWidget> {
         image: AppImages.no_sale,
         tittle: 'No Sale Record Found',
         description: "Please add important details about the sale such as customer name, products, quantity, total amount, and payment status.",
-        button_tittle: 'Add Sale Record',
+        button_tittle: /*'Add Sale Record'*/'',
       )
           : MediaQuery.removePadding(
         context: context,
@@ -149,11 +151,14 @@ class _SaleListWidgetState extends State<SaleListWidget> {
   }
   Widget _buildSaleCard(sale, double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
-          SaleDetailsPage(sale: sale, edit: false),
+          MaterialPageRoute(builder: (context) => SaleDetailsPage(sale: sale, edit: false),),
         );
+        if (result==true) {
+          widget.onRefreshRequested?.call();
+        }
       },
       child: Card(
         color: Colors.white,

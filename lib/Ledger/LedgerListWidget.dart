@@ -12,6 +12,7 @@ class LedgerListWidget extends StatefulWidget {
   final ValueChanged<String> onSearchChanged;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
 
   const LedgerListWidget({
     required this.isLoading,
@@ -20,6 +21,7 @@ class LedgerListWidget extends StatefulWidget {
     required this.onSearchChanged,
     this.scrollController,
     required this.hasMoreData,
+    required this.onRefreshRequested,
   });
 
 @override
@@ -54,7 +56,7 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
         tittle: 'No Ledger Record Found',
         description:
         "Please add important details about the new party such as name, address, GSTIN, total due amount",
-        button_tittle: 'Add New Party',
+        button_tittle: /*'Add New Party'*/'',
       )
           : ListView.builder(
         controller: widget.scrollController,
@@ -72,11 +74,14 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
 
   Widget _buildLedgerCard(LedgerModel item, double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        AppRoutes.navigateTo(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
-          LedgerDetailsPage(ledger: item),
+          MaterialPageRoute(builder: (context) => LedgerDetailsPage(ledger: item),),
         );
+        if (result==true) {
+          widget.onRefreshRequested?.call();
+        }
       },
       child: Card(
         color: Colors.white,

@@ -47,8 +47,7 @@ class ListScreen extends StatefulWidget {
   State<ListScreen> createState() => _ListScreenState();
 }
 
-class _ListScreenState extends State<ListScreen>
-    with WidgetsBindingObserver, RouteAware {
+class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, RouteAware {
   String searchQuery = "";
   final ScrollController _scrollController = ScrollController();
 
@@ -124,7 +123,10 @@ class _ListScreenState extends State<ListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _fetchRecord();
+    if (state == AppLifecycleState.resumed) {
+      print("API=resume");
+      _fetchRecord(refresh: true);
+    }
   }
 
   @override
@@ -488,6 +490,7 @@ class _ListScreenState extends State<ListScreen>
           onAddPressed: _onAddInvoicePressed,
           onDeletePressed: (id) { _showDeleteDialog(context, id); },
           onEditPressed: (inv) => AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)),
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.sale:
         return SaleListWidget(
@@ -505,6 +508,7 @@ class _ListScreenState extends State<ListScreen>
           onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
           onDownloadPressed: (sale) => ReceiptPdfGenerator.downloadPdf(context, sale),
           onAddPressed: () {},
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.ledger:
         return LedgerListWidget(
@@ -514,6 +518,7 @@ class _ListScreenState extends State<ListScreen>
           scrollController: _scrollController,
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.stockReturn:
         return StockReturnListWidget(
@@ -523,6 +528,7 @@ class _ListScreenState extends State<ListScreen>
           scrollController: _scrollController,
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.saleReturn:
         return SaleReturnListWidget(
@@ -532,6 +538,7 @@ class _ListScreenState extends State<ListScreen>
           scrollController: _scrollController,
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.expense:
         return ExpenseListWidget(
@@ -542,6 +549,7 @@ class _ListScreenState extends State<ListScreen>
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
           onAddPressed: _onAddExpense,
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.staff:
         return StaffListWidget(
@@ -552,6 +560,7 @@ class _ListScreenState extends State<ListScreen>
           searchQuery: searchQuery,
           onSearchChanged: _updateSearchQuery,
           onAddPressed: _onAddStaff,
+          onRefreshRequested: () => _fetchRecord(refresh: true),
         );
     }
   }
@@ -561,11 +570,25 @@ class _ListScreenState extends State<ListScreen>
   }
 
   Future<void> _onAddExpense() async {
-    AppRoutes.navigateTo(context, Addexpensescreen());
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => Addexpensescreen()),
+    );
+
+    if (result == true) {
+      _fetchRecord(refresh: true);
+    }
   }
 
   Future<void> _onAddStaff() async {
-    AppRoutes.navigateTo(context, AddStaffScreen(add: true));
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AddStaffScreen(add: true)),
+    );
+
+    if (result == true) {
+      _fetchRecord(refresh: true);
+    }
   }
 
   Future<void> _setSelectedImage(List<File> files) async {

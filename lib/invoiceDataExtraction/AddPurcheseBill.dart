@@ -177,35 +177,27 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           var jsonData = response.data['data'];
           print("Raw Data: ${jsonData.runtimeType} - $jsonData");
 
-          List<dynamic> invoiceJsonList;
-
+          final List<InvoiceData> data = [];
           if (jsonData is List) {
-            invoiceJsonList = jsonData;
+            for (var fileEntry in jsonData) {
+              if (fileEntry is List) {
+                for (var invoiceJson in fileEntry) {
+                  if (invoiceJson is Map<String, dynamic>) {
+                    data.add(InvoiceData.fromJson(invoiceJson));
+                  }
+                }
+              } else if (fileEntry is Map<String, dynamic>) {
+                // Handle case where there's no outer list (single file)
+                data.add(InvoiceData.fromJson(fileEntry));
+              }
+            }
           } else if (jsonData is Map<String, dynamic>) {
-            invoiceJsonList = [jsonData];
+            data.add(InvoiceData.fromJson(jsonData));
           } else {
             print("⚠️ Unexpected data format: ${jsonData.runtimeType}");
             throw Exception("API returned unexpected data format.");
           }
-
-          final List<InvoiceData> data = <InvoiceData>[];
-          for (var innerList in invoiceJsonList) {
-            if (innerList is List && innerList.isNotEmpty) {
-              // Assume the first element of the inner list is the invoice data map
-              final invoiceMap = innerList[0];
-              if (invoiceMap is Map<String, dynamic>) {
-                data.add(InvoiceData.fromJson(invoiceMap));
-              } else {
-                print("⚠️ Inner list element is not a Map: $invoiceMap");
-                // Optionally skip or throw
-              }
-            } else {
-              print("⚠️ Expected a non-empty List, got: $innerList");
-              // Optionally skip or throw
-            }
-          }
-          // --- FIX END ---
-
+          // Convert to internal model
           for (var item in data) {
             final invoice = convertFromOcrInvoiceData(item);
             allInvoices.add(invoice);
@@ -296,7 +288,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         total: item.total.toString(),
         discountType: DiscountType.percent,
         sellerName: data.seller.name ?? '',
-        sellerPhone: data.seller.phone ?? '',
+        sellerPhone: AppUtils().validateAndNormalizePhone(data.seller.phone) ,
       );
     }).toList();
 
@@ -310,7 +302,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       sellerName: data.seller.name ?? '',
       sellerGstin: data.seller.gstin ?? '',
       sellerAddress: data.seller.address ?? '',
-      sellerPhone: data.seller.phone ?? '',
+      sellerPhone: AppUtils().validateAndNormalizePhone(data.seller.phone),
       netAmount: netAmount.toStringAsFixed(2),
       items: items,
     );
@@ -843,4 +835,5 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       ),
     );
   }
+
 }

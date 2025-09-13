@@ -1,5 +1,4 @@
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import 'ExpenseResponse.dart';
@@ -158,7 +157,7 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
           if (state is ExpenseAddLoaded) {
             setState(() {
               if(state.success) {
-                Navigator.pop(context); // Use caution here
+                Navigator.pop(context,true); // Use caution here
                 AppUtils.showSnackBar(context,'Successfully Add Expense');
               }else{
               AppUtils.showSnackBar(context,'Failed to add Expense');
@@ -170,7 +169,7 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
           }else if (state is ExpenseEditLoaded) {
             setState(() {
               if(state.success) {
-                Navigator.pop(context); // Use caution here
+                Navigator.pop(context,true); // Use caution here
                 AppUtils.showSnackBar(context,'Successfully Updated');
               }else{
           AppUtils.showSnackBar(context,'Failed to Update');
@@ -198,7 +197,9 @@ class _AddexpensescreenState extends State<Addexpensescreen> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () {
+                              Navigator.pop(context); // Explicitly pass `true` when back is clicked
+                            },
                             child: Icon(Icons.arrow_back, color: Colors.white, size: 25),
                           ),
                           SizedBox(width: 10),

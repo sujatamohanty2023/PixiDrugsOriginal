@@ -13,6 +13,7 @@ class InvoiceListWidget extends StatefulWidget {
   final Function(int) onDeletePressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
+  final VoidCallback? onRefreshRequested;
 
   const InvoiceListWidget({
     required this.isLoading,
@@ -24,6 +25,7 @@ class InvoiceListWidget extends StatefulWidget {
     required this.onEditPressed,
     this.scrollController,
     required this.hasMoreData,
+    required this.onRefreshRequested,
     Key? key,
   }) : super(key: key);
 
@@ -125,8 +127,15 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
 
   Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index) {
     return GestureDetector(
-      onTap: () => AppRoutes.navigateTo(
-          context, InvoiceSummaryPage(details: true, invoice: invoice)),
+      onTap: () => () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => InvoiceSummaryPage(details: true, invoice: invoice)),
+        );
+        if (result==true) {
+          widget.onRefreshRequested?.call();
+        }
+      },
       child: Card(
         color: AppColors.kWhiteColor,
         margin: EdgeInsets.symmetric(

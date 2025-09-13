@@ -115,7 +115,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully retrun to stock');
               context.read<CartCubit>().clearCart(type: CartType.main);
-              Navigator.pop(context);
+              Navigator.pop(context,true);
             }else{
               AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
             }
@@ -125,7 +125,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully Updated');
               context.read<CartCubit>().clearCart(type: CartType.main);
-              Navigator.pop(context);
+              Navigator.pop(context,true);
             }else{
               AppUtils.showSnackBar(context,'Failed to Update');
             }

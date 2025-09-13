@@ -140,7 +140,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
             if (state is StaffAddLoaded) {
               AppUtils.showSnackBar(context,state.message);
               if(state.status=='success') {
-                Navigator.pop(context);
+                Navigator.pop(context,true);
               }
             } else if (state is StaffAddError) {
               Navigator.pop(context); // Use caution here
@@ -148,7 +148,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
             }else if (state is StaffEditLoaded) {
               AppUtils.showSnackBar(context,state.message);
               if(state.status=='success') {
-                Navigator.pop(context);
+                Navigator.pop(context,true);
               }
             } else if (state is StaffEditError) {
               Navigator.pop(context); // Use caution here
@@ -285,7 +285,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                             _buildTextField(
                                 addressController, 'Address of Staff', TextInputType.text,
                                 maxLines: 3),
-                            const SizedBox(height: 15),
+                           /* const SizedBox(height: 15),
                             MyTextfield.textStyle_w600("Post of Staff", AppUtils.size_16, Colors.black),
                             SizedBox(height: 6),
                             DropdownButtonFormField<String>(
@@ -336,7 +336,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                                   });
                                 },
                               );
-                            }).toList(),
+                            }).toList(),*/
                             const SizedBox(height: 15),
                             MyTextfield.textStyle_w600("Status", 14, Colors
                                 .black),

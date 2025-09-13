@@ -60,7 +60,7 @@ class PurchaseReturnModel {
   }
   @override
   String toString() {
-    return 'PurchaseReturnModel('
+    return ''
         'id: $id, '
         'storeId: $storeId, '
         'invoicePurchaseId: $invoicePurchaseId, '
@@ -134,7 +134,7 @@ class ReturnItemModel {
   }
   @override
   String toString() {
-    return 'ReturnItemModel('
+    return ''
         'id: $id, '
         'productId: $productId, '
         'productName: $productName, '

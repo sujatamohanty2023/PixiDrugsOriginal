@@ -6,12 +6,14 @@ import '../customWidget/PaymentTypeWidget.dart'; // adjust this import path to y
 
 class CustomerDetailBottomSheet extends StatefulWidget {
   final ScrollController scrollController;
+  String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
+  bool isReferralAmountGiven=false;
   final Function(String name, String phone, String address,String paymentType,
       String referenceNumber, String referralName, String referralPhone,String referralAmount,bool isReferralAmountGiven)? onSubmit;
 
-  const CustomerDetailBottomSheet({Key? key, this.onSubmit, String? name, String? phone, String? address,
-    String? paymentType, String? referenceNumber, String? referralName, String? referralPhone,String? referralAmount,
-    required this.scrollController,}) : super(key: key);
+   CustomerDetailBottomSheet({Key? key, this.onSubmit, this.name='', this.phone='', this.address='',
+    this.paymentType='', this.referenceNumber='', this.referralName='', this.referralPhone='',this.referralAmount='',
+  this.isReferralAmountGiven=false,required this.scrollController,}) : super(key: key);
 
   @override
   _CustomerDetailBottomSheetState createState() => _CustomerDetailBottomSheetState();
@@ -39,6 +41,20 @@ class _CustomerDetailBottomSheetState extends State<CustomerDetailBottomSheet> {
     _referralPhoneController.dispose();
     _referralAmountController.dispose();
     super.dispose();
+  }
+  @override
+  void initState() {
+    super.initState();
+
+    _nameController.text = widget.name;
+    _phoneController.text = widget.phone;
+    _addressController.text = widget.address;
+    referenceNumberController.text = widget.referenceNumber;
+    _referralNameController.text = widget.referralName;
+    _referralPhoneController.text = widget.referralPhone;
+    _referralAmountController.text = widget.referralAmount;
+    isReferralAmountGiven = widget.isReferralAmountGiven;
+    selectedPaymentType = widget.paymentType.isNotEmpty ? widget.paymentType : "Cash";
   }
 
   Future<void> _submit() async {

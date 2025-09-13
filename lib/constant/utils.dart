@@ -179,5 +179,44 @@ class AppUtils {
     }
     return 0;
   }
+  String validateAndNormalizePhone(String? phone) {
+    if (phone == null || phone.trim().isEmpty) return '';
+
+    // Remove all non-digit characters except '+' at start
+    String cleaned = phone.trim().replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Handle international format (+91...)
+    if (cleaned.startsWith('+')) {
+      if (cleaned.length == 12 && cleaned.substring(1).length == 10) {
+        return cleaned; // e.g., +919876543210
+      } else if (cleaned.length == 13 && cleaned.substring(1, 3) == '91') {
+        return '+91${cleaned.substring(3)}'; // Normalize +9191... → +91...
+      }
+    }
+
+    // Handle local format: starts with 0
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.substring(1);
+    }
+
+    // Must be exactly 10 digits
+    if (cleaned.length == 10 && RegExp(r'^[6-9]\d{9}$').hasMatch(cleaned)) {
+      return '+91$cleaned';
+    }
+
+    // If it's 10 digits but doesn't start with 6-9 (invalid Indian mobile)
+    if (cleaned.length == 10) {
+      return '+91$cleaned'; // Still accept, but warn?
+    }
+
+    // If it's 11 digits starting with 91
+    if (cleaned.length == 11 && cleaned.startsWith('91')) {
+      return '+91${cleaned.substring(2)}';
+    }
+
+    // Invalid format — return empty or original? We'll return empty to avoid bad data.
+    print('⚠️ Invalid phone number: $phone → normalized to ""');
+    return ''; // Or optionally return original if len > 0
+  }
 
 }

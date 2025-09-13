@@ -505,10 +505,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                               children: [
                                 Expanded(
                                   flex: 2,
-                                  child: MyTextfield.textStyle_w300(
+                                  child: MyTextfield.textStyle_w200(
                                     item.productName,
                                     16,
                                     AppColors.kBlackColor800,
+                                    maxLines: 1
                                   ),
                                 ),
                                 Expanded(
@@ -538,7 +539,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                                 Expanded(
                                   flex: 1,
                                   child: MyTextfield.textStyle_w300(
-                                    '₹${subtotal.toStringAsFixed(2)}',
+                                    '₹${subtotal}',
                                     16,
                                     AppColors.kBlackColor800,
                                   ),
@@ -591,68 +592,70 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                 ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                left: 16,
-                right: 16,
-                top: 10,
-              ),
-              child: Column(
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: MyElevatedButton(
-                          buttonText: 'Share',
-                          onPressed: () async {
-                            await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
-                            context.read<CartCubit>().clearCart(type: CartType.main);
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 20,),
-                      Expanded(
-                        child: MyElevatedButton(
-                            buttonText: 'Thermal Print',
-                            onPressed: () {
-                              _printBill(context);
-                            }
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: MyElevatedButton(
+                      buttonText: 'Share',
+                      onPressed: () async {
+                        await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                        context.read<CartCubit>().clearCart(type: CartType.main);
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
-                  SizedBox(height: 20,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: MyElevatedButton(
-                          buttonText: 'Download',
-                          onPressed: (){
-                            ReceiptPdfGenerator.downloadPdf(context, widget.sale);
-                            context.read<CartCubit>().clearCart(type: CartType.main);
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 20,),
-                      Expanded(
-                        child: MyElevatedButton(
-                            buttonText: 'Normal Print',
-                            onPressed: () {
-                              _printBill(context);
-                            }
-                        ),
-                      ),
-                    ],
+                  SizedBox(width: 20,),
+                  Expanded(
+                    child: MyElevatedButton(
+                        buttonText: 'Thermal Print',
+                        onPressed: () {
+                          _printBill(context);
+                        }
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              SizedBox(height: 20,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: MyElevatedButton(
+                      buttonText: 'Download',
+                      onPressed: (){
+                        ReceiptPdfGenerator.downloadPdf(context, widget.sale);
+                        context.read<CartCubit>().clearCart(type: CartType.main);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 20,),
+                  Expanded(
+                    child: MyElevatedButton(
+                        buttonText: 'Normal Print',
+                        onPressed: () {
+                          _printBill(context);
+                        }
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

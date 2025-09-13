@@ -277,7 +277,7 @@ class _ProductCardState extends State<ProductCard> {
             }
 
             final quantity = cartItem?.qty ?? 0;
-            final bool isOutOfStock = widget.item.qty+widget.item.qty_free <= 0;
+            final bool isOutOfStock =  widget.cartTypeSelection != CartTypeSelection.CustomerReturn?widget.item.stock <= 0:false;
 
             if (isSearchMode && isOutOfStock){
               return Container(
@@ -291,7 +291,7 @@ class _ProductCardState extends State<ProductCard> {
             }
 
             print('Add Cart item=${cartCubit.state.cartItems.toString()}');
-            if (isSearchMode && quantity==0 && !isOutOfStock) {
+            if (isSearchMode && quantity==0 && !isOutOfStock ) {
               return ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kPrimary,

@@ -200,11 +200,11 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                           CrossAxisAlignment.end,
                                           children: [
                                             // Call button
-                                            GestureDetector(
+                                            !widget.ledger!.phone.contains('NA')?GestureDetector(
                                               onTap: () {
                                                 launchUrl(
                                                   Uri.parse(
-                                                    "tel:+91${widget.ledger!.phone}",
+                                                    "tel:${AppUtils().validateAndNormalizePhone(widget.ledger!.phone)}",
                                                   ),
                                                 );
                                               },
@@ -221,7 +221,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                                                   size: 25,
                                                 ),
                                               ),
-                                            ),
+                                            ):SizedBox(),
                                             SizedBox(
                                               height: screenWidth * 0.05,
                                             ),

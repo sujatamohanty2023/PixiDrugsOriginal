@@ -51,6 +51,10 @@ class SaleReturnRequest {
 
     return data;
   }
+  @override
+  String toString() {
+    return 'SaleReturnRequest(id: $id, storeId: $storeId, billingId: $billingId, customerId: $customerId, returnDate: $returnDate, totalAmount: $totalAmount, reason: $reason, items: $items)';
+  }
 }
 
 class ReturnedItem {
@@ -90,5 +94,9 @@ class ReturnedItem {
       'gst': gst,
       'total_amount': totalAmount,
     };
+  }
+  @override
+  String toString() {
+    return 'ReturnedItem(productId: $productId, quantity: $quantity, price: $price, discount: $discount, gst: $gst, totalAmount: $totalAmount)';
   }
 }

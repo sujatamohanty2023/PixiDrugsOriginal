@@ -72,17 +72,17 @@ class _PaymentOutEntryPageState extends State<PaymentOutEntryPage> with TickerPr
       listener: (context, state) {
         if (state is StorePaymentLoaded) {
           AppUtils.showSnackBar(context,state.message);
-          Navigator.pop(context); // Close bottom sheet or current page
+          Navigator.pop(context,true); // Close bottom sheet or current page
           if (Navigator.canPop(context)) {
-            Navigator.pop(context); // Close underlying page only if possible
+            Navigator.pop(context,true); // Close underlying page only if possible
           }
         } else if (state is StorePaymentError) {
           AppUtils.showSnackBar(context,state.error);
         }else if (state is UpdatePaymentLoaded) {
           AppUtils.showSnackBar(context,state.message);
-          Navigator.pop(context); // Close bottom sheet or current page
+          Navigator.pop(context,true); // Close bottom sheet or current page
           if (Navigator.canPop(context)) {
-            Navigator.pop(context); // Close underlying page only if possible
+            Navigator.pop(context,true); // Close underlying page only if possible
           }
         }else if (state is UpdatePaymentError) {
           AppUtils.showSnackBar(context,state.error);
