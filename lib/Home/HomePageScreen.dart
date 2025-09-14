@@ -35,13 +35,16 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-
+  @override
+  void initState() {
+    super.initState();
+  }
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        return HomeTab(onGoToCart:() => switchToCart(2));
+        return HomeTab(onGoToCart: () => switchToCart(2));
       case 1:
-        return ListScreen(type:ListType.ledger);
+        return ListScreen(type: ListType.ledger);
       case 2:
         return CartTab();
       case 3:
@@ -49,31 +52,15 @@ class _HomePageState extends State<HomePage> {
       case 4:
         return ProfileScreen();
       default:
-        return Center(child: Text("Unknown"));
+        return HomeTab(onGoToCart: () => switchToCart(2));
     }
-  }
-  @override
-  void initState() {
-    super.initState();
-    //AppUtils.showSnackBar(context, 'Width: ${SizeConfig.screenWidth}, Height: ${SizeConfig.screenHeight}');
-
   }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
       backgroundColor: AppColors.kPrimaryLight,
-      //body: getBody()
-      body: IndexedStack(
-          index: selectedPos,
-          children: [
-            HomeTab(onGoToCart: () => switchToCart(2)),
-            ListScreen(type: ListType.ledger),
-            CartTab(),
-            ProductListPage(flag: 1),
-            ProfileScreen(),
-          ],
-        ),
+      body: getBody(),
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle, // or TabStyle.reactCircle
         backgroundColor: AppColors.kPrimary,
