@@ -29,9 +29,8 @@ class ApiCubit extends Cubit<ApiState> {
       final response = await apiRepository.register(model);
 
       final responseModel = RegisterResponse.fromJson(response);
-      final success = response['success'];
 
-      if(success==true) {
+      if(responseModel.status) {
         emit(RegisterLoaded(registerResponse: responseModel));
       }else{
         emit(RegisterError('Error: ${response['message']}'));

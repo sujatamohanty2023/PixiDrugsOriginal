@@ -191,7 +191,7 @@ class _ProductListPageState extends State<ProductListPage> {
     }
 
     return PreferredSize(
-      preferredSize: const Size.fromHeight(85),
+      preferredSize: const Size.fromHeight(88),
       child: Container(
         color: AppColors.kPrimary,
         child: SafeArea(

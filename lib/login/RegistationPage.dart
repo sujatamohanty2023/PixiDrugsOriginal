@@ -126,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         setState(() => _isLoading = false);
 
         final res = state.registerResponse;
-        if (res.status) {
+        if (state.registerResponse.status) {
           setState(() => _isLoading = false);
           AppUtils.showSnackBar(context, res.message);
           Navigator.pop(context);
