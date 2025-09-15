@@ -131,7 +131,7 @@ class InvoiceItem {
   int stock;
   String gst;
   String total;
-  DiscountType discountType;
+  DiscountType? discountType;
 
   int invoice_purchase_id;
   bool isSelected;

@@ -9,6 +9,7 @@ import 'OtpVerificationScreen.dart';
 import '../constant/all.dart';
 import '../Profile/WebviewScreen.dart';
 import 'FCMService.dart';
+import 'RegistationPage.dart';
 
 class MobileLoginScreen extends StatefulWidget {
   @override
@@ -80,7 +81,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         MyTextfield.textStyle_w800(AppString.loginText, SizeConfig.screenWidth! * 0.06, AppColors.kPrimary),
         SizedBox(height: screenHeight * 0.015),
         MyTextfield.textStyle_w300(AppString.logindesc, SizeConfig.screenWidth! * 0.035, Colors.black54),
-        SizedBox(height: screenHeight * 0.03),
+        SizedBox(height: screenHeight * 0.02),
 
         // 📞 Phone Input
         Container(
@@ -159,6 +160,16 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               ],
             ),
           ),
+        ),
+        SizedBox(height: screenHeight * 0.02),
+        GestureDetector(
+          onTap: (){
+            AppRoutes.navigateTo(
+              context,
+              SignUpScreen(),
+            );
+          },
+          child: MyTextfield.textStyle_w600("New Registation", SizeConfig.screenWidth! * 0.045, AppColors.kPrimary),
         ),
       ],
     );

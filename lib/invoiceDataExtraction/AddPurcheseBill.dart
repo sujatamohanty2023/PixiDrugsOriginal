@@ -34,6 +34,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   final discController = TextEditingController();
   final taxableController = TextEditingController();
   final totalController = TextEditingController();
+  VoidCallback? _discResetListener;
 
   int totalProducts = 0;
   int total = 0;
@@ -55,6 +56,49 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
     });
+    rateController.addListener(_recalculateTaxableAndTotal);
+    billedQtyController.addListener(_recalculateTaxableAndTotal);
+    discController.addListener(_recalculateTaxableAndTotal);
+    gstRateController.addListener(_recalculateTaxableAndTotal);
+    _discResetListener = () {
+      if (discController.text.isNotEmpty && discController.text != '0') {
+        setState(() {
+          product?.discountType = null; // Force re-selection
+        });
+      } else {
+        setState(() {
+          product?.discountType = DiscountType.percent; // Reset to default
+        });
+      }
+    };
+    discController.addListener(_discResetListener!);
+  }
+  @override
+  void dispose() {
+    rateController.removeListener(_recalculateTaxableAndTotal);
+    billedQtyController.removeListener(_recalculateTaxableAndTotal);
+    discController.removeListener(_recalculateTaxableAndTotal);
+    gstRateController.removeListener(_recalculateTaxableAndTotal);
+    if (_discResetListener != null) {
+      discController.removeListener(_discResetListener!);
+    }
+
+    // Dispose controllers
+    productNameController.dispose();
+    batchNoController.dispose();
+    expDateController.dispose();
+    hsnCodeController.dispose();
+    gstRateController.dispose();
+    unitPerPackController.dispose();
+    billedQtyController.dispose();
+    billedQtyFreeController.dispose();
+    rateController.dispose();
+    mrpController.dispose();
+    discController.dispose();
+    taxableController.dispose();
+    totalController.dispose();
+
+    super.dispose();
   }
   Future<void> _initialize() async {
     setState(() {
@@ -286,7 +330,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         qty_free: item.freeQty ?? 0,
         gst: gstFormatted,
         total: item.total.toString(),
-        discountType: DiscountType.percent,
         sellerName: data.seller.name ?? '',
         sellerPhone: AppUtils().validateAndNormalizePhone(data.seller.phone) ,
       );
@@ -387,6 +430,19 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     discController.text = product?.discount.toString() ?? '';
     taxableController.text =product?.taxable.toString() ?? '';
     totalController.text = product?.total.toString() ?? '';
+    if (product != null) {
+      // If discount value exists but no type is set, force user to select
+      if ((product!.discount.isNotEmpty &&
+          product!.discount != '0' && product!.discount != '0.0') &&
+          product!.discountType == null) {
+        // Don't set a default - force user selection
+        product!.discountType = null;
+      } else if (product!.discountType == null) {
+        // Set default only when no discount value or discount is 0
+        product!.discountType = DiscountType.percent;
+      }
+    }
+    _recalculateTaxableAndTotal();
   }
   void _clearControllers() {
     batchNoController.clear();
@@ -429,7 +485,21 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       }
     });
   }
+  bool _isDiscountTypeValidForCurrentProduct() {
+    if (product == null) return true;
 
+    String discountValue = discController.text.trim();
+    bool hasDiscount = discountValue.isNotEmpty &&
+        discountValue != '0' &&
+        discountValue != '0.0';
+
+    if (!hasDiscount) {
+      return true; // No discount entered, so type validation not needed
+    }
+
+    // Discount is entered, so type must be properly selected
+    return product!.discountType != null;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -604,18 +674,25 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _formField("Discount Value", discController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
+                    Expanded(
+                     child: _formField("Discount Value", discController,keyboardType: TextInputType.numberWithOptions(decimal: true)),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _formField("Taxable", taxableController,keyboardType: TextInputType.numberWithOptions(decimal: true)),),
-                  ],
+                    Expanded(
+                      child: _dropdownField(
+                        "Discount Type",
+                        ["Select", "Percent", "Amount"],
+                        _getDiscountTypeDisplay(product?.discountType),
+                      ),
+                    ),
+                 ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _dropdownField("GST", ["0%", "3%","5%", "12%","18%","28%"], gstRateController.text)),
-                    //Expanded(child: _formField("GST", gstRateController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
+                    Expanded(child: _formField("Taxable", taxableController,keyboardType: TextInputType.numberWithOptions(decimal: true)),),
                     const SizedBox(width: 12),
-                    Expanded(child: _formField("Total", totalController,keyboardType: TextInputType.numberWithOptions(decimal: true))),
+                    Expanded(child: _dropdownField("GST", ["0%", "3%","5%", "12%","18%","28%"], gstRateController.text)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -631,11 +708,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       MyTextfield.textStyle_w600("Amount: ", AppUtils.size_18, AppColors.kBlackColor800),
-                      MyTextfield.textStyle_w800(totalController.text, AppUtils.size_18, AppColors.kPrimary)
+                      MyTextfield.textStyle_w800(totalController.text, AppUtils.size_18, AppColors.kPrimary),
+                      SizedBox(width: 10,),
+                      GestureDetector(
+                        onTap: () {
+                          showEditDialog(
+                            context: context,
+                            title: "Total Amount",
+                            initialValue: totalController.text,
+                            onSave: (value) {
+                              setState(() {
+                                totalController.text = value;
+                                product?.total = value;
+                              });
+                            },
+                          );
+                        },
+                        child:  SvgPicture.asset(AppImages.edit, height: 18, color: Colors.teal),
+                      )
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 60),
               ],
             ],
           ),
@@ -677,6 +771,10 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                       AppUtils.showSnackBar(context, 'Error:HSN Code must be numeric');
                       return;
                     }
+                    if (!_isDiscountTypeValidForCurrentProduct()) {
+                      AppUtils.showSnackBar(context, 'Please select Discount Type');
+                      return;
+                    }
 
                     void _saveCurrentProductData() {
                         product?.product = productNameController.text;
@@ -694,6 +792,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                         product?.mrp = mrpController.text;
                         product?.taxable = taxableController.text;
                         product?.discount = discController.text;
+                        product?.discountType = product?.discountType ?? DiscountType.percent;
                         product?.total = totalController.text;
                       }
 
@@ -750,6 +849,17 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         ),
     );
   }
+  String? _getDiscountTypeDisplay(DiscountType? type) {
+
+    switch (type) {
+      case DiscountType.percent:
+        return "Percent";
+      case DiscountType.flat:
+        return "Amount";
+      default:
+        return "Select";
+    }
+  }
 
   Widget _formField(String label, TextEditingController controller, {String? hint,TextInputType keyboardType = TextInputType.text}) {
     return Column(
@@ -757,9 +867,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       children: [
         Row(
           children: [
-            MyTextfield.textStyle_w600(
+            MyTextfield.textStyle_w400(
                 label, AppUtils.size_16, Colors.black54),
-            MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red)
+            MyTextfield.textStyle_w400(" *", AppUtils.size_16, Colors.red)
           ],
         ),
         SizedBox(height: 5),
@@ -768,57 +878,91 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       ],
     );
   }
-
-  Widget _dropdownField(String label, List<String> items, String selectedValue) {
-    if (gstRateController.text.isNotEmpty && !items.contains(gstRateController.text)) {
-      selectedValue = items.first;
-    }
+  Widget _dropdownField(String label, List<String> items, String? selectedValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            MyTextfield.textStyle_w600(
-                label, AppUtils.size_16, Colors.black),
-            MyTextfield.textStyle_w600(" *", AppUtils.size_16, Colors.red)
+            MyTextfield.textStyle_w400(label, AppUtils.size_16, Colors.black54),
+            MyTextfield.textStyle_w400(" *", AppUtils.size_16, Colors.red)
           ],
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           value: selectedValue,
           iconEnabledColor: AppColors.kGreyColor800,
-          iconDisabledColor:AppColors.kGreyColor800,
+          iconDisabledColor: AppColors.kGreyColor800,
           decoration: InputDecoration(
-            filled: true, // This enables the background color
+            filled: true,
             fillColor: AppColors.kWhiteColor,
             isDense: true,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color:AppColors.kPrimary.withOpacity(0.3), // Border color when not focused
+                color: AppColors.kPrimaryDark,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: AppColors.kPrimary.withOpacity(0.3), // Border color when focused
+                color: AppColors.kPrimaryDark,
                 width: 1,
               ),
             ),
           ),
-          style:MyTextfield.textStyle( 14,AppColors.kBlackColor800,FontWeight.w300),
+          style: MyTextfield.textStyle(14, AppColors.kBlackColor800, FontWeight.w300),
           items: items.map((e) => DropdownMenuItem(
             value: e,
-            child:  MyTextfield.textStyle_w600(e, AppUtils.size_14, Colors.black)
+            child: MyTextfield.textStyle_w600(e, AppUtils.size_14, Colors.black),
           )).toList(),
           onChanged: (value) {
-            gstRateController.text = value!;
+            if (label == "GST") {
+              gstRateController.text = value!;
+            } else if (label == "Discount Type") {
+              if (value == "Select") {
+                product?.discountType = null;
+                return;
+              }
+              setState(() {
+                product?.discountType = value == "Percent" ? DiscountType.percent : DiscountType.flat;
+                _recalculateTaxableAndTotal();
+              });
+            }
           },
         )
-
       ],
     );
+  }
+  void _recalculateTaxableAndTotal() {
+    double rate = double.tryParse(rateController.text) ?? 0;
+    int qty = int.tryParse(billedQtyController.text) ?? 0;
+    double discountValue = double.tryParse(discController.text) ?? 0;
+
+    double subtotal = rate * qty; // Including free qty in calculation? Adjust if needed.
+
+    double discountAmount = 0;
+    if (product?.discountType == DiscountType.percent) {
+      discountAmount = subtotal * (discountValue / 100);
+    } else {
+      discountAmount = discountValue;
+    }
+
+    double taxable = subtotal - discountAmount;
+    double gstRate = double.tryParse(gstRateController.text.replaceAll('%', '')) ?? 0;
+    double gstAmount = taxable * (gstRate / 100);
+    double total = taxable + gstAmount;
+
+    // Update controllers
+    taxableController.text = taxable.toStringAsFixed(2);
+    totalController.text = total.toStringAsFixed(2);
+
+    // Optional: Update product model immediately
+    if (product != null) {
+      product?.taxable = taxable.toStringAsFixed(2);
+      product?.total = total.toStringAsFixed(2);
+    }
   }
   void showEditDialog({
     required BuildContext context,

@@ -8,13 +8,26 @@ import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../Staff/StaffModel.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
+import '../login/RegisterResponse.dart';
 import '../search/customerModel.dart';
 import '../search/sellerModel.dart';
 
 abstract class ApiState {}
 
 class ApiInitial extends ApiState {}
+//--------------------------------------------------------------------
+class RegisterLoading extends ApiState {}
 
+class RegisterLoaded extends ApiState {
+  RegisterResponse registerResponse;
+
+  RegisterLoaded({required this.registerResponse});
+}
+
+class RegisterError extends ApiState {
+  final String error;
+  RegisterError(this.error);
+}
 //--------------------------------------------------------------------
 class LoginLoading extends ApiState {}
 

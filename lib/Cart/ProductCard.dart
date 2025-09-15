@@ -245,7 +245,7 @@ class _ProductCardState extends State<ProductCard> {
                         widget.item.id!,
                         discountSale,
                         type: CartType.main,
-                        discountType: widget.item.discountType,
+                        discountType: widget.item.discountType??DiscountType.percent,
                       );
                     }
                   },

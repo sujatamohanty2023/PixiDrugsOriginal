@@ -55,7 +55,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
               ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
               : widget.items.isEmpty
               ? NoItemPage(
-            onTap: (){},
+            onTap: widget.onAddPressed,
             image: AppImages.no_invoice,
             tittle: 'No Expenses Found',
             description: 'You haven\'t recorded any expenses yet. Add your first expense to keep track of your store\'s spending.',

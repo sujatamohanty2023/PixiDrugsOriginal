@@ -383,14 +383,6 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
     }
   }
 
-  InvoiceItem applyDiscountPercent(InvoiceItem item) {
-    final mrp = double.tryParse(item.mrp.replaceAll(',', ''))??0;
-    final rate = double.tryParse(item.rate .replaceAll(',', ''))??0;
-    if (mrp == 0 || rate == 0) return item;
-    final discountPercent = ((mrp - rate) / mrp) * 100;
-    return item.copyWith(discount: discountPercent.toStringAsFixed(2));
-  }
-
   String calculateNetAmount(List<InvoiceItem> items) {
     double sum = 0.0;
     for (var item in items) {
@@ -413,11 +405,28 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       return item.copyWith(tabQty: computedTabQty,medType: unitType?.name);
     }).toList();
   }
+  List<InvoiceItem> calculateDiscountAllItems(List<InvoiceItem> items) {
+    return items.map((item) {
+      double discountPercent = 0.0;
+
+      // Parse values
+      final discountValue = double.tryParse(item.discount.toString()) ?? 0.0;
+      final rate = double.tryParse(item.rate.toString()) ?? 0.0;
+      final qty = item.qty;
+
+      if (item.discountType == DiscountType.flat && rate > 0 && qty > 0) {
+        final total = rate * qty;
+        discountPercent = (discountValue / total) * 100;
+      }
+
+      return item.copyWith(discount: discountPercent.toStringAsFixed(2));
+    }).toList();
+  }
 
   Future<void> AddInvoiceApiCall() async {
     String? userId = await SessionManager.getParentingId();
-    //final updatedItems = invoice.items.map(applyDiscountPercent).toList();
-    final updatedItems = invoice1.items;
+    //final updatedItems = invoice1.items;
+    final updatedItems = calculateDiscountAllItems(invoice1.items);
     final formattedDate = formatDate(invoice1.invoiceDate);
 
     final newInvoice = invoice1.copyWith(

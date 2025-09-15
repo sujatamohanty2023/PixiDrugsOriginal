@@ -13,6 +13,7 @@ import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../Staff/StaffModel.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
+import '../login/RegisterResponse.dart';
 import '../report/reportResponse.dart';
 import 'api_repository.dart';
 
@@ -20,7 +21,25 @@ class ApiCubit extends Cubit<ApiState> {
   final ApiRepository apiRepository;
 
   ApiCubit(this.apiRepository) : super(ApiInitial());
+//------------------------------------------------------------------------------------
+  Future<void> register(
+      {required RegisterModel  model}) async {
+    try {
+      emit(RegisterLoading());
+      final response = await apiRepository.register(model);
 
+      final responseModel = RegisterResponse.fromJson(response);
+      final success = response['success'];
+
+      if(success==true) {
+        emit(RegisterLoaded(registerResponse: responseModel));
+      }else{
+        emit(RegisterError('Error: ${response['message']}'));
+      }
+    } catch (e) {
+      emit(RegisterError('Error: $e'));
+    }
+  }
 //------------------------------------------------------------------------------------
   Future<void> login(
       {required String text, required String fcm_token}) async {

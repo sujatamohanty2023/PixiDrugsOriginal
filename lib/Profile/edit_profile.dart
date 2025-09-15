@@ -18,6 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController regController = TextEditingController();
   TextEditingController addressController = TextEditingController();
 
+  bool _isUploading = false;
   bool image_changed = false;
   String _imageFile = '';
   String _UploadUrl = '';
@@ -47,6 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _UpdateButtonClick() {
+    setState(() => _isUploading = true);
     if (image_changed) {
       _uploadFilestoS3();
     } else {
@@ -92,8 +94,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (state is EditProfileLoaded) {
        AppUtils.showSnackBar(context,state.message);
         Navigator.pop(context);
+        setState(() => _isUploading = false);
       } else if (state is EditProfileError) {
        AppUtils.showSnackBar(context,'Failed: ${state.error}');
+       setState(() => _isUploading = false);
       }
     });
   }
@@ -231,6 +235,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: MyElevatedButton(
           buttonText: AppString.upDate,
           onPressed: _UpdateButtonClick,
+          isLoading: _isUploading,
         ),
       ),
     );

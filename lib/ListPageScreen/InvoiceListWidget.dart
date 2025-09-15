@@ -80,11 +80,11 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
             controller: widget.scrollController,
             padding: EdgeInsets.zero,
             itemCount: itemCount,
-            itemBuilder: (_, index) {
+            itemBuilder: (context, index) {
               if (index >= filteredInvoices.length) {
                 return BottomLoader();
               }
-              return _buildInvoiceCard(filteredInvoices[index], screenWidth,index);
+              return _buildInvoiceCard(filteredInvoices[index], screenWidth,index,context);
             },
           ),
         ),
@@ -125,7 +125,7 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
     }
   }
 
-  Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index) {
+  Widget _buildInvoiceCard(Invoice invoice, double screenWidth,int index, BuildContext context) {
     return GestureDetector(
       onTap: () => () async {
         final result = await Navigator.push(

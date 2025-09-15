@@ -3,6 +3,7 @@ import '../SaleReturn/SaleReturnRequest.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
 import '../constant/all.dart';
 import '../login/FCMService.dart';
+import '../login/RegisterResponse.dart';
 import 'ApiUtil/api_exception.dart';
 
 class ApiRepository {
@@ -90,6 +91,30 @@ class ApiRepository {
         text.contains('@') ? 'email' : 'mobile': text,
         'fcm_token': fcmToken,
       },
+    )).then((data) => Map<String, dynamic>.from(data));
+  }
+  Future<Map<String, dynamic>> register(RegisterModel model) {
+    return _safeApiCall(() async => dio.post(
+      '${AppString.baseUrl}api/store/register',
+      data: {
+        'name': model.name,
+        'email': model.email,
+        'phone_number': model.phoneNumber,
+        'gander': model.gander,
+        'dob': model.dob,
+        'password': model.password,
+        'address': model.address,
+        'country': model.country,
+        'state': model.state,
+        'city': model.city,
+        'pincode': model.pincode,
+        'owner_name': model.ownerName,
+        'gstin': model.gstin,
+        'license':model.license,
+      },
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+      }),
     )).then((data) => Map<String, dynamic>.from(data));
   }
   Future<Map<String, dynamic>> fetchBanner() {

@@ -54,10 +54,10 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
 
       if (query.isNotEmpty && query.length>=3) {
         String? userId = await SessionManager.getParentingId();
-        if(widget.cartTypeSelection==CartTypeSelection.StockiestReturn){
-          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, seller_id:widget.selectedCustomer?.id.toString()??'',source: 'manual');
-        }else if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
+        if(widget.cartTypeSelection==CartTypeSelection.CustomerReturn){
           context.read<ApiCubit>().customerbarcode(storeId: userId!,code:query,customer_id:widget.selectedCustomer?.id.toString()??'',source: 'manual');
+        }else{
+          context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, seller_id:widget.selectedCustomer?.id.toString()??'',source: 'manual');
         }
       }
     });
