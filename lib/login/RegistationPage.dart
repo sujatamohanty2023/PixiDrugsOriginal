@@ -166,26 +166,63 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
-                _buildLabel('Store Name'),
-                _buildTextField('Enter store name', storeNameController),
+                MyTextfield.textStyle_w400('Name of the store', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    hintText: 'Enter ${AppString.storeName}', controller: storeNameController),
 
-                _buildLabel('Owner Name'),
-                _buildTextField('Enter owner name', ownerNameController),
+                SizedBox(height: screenHeight * 0.015),
+                MyTextfield.textStyle_w400('Name of Owner/Proprietor', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    hintText: 'Enter ${AppString.ownerName}',
+                    controller: ownerNameController),
 
-                _buildLabel('Phone'),
-                _buildTextField('Enter phone number', phoneController, inputType: TextInputType.phone),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('Mobile no. of Owner', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                  controller: phoneController,
+                  hintText: AppString.enterNumber,
+                  keyboardType: TextInputType.phone),
 
-                _buildLabel('Email'),
-                _buildTextField('Enter email', emailController, inputType: TextInputType.emailAddress),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('Email Id. of Owner/Store', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(hintText: AppString.enterEmail, controller: emailController),
 
-                _buildLabel('GST Number'),
-                _buildTextField('Enter GST number', gstController),
-
-                _buildLabel('License Number'),
-                _buildTextField('Enter license number', regController),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('GST NO. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    controller: gstController,
+                    hintText: AppString.enterGst,
+                    keyboardType: TextInputType.text),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('Licence No. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                    controller: regController,
+                    hintText: AppString.enterRegNo,
+                    keyboardType: TextInputType.text),
+                SizedBox(height: screenHeight * 0.015),
 
                 MyTextfield.textStyle_w600('Location Details', 18, Colors.black),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('Address Of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                  controller: addressController,
+                  hintText: 'Enter ${AppString.storeAddress}',
+                  keyboardType: TextInputType.text,maxLines:2 ,),
+                SizedBox(height: 8),
+                MyTextfield.textStyle_w400('City', SizeConfig.screenWidth! *0.035, Colors.black54),
+                SizedBox(height: 8),
+                MyEdittextfield(
+                  controller: cityController,
+                  hintText: 'Enter City',
+                  keyboardType: TextInputType.text),
+                SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -205,11 +242,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ],
                       ),
                     ),
+
                     const SizedBox(width: 8),
 
                     /// State (with fixed overflow handling)
                     Expanded(
-                      flex: 4,
+                      flex: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -248,7 +286,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                     /// Pin Code
                     Expanded(
-                      flex: 3,
+                      flex: 4,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -264,11 +302,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-                _buildLabel('Address'),
-                _buildTextField('Enter address', addressController, maxLines: 3),
-
-                _buildLabel('City'),
-                _buildTextField('Enter City', cityController),
                 const SizedBox(height: 40),
               ],
             ),
@@ -294,10 +327,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget _buildLabel(String label) {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, bottom: 6),
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
+      child: MyTextfield.textStyle_w400(label,SizeConfig.screenWidth! * 0.038,Colors.black54),
     );
   }
 

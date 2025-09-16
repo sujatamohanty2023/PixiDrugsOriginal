@@ -40,11 +40,43 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                   width: screenWidth,
                   alignment: Alignment.center,
                   padding: EdgeInsets.only(top: screenHeight * 0.05),
-                  child: Image.asset(
-                    AppImages.LoginIcon,
-                    fit: BoxFit.contain, // ✅ Scales image to fit perfectly
-                    width: screenWidth * 0.9, // 90% of screen width
-                    // height: screenHeight * 0.5, // Optional: limit height if needed
+                  child: Stack(
+                    children: [
+                      // 📷 Add your registration icon image here
+                      Image.asset(
+                        AppImages.LoginIcon,
+                        fit: BoxFit.contain,
+                        width: screenWidth * 0.9,
+                      ),
+                      const SizedBox(height: 8),
+                      Positioned(
+                        right: 0,
+                        bottom: 10,
+                        child: GestureDetector(
+                        onTap: () {
+                          AppRoutes.navigateTo(
+                            context,
+                            SignUpScreen(),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0,bottom: 8,right: 20,left: 20),
+                            child: MyTextfield.textStyle_w600(
+                              "New Registration", // (Consider fixing the spelling here)
+                              SizeConfig.screenWidth! * 0.055,
+                              AppColors.kWhiteColor,
+                            ),
+                          ),
+                        ),
+                      )
+                      )
+
+                    ],
                   ),
                 ),
 
@@ -162,15 +194,6 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
           ),
         ),
         SizedBox(height: screenHeight * 0.02),
-        GestureDetector(
-          onTap: (){
-            AppRoutes.navigateTo(
-              context,
-              SignUpScreen(),
-            );
-          },
-          child: MyTextfield.textStyle_w600("New Registation", SizeConfig.screenWidth! * 0.045, AppColors.kPrimary),
-        ),
       ],
     );
   }

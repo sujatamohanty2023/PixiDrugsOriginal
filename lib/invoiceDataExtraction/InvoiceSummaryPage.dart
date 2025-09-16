@@ -417,6 +417,8 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       if (item.discountType == DiscountType.flat && rate > 0 && qty > 0) {
         final total = rate * qty;
         discountPercent = (discountValue / total) * 100;
+      }else if (item.discountType == DiscountType.percent && rate > 0 && qty > 0){
+        discountPercent=discountValue;
       }
 
       return item.copyWith(discount: discountPercent.toStringAsFixed(2));
