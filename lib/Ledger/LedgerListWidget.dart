@@ -8,8 +8,6 @@ import '../customWidget/GradientInitialsBox.dart';
 class LedgerListWidget extends StatefulWidget {
   final bool isLoading;
   final List<LedgerModel> items;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final ScrollController? scrollController;
   final bool hasMoreData;
   final VoidCallback? onRefreshRequested;
@@ -17,8 +15,6 @@ class LedgerListWidget extends StatefulWidget {
   const LedgerListWidget({
     required this.isLoading,
     required this.items,
-    required this.searchQuery,
-    required this.onSearchChanged,
     this.scrollController,
     required this.hasMoreData,
     required this.onRefreshRequested,
@@ -33,12 +29,7 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    final filteredLedger = widget.items
-        .where((i) =>
-        i.sellerName.toLowerCase().contains(widget.searchQuery.toLowerCase()))
-        .toList();
-    final itemCount = filteredLedger.length + (widget.hasMoreData  ? 1 : 0);
+    final itemCount = widget.items.length + (widget.hasMoreData  ? 1 : 0);
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -49,7 +40,7 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
       ),
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : widget.items.isEmpty
+          : !widget.isLoading && widget.items.isEmpty
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
@@ -63,10 +54,10 @@ class _LedgerListWidgetState extends State<LedgerListWidget> {
         padding: EdgeInsets.zero,
         itemCount: itemCount,
         itemBuilder: (_, index) {
-          if (index >= filteredLedger.length) {
+          if (index >= widget.items.length) {
             return BottomLoader();
           }
-          return _buildLedgerCard(filteredLedger[index], screenWidth,context);
+          return _buildLedgerCard(widget.items[index], screenWidth,context);
         },
       ),
     );

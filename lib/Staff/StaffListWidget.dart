@@ -7,8 +7,6 @@ import 'StaffModel.dart';
 class StaffListWidget extends StatefulWidget {
   final bool isLoading;
   final List<StaffModel> list;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
@@ -16,8 +14,6 @@ class StaffListWidget extends StatefulWidget {
   const StaffListWidget({
     required this.isLoading,
     required this.list,
-    required this.searchQuery,
-    required this.onSearchChanged,
     required this.onAddPressed,
     this.scrollController,
     required this.hasMoreData,
@@ -33,12 +29,7 @@ class _StaffListWidgetState extends State<StaffListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    final filteredStaff = widget.list
-        .where((i) =>
-        i.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
-        .toList();
-    final itemCount = filteredStaff.length + (widget.hasMoreData ? 1 : 0);
+    final itemCount = widget.list.length + (widget.hasMoreData ? 1 : 0);
     return Stack(
         children: [
           Container(
@@ -51,16 +42,16 @@ class _StaffListWidgetState extends State<StaffListWidget> {
             ),
             child: widget.isLoading
                 ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-                : widget.list.isNotEmpty
+                : !widget.isLoading && widget.list.isNotEmpty
                 ?ListView.builder(
               controller: widget.scrollController,
               padding: EdgeInsets.zero,
               itemCount: itemCount,
               itemBuilder: (_, index) {
-                if (index >= filteredStaff.length) {
+                if (index >= widget.list.length) {
                   return BottomLoader();
                 }
-                return _buildStaffCard(filteredStaff[index], screenWidth,context);
+                return _buildStaffCard(widget.list[index], screenWidth,context);
               },
             ):NoItemPage(
               onTap: widget.onAddPressed,

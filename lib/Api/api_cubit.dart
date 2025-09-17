@@ -260,10 +260,10 @@ class ApiCubit extends Cubit<ApiState> {
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> fetchInvoiceList({required String user_id,required int page}) async {
+  Future<void> fetchInvoiceList({required String user_id,required int page,required String query}) async {
     try {
       emit(InvoiceListLoading());
-      final response = await apiRepository.invoiceList(user_id,page);
+      final response = await apiRepository.invoiceList(user_id,page,query);
       final data = response['data'] as List;
       final list = data.map((json) => Invoice.fromJson(json)).toList();
       final last_page = response['last_page'];

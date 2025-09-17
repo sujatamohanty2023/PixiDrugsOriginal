@@ -6,8 +6,6 @@ import '../customWidget/GradientInitialsBox.dart';
 class InvoiceListWidget extends StatefulWidget {
   final bool isLoading;
   final List<Invoice> invoices;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final Function(Invoice) onEditPressed;
   final Function(int) onDeletePressed;
@@ -18,8 +16,6 @@ class InvoiceListWidget extends StatefulWidget {
   const InvoiceListWidget({
     required this.isLoading,
     required this.invoices,
-    required this.searchQuery,
-    required this.onSearchChanged,
     required this.onAddPressed,
     required this.onDeletePressed,
     required this.onEditPressed,
@@ -50,12 +46,7 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final filteredInvoices = widget.invoices
-        .where((i) => i.sellerName!
-        .toLowerCase()
-        .contains(widget.searchQuery.toLowerCase()))
-        .toList();
-    final itemCount = filteredInvoices.length + (widget.hasMoreData  ? 1 : 0);
+    final itemCount = widget.invoices.length + (widget.hasMoreData  ? 1 : 0);
 
     return Stack(
       children: [
@@ -68,7 +59,7 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
           ),
           child: widget.isLoading
               ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
-              : widget.invoices.isEmpty
+              : !widget.isLoading && widget.invoices.isEmpty
               ? NoItemPage(
             onTap: widget.onAddPressed,
             image: AppImages.no_invoice,
@@ -81,10 +72,10 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
             padding: EdgeInsets.zero,
             itemCount: itemCount,
             itemBuilder: (context, index) {
-              if (index >= filteredInvoices.length) {
+              if (index >= widget.invoices.length) {
                 return BottomLoader();
               }
-              return _buildInvoiceCard(filteredInvoices[index], screenWidth,index,context);
+              return _buildInvoiceCard(widget.invoices[index], screenWidth,index,context);
             },
           ),
         ),

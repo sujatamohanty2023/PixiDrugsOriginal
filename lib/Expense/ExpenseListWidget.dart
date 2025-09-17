@@ -8,8 +8,6 @@ import 'ExpenseResponse.dart';
 class ExpenseListWidget extends StatefulWidget {
   final bool isLoading;
   final List<ExpenseResponse> items;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final ScrollController? scrollController;
   final bool hasMoreData;
@@ -17,8 +15,6 @@ class ExpenseListWidget extends StatefulWidget {
   const ExpenseListWidget({
     required this.isLoading,
     required this.items,
-    required this.searchQuery,
-    required this.onSearchChanged,
     required this.onAddPressed,
     this.scrollController,
     required this.hasMoreData,
@@ -35,12 +31,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    final filteredExpense = widget.items
-        .where((i) =>
-        i.title.toLowerCase().contains(widget.searchQuery.toLowerCase()))
-        .toList();
-    final itemCount = filteredExpense.length + (widget.hasMoreData ? 1 : 0);
+    final itemCount = widget.items.length + (widget.hasMoreData ? 1 : 0);
     return Stack(
       children: [
         Container(
@@ -53,7 +44,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
           ),
           child: widget.isLoading
               ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-              : widget.items.isEmpty
+              : !widget.isLoading && widget.items.isEmpty
               ? NoItemPage(
             onTap: widget.onAddPressed,
             image: AppImages.no_invoice,
@@ -66,10 +57,10 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
             padding: EdgeInsets.zero,
             itemCount: itemCount,
             itemBuilder: (_, index) {
-              if (index >= filteredExpense.length) {
+              if (index >= widget.items.length) {
                 return BottomLoader();
               }
-              return _buildExpenseCard(filteredExpense[index], screenWidth,context);
+              return _buildExpenseCard(widget.items[index], screenWidth,context);
             },
           ),
         ),

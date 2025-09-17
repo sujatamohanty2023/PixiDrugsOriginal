@@ -161,7 +161,7 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
 
     switch (widget.type) {
       case ListType.invoice:
-        await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage);
+        await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage,query: searchQuery);
         break;
       case ListType.sale:
         await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,filter: searchQuery);
@@ -485,8 +485,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onAddPressed: _onAddInvoicePressed,
           onDeletePressed: (id) { _showDeleteDialog(context, id); },
           onEditPressed: (inv) => AppRoutes.navigateTo(context, AddPurchaseBill(invoice: inv)),
@@ -499,8 +497,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onDeletePressed: (id) { _showDeleteDialog(context, id); },
           onEditPressed: (sale) => AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
           onPrintPressed: (sale) => /*_onButtonPrintPressed(context, sale)*/AppRoutes.navigateTo(context,
@@ -518,8 +514,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.stockReturn:
@@ -528,8 +522,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.saleReturn:
@@ -538,8 +530,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );
       case ListType.expense:
@@ -548,8 +538,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onAddPressed: _onAddExpense,
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );
@@ -559,8 +547,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           isLoading: isLoading && currentPage == 1,
           hasMoreData: hasMoreData,
           scrollController: _scrollController,
-          searchQuery: searchQuery,
-          onSearchChanged: _updateSearchQuery,
           onAddPressed: _onAddStaff,
           onRefreshRequested: () => _fetchRecord(refresh: true),
         );

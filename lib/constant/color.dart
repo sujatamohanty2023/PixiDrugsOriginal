@@ -37,4 +37,13 @@ class AppColors {
       ],
       stops: [0.0, 1.0],
       tileMode: TileMode.clamp);
+  static const myGradient2 = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        AppColors.kPrimaryLight,
+        AppColors.secondaryColor,
+      ],
+      stops: [0.0, 1.0],
+      tileMode: TileMode.clamp);
 }

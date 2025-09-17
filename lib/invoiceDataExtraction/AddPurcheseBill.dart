@@ -143,7 +143,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     } catch (e) {
       print("❌ Failed to load invoice: $e");
       if (mounted) {
-       AppUtils.showSnackBar(context,'Failed to read invoice data');
+        AppUtils.showSnackBar(context,'Failed to read invoice data');
       }
     }finally {
       if (mounted) {
@@ -314,7 +314,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       final String gstFormatted = gst % 1 == 0
           ? '${gst.toInt()}%'
           : '${gst.toStringAsFixed(1)}%';
-    print('gst=$gstFormatted');
+      print('gst=$gstFormatted');
       print('Data=${item.toString()}');
       return InvoiceItem(
         hsn: item.hsn ?? '',
@@ -481,7 +481,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         }
         product = productList[currentIndex];
         _populateControllers();
-       AppUtils.showSnackBar(context,"product deleted successfully");
+        AppUtils.showSnackBar(context,"product deleted successfully");
       }
     });
   }
@@ -513,19 +513,19 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           Padding(
             padding: const EdgeInsets.only(right: 15.0),
             child: MyElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    final newItem = InvoiceItem();
+              onPressed: () {
+                setState(() {
+                  final newItem = InvoiceItem();
 
-                    productList.add(newItem);
-                    currentIndex = productList.length - 1;
-                    product = newItem;
-                    totalProducts = productList.length;
+                  productList.add(newItem);
+                  currentIndex = productList.length - 1;
+                  product = newItem;
+                  totalProducts = productList.length;
 
-                    _clearControllers();
-                    _populateControllers(); // optional if you want to repopulate default values
-                  });
-                },
+                  _clearControllers();
+                  _populateControllers(); // optional if you want to repopulate default values
+                });
+              },
               backgroundColor: AppColors.kPrimaryLight,
               titleColor:AppColors.kPrimary,
               custom_design: true,
@@ -541,9 +541,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         ],
       ),
       body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.myGradient,
-          ),
+        decoration: const BoxDecoration(
+          gradient: AppColors.myGradient,
+        ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.kPrimary,)) // Show loader
             :SingleChildScrollView(
@@ -612,18 +612,18 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                       ),
                     ),
                     GestureDetector(
-                    onTap: () {
-                      CommonConfirmationDialog.show<int>(
-                          context: context,
-                          id: currentIndex,
-                          // Pass whether it's a medical record or leave record
-                          title: 'Delete Product?',
-                          content: 'Are you sure you want to delete this product?',
-                          onConfirmed: (int) {
-                            _deleteRecord();
-                          });
-                    },
-                    child: CircleAvatar(
+                      onTap: () {
+                        CommonConfirmationDialog.show<int>(
+                            context: context,
+                            id: currentIndex,
+                            // Pass whether it's a medical record or leave record
+                            title: 'Delete Product?',
+                            content: 'Are you sure you want to delete this product?',
+                            onConfirmed: (int) {
+                              _deleteRecord();
+                            });
+                      },
+                      child: CircleAvatar(
                         radius: 18,
                         backgroundColor: AppColors.kRedLightColor,
                         child: SvgPicture.asset(
@@ -675,7 +675,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                 Row(
                   children: [
                     Expanded(
-                     child: _formField("Discount Value", discController,keyboardType: TextInputType.numberWithOptions(decimal: true)),
+                      child: _formField("Discount Value", discController,keyboardType: TextInputType.numberWithOptions(decimal: true)),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -685,7 +685,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                         _getDiscountTypeDisplay(product?.discountType),
                       ),
                     ),
-                 ],
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -735,118 +735,118 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           ),
         ),
       ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton:_isLoading
-            ? null // Hide buttons while loading
-            :  Row(
-          children: [
-            if (currentIndex > 0)
-              editIndex != null?SizedBox():Expanded(
-                child:
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        currentIndex--;
-                        product = productList[currentIndex];
-                        _populateControllers();
-                      });
-                    },
-                    label:  MyTextfield.textStyle_w600("Previous", AppUtils.size_18, AppColors.kPrimary),
-                    style: OutlinedButton.styleFrom(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton:_isLoading
+          ? null // Hide buttons while loading
+          :  Row(
+        children: [
+          if (currentIndex > 0)
+            editIndex != null?SizedBox():Expanded(
+              child:
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      currentIndex--;
+                      product = productList[currentIndex];
+                      _populateControllers();
+                    });
+                  },
+                  label:  MyTextfield.textStyle_w600("Previous", AppUtils.size_18, AppColors.kPrimary),
+                  style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: AppColors.kPrimaryLight,side: BorderSide(color: AppColors.kPrimary,width: 1.2)
-                    ),
-                  ),
-                ),
-              ),
-            if (currentIndex > 0) const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(left:8,right: 8),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (!RegExp(r'^\d+$').hasMatch(hsnCodeController.text)) {
-                      AppUtils.showSnackBar(context, 'Error:HSN Code must be numeric');
-                      return;
-                    }
-                    if (!_isDiscountTypeValidForCurrentProduct()) {
-                      AppUtils.showSnackBar(context, 'Please select Discount Type');
-                      return;
-                    }
-
-                    void _saveCurrentProductData() {
-                        product?.product = productNameController.text;
-                        product?.batch = batchNoController.text;
-                        product?.expiry = expDateController.text;
-                        product?.hsn = hsnCodeController.text.replaceAll(
-                            RegExp(r'\s+'), '');
-                        product?.gst =
-                            gstRateController.text.replaceAll('%', '');
-                        product?.packing = unitPerPackController.text;
-                        product?.qty = int.parse(billedQtyController.text);
-                        product?.qty_free =
-                            int.parse(billedQtyFreeController.text);
-                        product?.rate = rateController.text;
-                        product?.mrp = mrpController.text;
-                        product?.taxable = taxableController.text;
-                        product?.discount = discController.text;
-                        product?.discountType = product?.discountType ?? DiscountType.percent;
-                        product?.total = totalController.text;
-                      }
-
-                      setState(() {
-                        if (productNameController.text.isNotEmpty &&
-                            batchNoController.text.isNotEmpty &&
-                            expDateController.text.isNotEmpty &&
-                            hsnCodeController.text.isNotEmpty &&
-                            gstRateController.text.isNotEmpty &&
-                            unitPerPackController.text.isNotEmpty &&
-                            billedQtyController.text.isNotEmpty &&
-                            billedQtyFreeController.text.isNotEmpty &&
-                            rateController.text.isNotEmpty &&
-                            mrpController.text.isNotEmpty &&
-                            discController.text.isNotEmpty &&
-                            taxableController.text.isNotEmpty &&
-                            totalController.text.isNotEmpty) {
-                          _saveCurrentProductData();
-                          if (editIndex != null) {
-                            final updatedInvoice = invoice!.copyWith(items: productList);
-                            Navigator.pop(context, updatedInvoice);
-                          }else {
-                            if (currentIndex == totalProducts - 1) {
-                              final updatedJson = invoice!.copyWith(
-                                  items: productList).toJson();
-                              print("Updated Invoice JSON: $updatedJson");
-                              final updatedInvoice = invoice!.copyWith(
-                                  items: productList);
-                              AppRoutes.navigateTo(context,
-                                  InvoiceSummaryPage(invoice: updatedInvoice,
-                                      edit: widget.paths.isEmpty,manualAdd:widget.manualAdd));
-                            } else {
-                              currentIndex++;
-                              product = productList[currentIndex];
-                              _populateControllers();
-                            }
-                          }
-                        } else {
-                          AppUtils.showSnackBar(context,'Please enter all required fields.');
-                        }
-                      });
-
-                  },
-                  label: MyTextfield.textStyle_w600( editIndex != null ? "Save" :(currentIndex == totalProducts - 1? "Confirm" : "Next"), AppUtils.size_18, AppColors.kWhiteColor),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: AppColors.kPrimary,
-                    foregroundColor: Colors.white,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          if (currentIndex > 0) const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left:8,right: 8),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  if (!RegExp(r'^\d+$').hasMatch(hsnCodeController.text)) {
+                    AppUtils.showSnackBar(context, 'Error:HSN Code must be numeric');
+                    return;
+                  }
+                  if (!_isDiscountTypeValidForCurrentProduct()) {
+                    AppUtils.showSnackBar(context, 'Please select Discount Type');
+                    return;
+                  }
+
+                  void _saveCurrentProductData() {
+                    product?.product = productNameController.text;
+                    product?.batch = batchNoController.text;
+                    product?.expiry = expDateController.text;
+                    product?.hsn = hsnCodeController.text.replaceAll(
+                        RegExp(r'\s+'), '');
+                    product?.gst =
+                        gstRateController.text.replaceAll('%', '');
+                    product?.packing = unitPerPackController.text;
+                    product?.qty = int.parse(billedQtyController.text);
+                    product?.qty_free =
+                        int.parse(billedQtyFreeController.text);
+                    product?.rate = rateController.text;
+                    product?.mrp = mrpController.text;
+                    product?.taxable = taxableController.text;
+                    product?.discount = discController.text;
+                    product?.discountType = product?.discountType ?? DiscountType.percent;
+                    product?.total = totalController.text;
+                  }
+
+                  setState(() {
+                    if (productNameController.text.isNotEmpty &&
+                        batchNoController.text.isNotEmpty &&
+                        expDateController.text.isNotEmpty &&
+                        hsnCodeController.text.isNotEmpty &&
+                        gstRateController.text.isNotEmpty &&
+                        unitPerPackController.text.isNotEmpty &&
+                        billedQtyController.text.isNotEmpty &&
+                        billedQtyFreeController.text.isNotEmpty &&
+                        rateController.text.isNotEmpty &&
+                        mrpController.text.isNotEmpty &&
+                        discController.text.isNotEmpty &&
+                        taxableController.text.isNotEmpty &&
+                        totalController.text.isNotEmpty) {
+                      _saveCurrentProductData();
+                      if (editIndex != null) {
+                        final updatedInvoice = invoice!.copyWith(items: productList);
+                        Navigator.pop(context, updatedInvoice);
+                      }else {
+                        if (currentIndex == totalProducts - 1) {
+                          final updatedJson = invoice!.copyWith(
+                              items: productList).toJson();
+                          print("Updated Invoice JSON: $updatedJson");
+                          final updatedInvoice = invoice!.copyWith(
+                              items: productList);
+                          AppRoutes.navigateTo(context,
+                              InvoiceSummaryPage(invoice: updatedInvoice,
+                                  edit: widget.paths.isEmpty,manualAdd:widget.manualAdd));
+                        } else {
+                          currentIndex++;
+                          product = productList[currentIndex];
+                          _populateControllers();
+                        }
+                      }
+                    } else {
+                      AppUtils.showSnackBar(context,'Please enter all required fields.');
+                    }
+                  });
+
+                },
+                label: MyTextfield.textStyle_w600( editIndex != null ? "Save" :(currentIndex == totalProducts - 1? "Confirm" : "Next"), AppUtils.size_18, AppColors.kWhiteColor),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: AppColors.kPrimary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
   String? _getDiscountTypeDisplay(DiscountType? type) {
@@ -874,7 +874,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         ),
         SizedBox(height: 5),
         MyEdittextfield(
-            controller: controller, hintText: "Enter $label",keyboardType: keyboardType,),
+          controller: controller, hintText: "Enter $label",keyboardType: keyboardType,),
       ],
     );
   }

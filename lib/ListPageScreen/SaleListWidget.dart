@@ -10,8 +10,6 @@ class SaleListWidget extends StatefulWidget {
   final bool isLoading;
   final List<SaleModel> sales;
   final List<Map<String, dynamic>> summaryItems;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final VoidCallback onAddPressed;
   final Function(SaleModel sale) onEditPressed;
   final Function(int id) onDeletePressed;
@@ -26,8 +24,6 @@ class SaleListWidget extends StatefulWidget {
     required this.isLoading,
     required this.sales,
     required this.summaryItems,
-    required this.searchQuery,
-    required this.onSearchChanged,
     required this.onAddPressed,
     required this.onDeletePressed,
     required this.onEditPressed,
@@ -61,11 +57,8 @@ class _SaleListWidgetState extends State<SaleListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final filteredSales = widget.sales
-        .where((i) => i.customer.name.toLowerCase().contains(widget.searchQuery.toLowerCase()))
-        .toList();
 
-    final itemCount = 1 + filteredSales.length + (widget.hasMoreData ? 1 : 0);
+    final itemCount = 1 + widget.sales.length + (widget.hasMoreData ? 1 : 0);
     // 1 for summary, rest for sale items and maybe a BottomLoader
 
     return Container(
@@ -78,7 +71,7 @@ class _SaleListWidgetState extends State<SaleListWidget> {
       ),
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
-          : widget.sales.isEmpty
+          : !widget.isLoading && widget.sales.isEmpty
           ? NoItemPage(
         onTap: widget.onAddPressed,
         image: AppImages.no_sale,
@@ -117,7 +110,7 @@ class _SaleListWidgetState extends State<SaleListWidget> {
             } else if (index == itemCount - 1 && widget.hasMoreData) {
               return BottomLoader();
             } else {
-              final sale = filteredSales[index - 1];
+              final sale = widget.sales[index - 1];
               return _buildSaleCard(sale, screenWidth, context);
             }
           },

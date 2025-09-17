@@ -7,16 +7,12 @@ import '../customWidget/GradientInitialsBox.dart';
 class StockReturnListWidget extends StatefulWidget {
   final bool isLoading;
   final List<PurchaseReturnModel> items;
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
   final ScrollController? scrollController;
   final bool hasMoreData;
   final VoidCallback? onRefreshRequested;
   const StockReturnListWidget({
     required this.isLoading,
     required this.items,
-    required this.searchQuery,
-    required this.onSearchChanged,
     this.scrollController,
     required this.hasMoreData,
     required this.onRefreshRequested,
@@ -31,14 +27,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    final filteredSales = widget.items.where((i) {
-      if (i.items.isEmpty) return false;
-      return i.items.first.productName!
-          .toLowerCase()
-          .contains(widget.searchQuery.toLowerCase());
-    }).toList();
-    final itemCount = filteredSales.length + (widget.hasMoreData ? 1 : 0);
+    final itemCount = widget.items.length + (widget.hasMoreData ? 1 : 0);
     return  Container(
       decoration: BoxDecoration(
         gradient: AppColors.myGradient,
@@ -49,7 +38,7 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
       ),
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : widget.items.isEmpty
+          : !widget.isLoading && widget.items.isEmpty
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
@@ -62,10 +51,10 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
         padding: EdgeInsets.zero,
         itemCount: itemCount,
         itemBuilder: (_, index) {
-          if (index >= filteredSales.length) {
+          if (index >= widget.items.length) {
             return BottomLoader();
           }
-          return _buildReturnCard(filteredSales[index], screenWidth,context);
+          return _buildReturnCard(widget.items[index], screenWidth,context);
         },
       ),
     );

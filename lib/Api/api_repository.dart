@@ -246,13 +246,14 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> invoiceList(String userId,int page) {
+  Future<Map<String, dynamic>> invoiceList(String userId,int page,String query,) {
     return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/invoicelist/',
       queryParameters: {
         'user_id': userId,
         'page': page,
         'per_page': 10,
+        'search': query,
         'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
