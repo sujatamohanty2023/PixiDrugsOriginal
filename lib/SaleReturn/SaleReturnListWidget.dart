@@ -30,13 +30,6 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
     final screenWidth = MediaQuery.of(context).size.width;
     final itemCount = widget.items.length + (widget.hasMoreData ? 1 : 0);
     return  Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.myGradient,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(screenWidth * 0.07),
-          topRight: Radius.circular(screenWidth * 0.07),
-        ),
-      ),
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
           : !widget.isLoading && widget.items.isEmpty

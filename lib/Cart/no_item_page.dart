@@ -2,7 +2,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 
 class NoItemPage extends StatelessWidget {
-  final void Function() onTap;
+  final VoidCallback? onTap;
   var tittle;
   var description;
   var button_tittle;

@@ -51,12 +51,6 @@ class _InvoiceListWidgetState extends State<InvoiceListWidget> {
     return Stack(
       children: [
         Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.myGradient,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(screenWidth * 0.07),
-            ),
-          ),
           child: widget.isLoading
               ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
               : !widget.isLoading && widget.invoices.isEmpty

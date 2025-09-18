@@ -3,6 +3,7 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Dialog/update_bottom_sheet.dart';
+import '../ListPageScreen/SaleReportScreen.dart';
 import '../Profile/contact_us.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
@@ -67,7 +68,8 @@ class _HomeTabState extends State<HomeTab> {
           }
       ),
       DashboardItem(title: "Sales Report", desc:"Track sales summary", icon:AppImages.sale_list, onTap: () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
+        //AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
+        AppRoutes.navigateTo(context, Salereportscreen());
       }),
       DashboardItem(title: "Upload Invoice",desc: "Create a new invoice", icon:AppImages.add_invoice,onTap:  _UploadInvoice),
       DashboardItem(title: "Invoice History", desc:"View all previous invoices", icon:AppImages.invoice_list,onTap:  () {

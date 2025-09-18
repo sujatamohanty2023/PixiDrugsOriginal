@@ -132,15 +132,15 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
   @override
   void didPopNext() => _fetchRecord();
   Future<void> _ClearList() async {
-      currentPage = 1;
-      hasMoreData = true;
-      invoiceList.clear();
-      saleList.clear();
-      ledgerList.clear();
-      stockReturnList.clear();
-      saleReturnList.clear();
-      expenseList.clear();
-      staffList.clear();
+    currentPage = 1;
+    hasMoreData = true;
+    invoiceList.clear();
+    saleList.clear();
+    ledgerList.clear();
+    stockReturnList.clear();
+    saleReturnList.clear();
+    expenseList.clear();
+    staffList.clear();
   }
 
   Future<void> _fetchRecord({bool refresh = false}) async {
@@ -285,7 +285,15 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
                     onRefresh: () => _fetchRecord(refresh: true),
                     color: AppColors.kPrimary,
                     backgroundColor: AppColors.kPrimaryLight,
-                    child: _buildListBody(isLoading),
+                    child: Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.myGradient,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(screenWidth * 0.07),
+                          ),
+                        ),
+                        child: _buildListBody(isLoading)
+                    ),
                   ),
                 ),
               ],
@@ -298,31 +306,31 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
 
   Widget _buildTopBar(double screenWidth) {
     return Padding(
-      padding: EdgeInsets.only(left: screenWidth * 0.02,right: screenWidth * 0.02),
-      child: Row(
-        children: [
-          widget.type==ListType.ledger?SizedBox(height: screenWidth * 0.02,):IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => HomePage()),
-                  (route) => false,
+        padding: EdgeInsets.only(left: screenWidth * 0.02,right: screenWidth * 0.02),
+        child: Row(
+          children: [
+            widget.type==ListType.ledger?SizedBox(height: screenWidth * 0.02,):IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage()),
+                    (route) => false,
+              ),
             ),
-          ),
-          Expanded(
-            child: MyTextfield.textStyle_w400(
-              titleMap[widget.type] ?? '',
-              screenWidth * 0.052,
-              Colors.white,
+            Expanded(
+              child: MyTextfield.textStyle_w400(
+                titleMap[widget.type] ?? '',
+                screenWidth * 0.052,
+                Colors.white,
+              ),
             ),
-          ),
-          if (_isFilterSupported(widget.type))
-          IconButton(
-          icon: const Icon(Icons.tune, color: Colors.white),
-          onPressed: _showFilterTopSheet,
-          )
-      ],
-    ));
+            if (_isFilterSupported(widget.type))
+              IconButton(
+                icon: const Icon(Icons.tune, color: Colors.white),
+                onPressed: _showFilterTopSheet,
+              )
+          ],
+        ));
   }
   bool _isFilterSupported(ListType type) {
     return [
@@ -349,33 +357,33 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
             child: Container(
               width: double.infinity,
               child: FilterWidget(
-                type:widget.type,
-                initialFrom: fromDate,
-                initialTo: toDate,
-                initialRange: selectedRange,
-                initialPaymentType:selectedPaymentType,
-                initialPaymentReason: selectedPaymentReason,
-                onApply: (from, to, range, paymentType,paymentReason) {
-                  setState(() {
-                    fromDate = from;
-                    toDate = to;
-                    selectedRange = range;
-                    selectedPaymentType = paymentType??'';
-                    selectedPaymentReason = paymentReason??'';
-                  });
-                  _fetchRecord(refresh: true);
-                  Navigator.pop(context);
-                },
-                onReset:(){
-                  setState(() {
-                    fromDate = null;
-                    toDate = null;
-                    selectedRange = '';
-                    selectedPaymentType = '';
-                    selectedPaymentReason='';
-                  });
-                  _fetchRecord(refresh: true);
-                }
+                  type:widget.type,
+                  initialFrom: fromDate,
+                  initialTo: toDate,
+                  initialRange: selectedRange,
+                  initialPaymentType:selectedPaymentType,
+                  initialPaymentReason: selectedPaymentReason,
+                  onApply: (from, to, range, paymentType,paymentReason) {
+                    setState(() {
+                      fromDate = from;
+                      toDate = to;
+                      selectedRange = range;
+                      selectedPaymentType = paymentType??'';
+                      selectedPaymentReason = paymentReason??'';
+                    });
+                    _fetchRecord(refresh: true);
+                    Navigator.pop(context);
+                  },
+                  onReset:(){
+                    setState(() {
+                      fromDate = null;
+                      toDate = null;
+                      selectedRange = '';
+                      selectedPaymentType = '';
+                      selectedPaymentReason='';
+                    });
+                    _fetchRecord(refresh: true);
+                  }
               ),
             ),
           ),
@@ -500,10 +508,10 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           onDeletePressed: (id) { _showDeleteDialog(context, id); },
           onEditPressed: (sale) => AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
           onPrintPressed: (sale) => /*_onButtonPrintPressed(context, sale)*/AppRoutes.navigateTo(context,
-            ReceiptPrinterPage(sale: sale)),
+              ReceiptPrinterPage(sale: sale)),
           onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
           onDownloadPressed: (sale) => (){
-              ReceiptPdfGenerator.downloadPdf(context, sale);
+            ReceiptPdfGenerator.downloadPdf(context, sale);
           },
           onAddPressed: () {},
           onRefreshRequested: () => _fetchRecord(refresh: true),
@@ -617,29 +625,5 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
         ),
       );
     }
-  }
-
-  void _onButtonPrintPressed(BuildContext context, SaleModel sale) {
-    if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.kWhiteColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.70,
-        minChildSize: 0.60,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) {
-          return ReceiptPrinterPage(
-            sale: sale,
-            scrollController: scrollController,
-          );
-        },
-      ),
-    );
   }
 }

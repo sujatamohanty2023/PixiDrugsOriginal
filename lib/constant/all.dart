@@ -49,7 +49,6 @@ export '../Cart/OrderPlaceModel.dart';
 
 export '../Api//ConnectivityService.dart';
 export '../Api/api_cubit.dart';
-export '../Api/ApiRepositoryOld.dart';
 export '../Api/ApiState.dart';
 export '../login/LoginModel.dart';
 export '../onboardingscreen/BannerModel.dart';

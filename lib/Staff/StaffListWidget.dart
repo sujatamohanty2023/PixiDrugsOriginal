@@ -33,13 +33,6 @@ class _StaffListWidgetState extends State<StaffListWidget> {
     return Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.myGradient,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(screenWidth * 0.07),
-                topRight: Radius.circular(screenWidth * 0.07),
-              ),
-            ),
             child: widget.isLoading
                 ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
                 : !widget.isLoading && widget.list.isNotEmpty
