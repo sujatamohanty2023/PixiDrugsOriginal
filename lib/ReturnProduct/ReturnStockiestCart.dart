@@ -80,39 +80,6 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
     return Scaffold(
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
-          if (state is BarcodeScanLoaded) {
-            searchResults = state.list;
-            if (searchResults.isNotEmpty) {
-              final cartCubit = context.read<CartCubit>();
-              final scannedItem = searchResults.first;
-
-              // If seller is not set, initialize it first
-              selectedSeller ??= CustomerModel(
-                  id: scannedItem.sellerId ?? 0,
-                  name: scannedItem.sellerName ?? '',
-                  phone: scannedItem.sellerPhone ?? '',
-                  address: '',
-                );
-
-              // Check seller matches
-              if (selectedSeller!.id != scannedItem.sellerId) {
-                AppUtils.showSnackBar(context, 'Different Seller Item');
-                return;
-              }
-
-              // Check if item already in cart
-              bool alreadyInCart = cartCubit.state.cartItems.any((i) =>
-              i.id == scannedItem.id && i.batch == scannedItem.batch);
-
-              if (!alreadyInCart && state.source=='scan') {
-                cartCubit.addToCart(scannedItem, 1, type: CartType.main);
-              }
-            } else {
-              AppUtils.showSnackBar(context, 'No products found.');
-            }
-          } else if (state is BarcodeScanError) {
-            AppUtils.showSnackBar(context, state.error);
-          }
           if (state is StockReturnAddLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully retrun to stock');
@@ -259,7 +226,9 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
                   product: item,
                   editable: edit || !widget.detail,
                   onQtyChanged: (qtyStr) {
-                    item.qty = int.tryParse(qtyStr) ?? 0;
+                    setState(() {
+                      item.qty = int.tryParse(qtyStr) ?? 0;
+                    });
                   },
                 ),
 
@@ -339,7 +308,14 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
                             color: AppColors.kWhiteColor,
                             size: 30,
                           ),
-                          onPressed: _QuickscanBarcode,
+                          onPressed:() async {
+                            //_QuickscanBarcode
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.StockiestReturn,
+                                  selectedCustomer: selectedSeller)),
+                            );
+                          },
                         ),
                     ],
                   ),
@@ -351,23 +327,6 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
       ),
     )
     );
-  }
-  Future<void> _QuickscanBarcode() async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.StockiestReturn,
-        selectedCustomer: selectedSeller)),
-      );
-      if (result.isNotEmpty && result['code']!='manualAdd') {
-        context.read<ApiCubit>().BarcodeScan(
-            code: result['code'],
-            storeId: userId,
-            seller_id:selectedSeller!=null?selectedSeller!.id.toString():'');
-      }
-    } catch (e) {
-      AppUtils.showSnackBar(context,'Failed to scan barcode');
-    }
   }
   void _onCartItemTap(InvoiceItem item) {}
   Future<void> StockestReturnApiCall() async {

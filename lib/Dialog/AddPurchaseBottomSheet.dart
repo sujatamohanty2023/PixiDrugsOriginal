@@ -1,5 +1,7 @@
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../Home/camera_multiple_image.dart';
 
@@ -58,7 +60,7 @@ void AddPurchaseBottomSheet(
                   title: "Take Photo",
                   subtitle: "Capture using your camera",
                   onTap: () async {
-                    List<CameraDescription> cameras = await availableCameras();
+                   /* List<CameraDescription> cameras = await availableCameras();
                     final result = await Navigator.push(
                       context,  // Changed here
                       MaterialPageRoute(
@@ -69,6 +71,26 @@ void AddPurchaseBottomSheet(
                       print("Captured images from camera: ${result.map((e) => e.path).toList()}");
                       _fileList.addAll(result);
                       Navigator.pop(rootContext);  // Close sheet first
+                      onFileSelected(_fileList);
+                    }*/
+                    dynamic scannedDocuments;
+                    try {
+                      scannedDocuments = await FlutterDocScanner().getScanDocuments(page: 4);
+                      print("🔍 Raw scannedDocuments = $scannedDocuments");
+                    } on PlatformException {
+                      scannedDocuments = null;
+                      AppUtils.showSnackBar(context, "Failed to get scanned documents.");
+                    }
+
+                    if (scannedDocuments == null) return;
+
+                    if (scannedDocuments is Map && scannedDocuments["pdfUri"] != null) {
+                      final pdfPath = scannedDocuments["pdfUri"].toString().replaceAll("file://", "");
+                      _fileList.add(File(pdfPath));
+                    }
+                    if (_fileList.isNotEmpty) {
+                      print("✅ Raw scannedDocuments = ${_fileList.map((f) => f.path).toList()}");
+                      Navigator.pop(rootContext);
                       onFileSelected(_fileList);
                     }
                   },

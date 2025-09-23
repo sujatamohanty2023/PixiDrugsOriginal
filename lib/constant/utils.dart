@@ -63,6 +63,7 @@ class AppUtils {
         message.toLowerCase().contains('error')||
         message.toLowerCase().contains('failed') ||
         message.toLowerCase().contains('please') ||
+        message.toLowerCase().contains('can\'t add more than stock available') ||
         message.toLowerCase().contains('no product founds')||
         message.toLowerCase().contains('Multiple different invoice IDs found');
 
@@ -187,10 +188,10 @@ class AppUtils {
 
     // Handle international format (+91...)
     if (cleaned.startsWith('+')) {
-      if (cleaned.length == 12 && cleaned.substring(1).length == 10) {
+      if (cleaned.length == 13 && cleaned.startsWith('+91')) {
         return cleaned; // e.g., +919876543210
-      } else if (cleaned.length == 13 && cleaned.substring(1, 3) == '91') {
-        return '+91${cleaned.substring(3)}'; // Normalize +9191... → +91...
+      } else if (cleaned.length == 14 && cleaned.startsWith('+9191')) {
+        return '+91${cleaned.substring(4)}'; // Normalize +9191xxxx → +91xxxx
       }
     }
 
@@ -199,24 +200,33 @@ class AppUtils {
       cleaned = cleaned.substring(1);
     }
 
-    // Must be exactly 10 digits
+    // Must be exactly 10 digits (valid Indian mobile)
     if (cleaned.length == 10 && RegExp(r'^[6-9]\d{9}$').hasMatch(cleaned)) {
       return '+91$cleaned';
     }
 
-    // If it's 10 digits but doesn't start with 6-9 (invalid Indian mobile)
-    if (cleaned.length == 10) {
-      return '+91$cleaned'; // Still accept, but warn?
-    }
-
-    // If it's 11 digits starting with 91
-    if (cleaned.length == 11 && cleaned.startsWith('91')) {
+    // Accept 11 digits starting with 91
+    if (cleaned.length == 12 && cleaned.startsWith('91')) {
       return '+91${cleaned.substring(2)}';
     }
 
-    // Invalid format — return empty or original? We'll return empty to avoid bad data.
     print('⚠️ Invalid phone number: $phone → normalized to ""');
-    return ''; // Or optionally return original if len > 0
+    return '';
   }
+
+  /// New: Extract 2 numbers from a single string
+  Map<String, String> extractTwoPhones(String raw) {
+    final reg = RegExp(r'\+?\d{7,15}');
+    final matches = reg.allMatches(raw).map((m) => m.group(0)!).toList();
+
+    String phone1 = matches.isNotEmpty ? validateAndNormalizePhone(matches[0]) : '';
+    String phone2 = matches.length > 1 ? validateAndNormalizePhone(matches[1]) : '';
+
+    return {
+      'phone1': phone1,
+      'phone2': phone2,
+    };
+  }
+
 
 }

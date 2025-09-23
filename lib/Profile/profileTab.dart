@@ -1,5 +1,6 @@
 import 'package:PixiDrugs/Expense/AddExpenseScreen.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:PixiDrugs/ListScreenNew/StaffListScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
 import 'package:PixiDrugs/Profile/WebviewScreen.dart';
@@ -7,6 +8,7 @@ import 'package:PixiDrugs/Profile/edit_profile.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/mobileLoginScreen.dart';
 
+import '../ListScreenNew/ExpenseListScreen.dart';
 import 'contact_us.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -129,7 +131,7 @@ class ProfileScreen extends StatefulWidget {
                       if(role=='owner')
                       GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, ListScreen(type:ListType.staff));
+                          AppRoutes.navigateTo(context, StaffListScreen());
                         },
                         child: _buildMenuItem(Icons.person, "Staff Management",
                             Colors.purpleAccent),
@@ -137,7 +139,7 @@ class ProfileScreen extends StatefulWidget {
                       if(role=='owner')
                       GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, ListScreen(type:ListType.expense));
+                          AppRoutes.navigateTo(context, ExpenseListScreen());
                         },
                         child: _buildMenuItem(Icons.add_chart, "Expenses Management",
                             Colors.cyan),

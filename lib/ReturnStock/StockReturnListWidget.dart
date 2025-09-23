@@ -1,7 +1,9 @@
 import 'package:PixiDrugs/constant/all.dart';
+import '../ReturnProduct/ReturnPdfGenerator.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
 
 class StockReturnListWidget extends StatefulWidget {
@@ -24,11 +26,37 @@ class StockReturnListWidget extends StatefulWidget {
 
 class _StockReturnListWidgetState extends State<StockReturnListWidget> {
 
+  UserProfile? user;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+  void loadUserData() async {
+    String? userId = await SessionManager.getUserId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
+    }
+  }
   @override
   Widget build(BuildContext context) {
+    return BlocListener<ApiCubit, ApiState>(
+      listener: (context, state) {
+        // Replace ApiUserLoaded with your actual state containing UserProfile
+        if (state is UserProfileLoaded) {
+          setState(() {
+            user = state.userModel.user;
+          });
+        }
+      },
+      child: _buildBody(),
+    );
+  }
+  Widget _buildBody(){
     final screenWidth = MediaQuery.of(context).size.width;
     final itemCount = widget.items.length + (widget.hasMoreData ? 1 : 0);
-    return  Container(
+    return Container(
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
           : !widget.isLoading && widget.items.isEmpty
@@ -94,6 +122,42 @@ class _StockReturnListWidgetState extends State<StockReturnListWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+
+                  CustomPopupMenu(
+                    iconSize: screenWidth * 0.05,
+                    backgroundColor: AppColors.kWhiteColor,
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'share':
+                          ReturnPdfGenerator.generateStockReturnPdf(user!, stockReturn: item,share: true);
+                          break;
+                       /* case 'edit':
+                          AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true));
+                          break;*/
+                      case 'download':
+                        ReturnPdfGenerator.generateStockReturnPdf(user!, stockReturn: item,share: false);
+                          break;
+                      }
+                    },
+                    items: [
+                      CustomPopupMenuItemData(
+                        value: 'share',
+                        label: 'Share',
+                        iconAsset: AppImages.share,
+                      ),
+                       CustomPopupMenuItemData(
+                        value: 'download',
+                        label: 'Download',
+                        iconAsset: AppImages.download,
+                      ),
+                      /*
+                      CustomPopupMenuItemData(
+                        value: 'edit',
+                        label: 'Edit',
+                        iconAsset: AppImages.edit,
+                      ),*/
+                    ],
+                  ),
                   SizedBox(height: screenWidth * 0.015),
                   Builder(
                     builder: (context) {

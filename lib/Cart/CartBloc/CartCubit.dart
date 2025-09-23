@@ -187,6 +187,17 @@ class CartCubit extends Cubit<CartState> {
 
     _emitUpdatedCartState(type, updatedCart);
   }
+  void updateItemQty(InvoiceItem item, int qty, {CartType type = CartType.main}) {
+    final cartList = _getCartList(type);
+    final updatedCart = cartList.map((i) {
+      if (i.id == item.id && i.batch == item.batch) {
+        return i.copyWith(qty: qty);
+      }
+      return i;
+    }).toList();
+
+    _emitUpdatedCartState(type, updatedCart);
+  }
 
   void removeFromCart(int productId, {CartType type = CartType.main}) {
     final updatedCart = _getCartList(type).where((item) => item.id != productId).toList();

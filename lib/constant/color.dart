@@ -2,7 +2,8 @@ import 'package:PixiDrugs/constant/all.dart';
 
 class AppColors {
   static const kPrimaryLight = Color(0xFFDCEBFF);
-  static const kPrimaryDark = Color(0xFFC4DAF6);
+  static const kPrimaryDark = Color(0xFFD7E2F6);
+  static const login_new = Color(0xff1ca4ac);
   static const loginbg = Color(0xFF173C6E);
   static const kPrimary = Color(0xFF062A49);
   static const secondaryColor = Color(0xff1ca4ac);
@@ -41,7 +42,7 @@ class AppColors {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        AppColors.kPrimaryLight,
+        AppColors.kPrimary,
         AppColors.secondaryColor,
       ],
       stops: [0.0, 1.0],

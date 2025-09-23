@@ -1,36 +1,31 @@
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:intl/intl.dart';
-import '../Cart/ReceiptPrinterPage.dart';
-import '../Cart/ReceiptPdfGenerator.dart';
 import '../Home/HomePageScreen.dart';
-import '../SaleList/sale_details.dart';
-import '../SaleList/sale_model.dart';
+import '../Ledger/LedgerDetailsPage.dart';
+import '../Ledger/LedgerModel.dart';
 import '../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
-import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import 'FilterWidget.dart';
+import '../ListPageScreen/FilterWidget.dart';
 
-class Salereportscreen extends StatefulWidget {
+class LedgerListScreen extends StatefulWidget {
 
-  const Salereportscreen({Key? key}) : super(key: key);
+  const LedgerListScreen({Key? key}) : super(key: key);
 
   @override
-  State<Salereportscreen> createState() => _SalereportscreenState();
+  State<LedgerListScreen> createState() => _LedgerListScreenState();
 }
 
-class _SalereportscreenState extends State<Salereportscreen> with WidgetsBindingObserver, RouteAware {
+class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBindingObserver, RouteAware {
   String searchQuery = "";
   final ScrollController _scrollController = ScrollController();
-  String? role;
 
   int currentPage = 1;
   bool isLoadingMore = false;
   bool hasMoreData = true;
   bool isRefresh = false;
 
-  final saleList = <SaleModel>[];
-  List<Map<String, dynamic>> summaryItems=[];
+  final ledgerList = <LedgerModel>[];
 
   DateTime? fromDate;
   DateTime? toDate;
@@ -43,19 +38,15 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   @override
   void initState() {
     super.initState();
-    _loadUserRole();
     WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_onSearch);
     _scrollController.addListener(_onScroll);
     _fetchRecord(refresh: true);
   }
-  Future<void> _loadUserRole() async {
-    role = await SessionManager.getRole();
-    if (mounted) setState(() {});
-  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _searchController.removeListener(_onSearch);
@@ -87,7 +78,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
     }
   }
 
- /* @override
+  /* @override
   void didPopNext() => _fetchRecord();*/
 
   Future<void> _fetchRecord({bool refresh = false}) async {
@@ -103,48 +94,70 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
     if (isLoadingMore || !hasMoreData) return;
 
     setState(() => isLoadingMore = true);
-    final apiCubit = context.read<ApiCubit>();
 
     String? from = fromDate != null ? DateFormat('yyyy-MM-dd').format(fromDate!) : null;
     String? to = toDate != null ? DateFormat('yyyy-MM-dd').format(toDate!) : null;
 
-    await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,filter: searchQuery);
+    await context.read<ApiCubit>().fetchLedgerList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,payment_reason:selectedPaymentReason,filter: searchQuery);
     setState(() => isLoadingMore = false);
   }
 
-  void _updatePaginatedList<T>(List<T> targetList, List<T> newItems, int lastPage) {
-    if(isRefresh){
+  void _updatePaginatedList<T extends Object>(
+      List<T> targetList,
+      List<T> newItems,
+      int lastPage,
+      ) {
+    if (isRefresh) {
       targetList.clear();
-      isRefresh=false;
+      isRefresh = false;
     }
-    targetList.addAll(newItems);
+
+    for (var newItem in newItems) {
+      final index = targetList.indexWhere((oldItem) {
+        if (oldItem is Invoice && newItem is Invoice) {
+          return oldItem.id == newItem.id; // ✅ compare by unique ID
+        }
+        return oldItem == newItem; // fallback for other types
+      });
+
+      if (index >= 0) {
+        // Item already exists → check if changed
+        if (targetList[index] != newItem) {
+          targetList[index] = newItem; // ✅ replace with updated one
+        }
+      } else {
+        // Item not found → add it
+        targetList.add(newItem);
+      }
+    }
+
     hasMoreData = lastPage > currentPage;
     if (hasMoreData) currentPage++;
   }
+
 
   void _showDeleteDialog(BuildContext context, int id) {
     CommonConfirmationDialog.show<String>(
       context: context,
       id: id.toString(),
-      title: 'Delete Sale Record?',
-      content: 'Are you sure you want to delete this Sale record?',
+      title: 'Delete this Record?',
+      content: 'Are you sure you want to delete this record?',
       onConfirmed: (_) => _deleteRecord(id),
     );
   }
 
   void _deleteRecord(int id) async {
-    try {
+    /* try {
 
       final apiCubit = context.read<ApiCubit>();
-      await apiCubit.SaleDelete(billing_id: id.toString());
-      saleList.removeWhere((sale) => sale.invoiceNo == id);
+      await apiCubit.InvoiceDelete(invoice_id: id.toString());
+      saleReturnList.removeWhere((inv) => inv.id == id);
       AppUtils.showSnackBar(context, "Record deleted successfully");
       setState(() {});
     } catch (e) {
       AppUtils.showSnackBar(context, "Failed to delete record: $e");
-    }
+    }*/
   }
-
   // ---- Build Method ----
 
   @override
@@ -154,16 +167,11 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
     return Scaffold(
       body: BlocBuilder<ApiCubit, ApiState>(
         builder: (context, state) {
-          final isLoading = state is SaleListLoading;
+          final isLoading = state is LedgerListLoading;
 
           // Populate lists from state
-           if (state is SaleListLoaded) {
-            summaryItems = [
-              {"title": 'Cash', "value": state.totals['cash']},
-              {"title": 'Upi', "value": state.totals['upi']},
-              {"title": 'Due', "value":state.totals['due']},
-            ];
-            _updatePaginatedList(saleList, state.saleList, state.last_page);
+          if (state is LedgerListLoaded) {
+            _updatePaginatedList(ledgerList, state.leadgerList, state.last_page);
           }
 
           return Container(
@@ -187,15 +195,16 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                           topRight: Radius.circular(screenWidth * 0.07),
                         ),
                       ),
-                      child:(isLoading || isRefresh) && saleList.isEmpty?
+                      child:(isLoading || isRefresh) && ledgerList.isEmpty?
                       Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
-                      : (!isLoading || !isRefresh) && saleList.isEmpty
-                          ? NoItemPage(
+                          : (!isLoading && !isRefresh) && ledgerList.isEmpty
+                          ?  NoItemPage(
                         onTap: (){},
                         image: AppImages.no_sale,
-                        tittle: 'No Sale Record Found',
-                        description: "Please add important details about the sale such as customer name, products, quantity, total amount, and payment status.",
-                        button_tittle: /*'Add Sale Record'*/'',
+                        tittle: 'No Ledger Record Found',
+                        description:
+                        "Please add important details about the new party such as name, address, GSTIN, total due amount",
+                        button_tittle: /*'Add New Party'*/'',
                       )
                           : _buildListBody(isLoading),
                     ),
@@ -223,15 +232,15 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
             ),
             Expanded(
               child: MyTextfield.textStyle_w400(
-                'Sale List',
+                'Ledger List',
                 screenWidth * 0.052,
                 Colors.white,
               ),
             ),
             IconButton(
-                icon: const Icon(Icons.tune, color: Colors.white),
-                onPressed: _showFilterTopSheet,
-              )
+              icon: const Icon(Icons.tune, color: Colors.white),
+              onPressed: _showFilterTopSheet,
+            )
           ],
         ));
   }
@@ -250,13 +259,13 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
             child: Container(
               width: double.infinity,
               child: FilterWidget(
-                  type:ListType.sale,
+                  type:ListType.ledger,
                   initialFrom: fromDate,
                   initialTo: toDate,
                   initialRange: selectedRange,
                   initialPaymentType:selectedPaymentType,
                   initialPaymentReason: selectedPaymentReason,
-                  onApply: (from, to, range, paymentType,paymentReason) {
+                  onApply: (from, to, range, paymentType,paymentReason) async {
                     setState(() {
                       fromDate = from;
                       toDate = to;
@@ -264,10 +273,10 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                       selectedPaymentType = paymentType??'';
                       selectedPaymentReason = paymentReason??'';
                     });
-                    _fetchRecord(refresh: true);
-                    Navigator.pop(context);
+                    await _fetchRecord(refresh: true);
+                    if (mounted) Navigator.pop(context);
                   },
-                  onReset:(){
+                  onReset:() async {
                     setState(() {
                       fromDate = null;
                       toDate = null;
@@ -275,7 +284,8 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                       selectedPaymentType = '';
                       selectedPaymentReason='';
                     });
-                    _fetchRecord(refresh: true);
+                    await _fetchRecord(refresh: true);
+                    if (mounted) Navigator.pop(context);
                   }
               ),
             ),
@@ -310,7 +320,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search by customer name/mobile no.',
+                  hintText: 'Search by party name',
                   hintStyle: MyTextfield.textStyle(
                       16, Colors.grey, FontWeight.w300),
                   border: InputBorder.none,
@@ -355,7 +365,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   }
   Widget _buildListBody(bool isLoading) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final itemCount = 1 + saleList.length + (hasMoreData ? 1 : 0);
+    final itemCount = ledgerList.length + (hasMoreData ? 1 : 0);
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
@@ -363,71 +373,21 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
         controller: _scrollController,
         itemCount: itemCount,
         padding: EdgeInsets.zero,
+        physics: const AlwaysScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          if (index == 0) {
-            // Summary grid
-            return Padding(
-              padding: const EdgeInsets.all( 8.0),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: screenWidth > 600 ? 4 : 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: screenWidth < 360 ? 1.5 : 1.1,
-                ),
-                itemCount: summaryItems.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, summaryIndex) {
-                  final item = summaryItems[summaryIndex];
-                  return _buildSummaryContainer(item['title'], item['value']);
-                },
-              ),
-            );
-          } else if (index == itemCount - 1 && hasMoreData) {
+          if (index == itemCount-1 && hasMoreData) {
             return BottomLoader();
-          } else {
-            final sale = saleList[index - 1];
-            return _buildSaleCard(sale, screenWidth, context);
           }
+          return _buildLedgerCard(ledgerList[index], screenWidth,context);
         },
       ),
     );
   }
 
-  Widget _buildSummaryContainer(String title, dynamic value) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    return Container(
-      decoration: BoxDecoration(
-        color: title=='Cash'?Colors.green:title=='Upi'?Colors.orange:Colors.red,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          MyTextfield.textStyle_w600(
-              '₹$value',
-              screenWidth * 0.045,
-              Colors.white),
-          const SizedBox(height: 4),
-          MyTextfield.textStyle_w400(
-              title,
-              screenWidth * 0.035,
-              Colors.white),
-        ],
-      ),
-    );
-  }
-  Widget _buildSaleCard(sale, double screenWidth, BuildContext context) {
+  Widget _buildLedgerCard(LedgerModel item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SaleDetailsPage(sale: sale, edit: false),),
-        );
-        if (result==true) {
-          _fetchRecord(refresh: true);
-        }
+        GoNextPageFun(items:item);
       },
       child: Card(
         color: Colors.white,
@@ -440,89 +400,58 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
             children: [
               GradientInitialsBox(
                 size: screenWidth * 0.15,
-                name: sale.customer.name,
+                name: item.sellerName,
               ),
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextfield.textStyle_w800(sale.customer.name,screenWidth * 0.04,AppColors.kPrimary),
+                    MyTextfield.textStyle_w800(item.sellerName,screenWidth * 0.04,AppColors.kPrimary),
                     SizedBox(height: screenWidth * 0.01),
-                    sale.customer.phone.isNotEmpty && sale.customer.phone!='no number'?
-                    MyTextfield.textStyle_w400('Mob: ${sale.customer.phone}',screenWidth * 0.035,Colors.green.shade700):
-                    MyTextfield.textStyle_w400('Email: ${sale.customer.email}',screenWidth * 0.035,Colors.deepOrange.shade700),
-                    MyTextfield.textStyle_w400('Bill No. #${sale.invoiceNo!}',screenWidth * 0.035,Colors.grey.shade700),
-                    MyTextfield.textStyle_w400('Dt.${sale.date!}',screenWidth * 0.035,Colors.grey.shade700),
-                    SizedBox(height: screenWidth * 0.01),
-                    MyTextfield.textStyle_w600("₹${sale.totalAmount}",screenWidth * 0.049,Colors.green),
+                    MyTextfield.textStyle_w400('GSTIN: ${item.gstNo}',screenWidth * 0.035,Colors.grey.shade700,maxLines: true),
+                    MyTextfield.textStyle_w600("Credit: ₹${item.totalCredit}", screenWidth * 0.035, Colors.green),
+                    MyTextfield.textStyle_w600("Debit: ₹${item.totalDebit}", screenWidth * 0.035, Colors.orange),
+                    SizedBox(height: screenWidth * 0.01)
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  CustomPopupMenu(
-                    iconSize: screenWidth * 0.05,
-                    backgroundColor: AppColors.kWhiteColor,
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'print':
-                          AppRoutes.navigateTo(context, ReceiptPrinterPage(sale: sale));
-                          break;
-                        case 'share':
-                          ReceiptPdfGenerator.generateAndSharePdf(context, sale);
-                          break;
-                        case 'edit':
-                          AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true));
-                          break;
-                        case 'delete':
-                          _showDeleteDialog(context, sale);
-                          break;
-                      /*case 'download':
-                          ReceiptPdfGenerator.generateAndSharePdf(context, sale);
-                          break;*/
-                      }
+                  /*GestureDetector(
+                    onTap: () {
+                      launchUrl(Uri.parse("tel:+91${item.phone}"));
                     },
-                    items: [
-                      CustomPopupMenuItemData(
-                        value: 'print',
-                        label: 'Print Bill',
-                        iconAsset: AppImages.printer,
+                    child: Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      if (sale.customer.phone.isNotEmpty && sale.customer.phone != 'no number')
-                        CustomPopupMenuItemData(
-                          value: 'share',
-                          label: 'Share',
-                          iconAsset: AppImages.share,
-                        ),
-                      /* CustomPopupMenuItemData(
-                        value: 'download',
-                        label: 'Download',
-                        iconAsset: AppImages.download,
-                      ),*/
-                      CustomPopupMenuItemData(
-                        value: 'edit',
-                        label: 'Edit',
-                        iconAsset: AppImages.edit,
-                      ),
-                      if (role == 'owner')
-                        CustomPopupMenuItemData(
-                          value: 'delete',
-                          label: 'Delete',
-                          iconAsset: AppImages.delete,
-                          textColor: AppColors.kRedColor,
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: screenWidth * 0.015),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
-                    decoration: BoxDecoration(
-                      color: sale.paymentType != "Due" ? Colors.green.shade100 : Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(screenWidth * 0.01),
+                      child: Icon(Icons.call, color: Colors.green, size: 25),
                     ),
-                    child: MyTextfield.textStyle_w400( sale.paymentType,screenWidth * 0.03,sale.paymentType != "Due" ? Colors.green : Colors.red),
+                  ),*/
+                  SizedBox(height: screenWidth * 0.015),
+                  Builder(
+                    builder: (context) {
+                      Color amountColor = item.dueAmount.contains('-')
+                          ? Colors.red
+                          : Colors.green;
+
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.01),
+                        decoration: BoxDecoration(
+                          color: amountColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                        ),
+                        child: MyTextfield.textStyle_w600(
+                          "₹${item.dueAmount}",
+                          screenWidth * 0.04,
+                          amountColor,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -531,5 +460,14 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
         ),
       ),
     );
+  }
+  Future<void> GoNextPageFun({bool edit=false, required LedgerModel items}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LedgerDetailsPage(ledger: items)),
+    );
+    if (result==true) {
+      _fetchRecord(refresh: true);
+    }
   }
 }

@@ -1,13 +1,13 @@
+import 'package:flutter/gestures.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/login/RegisterResponse.dart';
-import 'package:flutter/material.dart';
-
-import '../Api/api_cubit.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import '../Address/MapScreen.dart';
+import '../Profile/WebviewScreen.dart';
 import '../Profile/contact_us.dart';
-import '../constant/color.dart';
-import '../constant/utils.dart';
-import '../customWidget/MyEditTextField.dart';
-import '../customWidget/MyTextField.dart';
+import 'package:latlong2/latlong.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -24,101 +24,110 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final gstController = TextEditingController();
   final regController = TextEditingController();
   final addressController = TextEditingController();
-  final cityController = TextEditingController();
-  final pincodeController = TextEditingController();
+  LatLng? currentLatLng;
+  Placemark? place;
+  String selectedGender = "Male";
   bool _isLoading = false;
+  bool _isChecked = false;
   StreamSubscription? _registerSubscription;
 
-  String selectedState = "Odisha";
-
-  final List<String> indianStates = [
-    "Andhra Pradesh",
-    "Arunachal Pradesh",
-    "Assam",
-    "Bihar",
-    "Chhattisgarh",
-    "Goa",
-    "Gujarat",
-    "Haryana",
-    "Himachal Pradesh",
-    "Jharkhand",
-    "Karnataka",
-    "Kerala",
-    "Madhya Pradesh",
-    "Maharashtra",
-    "Manipur",
-    "Meghalaya",
-    "Mizoram",
-    "Nagaland",
-    "Odisha",
-    "Punjab",
-    "Rajasthan",
-    "Sikkim",
-    "Tamil Nadu",
-    "Telangana",
-    "Tripura",
-    "Uttar Pradesh",
-    "Uttarakhand",
-    "West Bengal",
-    "Delhi",
-    "Jammu and Kashmir",
-    "Ladakh",
-    "Puducherry",
-    "Chandigarh",
-    "Andaman and Nicobar Islands",
-    "Lakshadweep",
-    "Dadra and Nagar Haveli and Daman and Diu"
-  ];
-
-  void _showStateDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Select State'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: indianStates.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(indianStates[index]),
-                  onTap: () {
-                    setState(() {
-                      selectedState = indianStates[index];
-                    });
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
+  Future<void> _selectAddress(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MapScreen()),
     );
+    setState(() async {
+      currentLatLng=result;
+      await getAddressFromLatLng(currentLatLng!.latitude,currentLatLng!.longitude);
+      addressController.text = [
+        place?.subLocality,
+        place?.locality,
+        place?.postalCode,
+        place?.country
+      ]
+          .where((element) => element != null && element.isNotEmpty)
+          .join(', ');
+    });
   }
+  Future<void> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+
+      if (placemarks.isNotEmpty) {
+        place = placemarks[0];
+      }
+    } catch (e) {
+      print("Error getting address: $e");
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _ensureLocationPermission();
+  }
+  Future<bool> _ensureLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location permission denied")),
+      );
+      return false;
+    }
+    return true;
+  }
+
+
+
   Future<void> _onSignUpPressed() async {
+
+    String name= storeNameController.text;
+    String ownerName= ownerNameController.text;
+    String email= emailController.text;
+    String phoneNumber= phoneController.text;
+    String gstin= gstController.text;
+    String license= regController.text;
+    String address= addressController.text;
+
+    if (name.isEmpty || ownerName.isEmpty || email.isEmpty || phoneNumber.isEmpty || gstin.isEmpty|| license.isEmpty|| address.isEmpty) {
+      // Show a SnackBar error message if any field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Please fill all the fields."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
+
     RegisterModel model = RegisterModel(
-      name: storeNameController.text,
-      ownerName: ownerNameController.text,
-      email: emailController.text,
-      phoneNumber: phoneController.text,
-      gstin: gstController.text,
-      license: regController.text,
+      name: name,
+      ownerName: ownerName,
+      email: email,
+      phoneNumber: phoneNumber,
+      gstin: gstin,
+      license: license,
       address: addressController.text,
-      pincode: pincodeController.text,
-      state: selectedState,
+      city:place!.locality!,
+      state:place!.administrativeArea!,
+      pincode:place!.postalCode!,
       country: 'India',
       gander: 'NA',
       dob: '',
       password: '',
-      city: cityController.text,
     );
-    context.read<ApiCubit>().register( model: model);
+
+    context.read<ApiCubit>().register(model: model);
 
     await _registerSubscription?.cancel();
     _registerSubscription = context.read<ApiCubit>().stream.listen((state) {
@@ -126,13 +135,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         setState(() => _isLoading = false);
 
         final res = state.registerResponse;
-        if (state.registerResponse.status) {
-          setState(() => _isLoading = false);
+        if (res.status) {
           AppUtils.showSnackBar(context, res.message);
           Navigator.pop(context);
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/,
+              builder: (_) => ContactUsPage(),
             ),
           );
         }
@@ -146,206 +154,251 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: AppColors.kPrimary,
       appBar: AppBar(
-        title: const Text('Sign Up', style: TextStyle(color: Colors.white)),
+        title:  MyTextfield.textStyle_w400('Signup',
+            SizeConfig.screenWidth! * 0.055, Colors.white),
         backgroundColor: AppColors.kPrimary,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        height: screenHeight,
-        decoration: const BoxDecoration(
-          gradient: AppColors.myGradient,
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 60),
+      body:Container(
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          decoration: BoxDecoration(
+            gradient: AppColors.myGradient,
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(screenWidth * 0.07),
+              topLeft: Radius.circular(screenWidth * 0.07),
+            ),
+          ),
         child: SingleChildScrollView(
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                MyTextfield.textStyle_w400('Name of the store', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                SizedBox(height: 10),
+                MyTextfield.textStyle_w400('Name of the store',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                SizedBox(height:SizeConfig.screenHeight! * 0.015),
                 MyEdittextfield(
-                    hintText: 'Enter ${AppString.storeName}', controller: storeNameController),
+                    hintText: 'Enter ${AppString.storeName}',
+                    controller: storeNameController),
 
-                SizedBox(height: screenHeight * 0.015),
-                MyTextfield.textStyle_w400('Name of Owner/Proprietor', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                SizedBox(height: SizeConfig.screenHeight! * 0.015),
+                MyTextfield.textStyle_w400('Name of Owner/Proprietor',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+
                 MyEdittextfield(
                     hintText: 'Enter ${AppString.ownerName}',
                     controller: ownerNameController),
 
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('Mobile no. of Owner', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                SizedBox(height:SizeConfig.screenHeight! * 0.010),
+
+                MyTextfield.textStyle_w400(
+                    "Choose Gender", SizeConfig.screenWidth! * 0.035, Colors.black54),
+                SizedBox(height:SizeConfig.screenHeight! * 0.010),
+                Row(
+                  children: [
+                    SizedBox(height: 16),
+                    ChooseGender(
+                      label: "Male",
+                      icon: Icons.male_outlined,
+                      selected: selectedGender == "Male",
+                      onTap: () {
+                        setState(() {
+                          selectedGender = "Male";
+                        });
+                      },
+                    ),
+                    ChooseGender(
+                      label: "Female",
+                      icon: Icons.female_outlined,
+                      selected: selectedGender == "Female",
+                      onTap: () {
+                        setState(() {
+                          selectedGender = "Female";
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.screenHeight! * 0.010),
+
+                MyTextfield.textStyle_w400('Mobile no. of Owner',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                SizedBox(height:SizeConfig.screenHeight! * 0.015),
                 MyEdittextfield(
-                  controller: phoneController,
-                  hintText: AppString.enterNumber,
-                  keyboardType: TextInputType.phone),
+                    controller: phoneController,
+                    hintText: AppString.enterNumber,
+                    keyboardType: TextInputType.phone),
 
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('Email Id. of Owner/Store', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
-                MyEdittextfield(hintText: AppString.enterEmail, controller: emailController),
+                 SizedBox(height:SizeConfig.screenHeight! * 0.015),
+                MyTextfield.textStyle_w400('Email Id. of Owner/Store',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                 SizedBox(height:SizeConfig.screenHeight! * 0.015),
+                MyEdittextfield(
+                    hintText: AppString.enterEmail, controller: emailController),
 
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('GST NO. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                 SizedBox(height:SizeConfig.screenHeight! * 0.015),
+                MyTextfield.textStyle_w400('GST NO. of Store',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                 SizedBox(height:SizeConfig.screenHeight! * 0.015),
                 MyEdittextfield(
                     controller: gstController,
                     hintText: AppString.enterGst,
                     keyboardType: TextInputType.text),
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('Licence No. of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                 SizedBox(height:SizeConfig.screenHeight! * 0.015),
+                MyTextfield.textStyle_w400('Licence No. of Store',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                SizedBox(height:SizeConfig.screenHeight! * 0.015),
                 MyEdittextfield(
                     controller: regController,
                     hintText: AppString.enterRegNo,
                     keyboardType: TextInputType.text),
-                SizedBox(height: screenHeight * 0.015),
-
-                MyTextfield.textStyle_w600('Location Details', 18, Colors.black),
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('Address Of Store', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
+                SizedBox(height: SizeConfig.screenHeight! * 0.015),
+                MyTextfield.textStyle_w400('Address Of Store',
+                    SizeConfig.screenWidth! * 0.035, Colors.black54),
+                SizedBox(height: SizeConfig.screenHeight! * 0.015),
                 MyEdittextfield(
-                  controller: addressController,
-                  hintText: 'Enter ${AppString.storeAddress}',
-                  keyboardType: TextInputType.text,maxLines:2 ,),
-                SizedBox(height: 8),
-                MyTextfield.textStyle_w400('City', SizeConfig.screenWidth! *0.035, Colors.black54),
-                SizedBox(height: 8),
-                MyEdittextfield(
-                  controller: cityController,
-                  hintText: 'Enter City',
-                  keyboardType: TextInputType.text),
-                SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Country (Fixed - India)
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MyTextfield.textStyle_w600('Country', 14, Colors.black),
-                          const SizedBox(height: 6),
-                          MyEdittextfield(
-                            hintText: 'India',
-                            readOnly: true,
-                            controller: TextEditingController(text: 'India'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    /// State (with fixed overflow handling)
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MyTextfield.textStyle_w600('State', 14, Colors.black),
-                          const SizedBox(height: 6),
-                          GestureDetector(
-                            onTap: _showStateDialog,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade400),
-                              ),
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      selectedState.isEmpty ? 'Select State' : selectedState,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        color: selectedState.isEmpty ? Colors.grey : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_drop_down),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    /// Pin Code
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MyTextfield.textStyle_w600('Pin Code', 14, Colors.black),
-                          const SizedBox(height: 6),
-                          MyEdittextfield(
-                            hintText: 'Enter Pin',
-                            controller: pincodeController,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    controller: addressController,
+                    hintText: 'Enter ${AppString.storeAddress}',
+                    keyboardType: TextInputType.text,
+                    maxLines: 3,
+                    readOnly: true, // ✅ prevents keyboard from opening
+                    onTap: () async {
+                      _selectAddress(context);
+                    }
                 ),
-                const SizedBox(height: 40),
+                 SizedBox(height: 40),
               ],
             ),
           ),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child:  MyElevatedButton(
-          onPressed: (){
-            _onSignUpPressed();
-          },
-          custom_design: false,
-          buttonText: 'Signup',
-          isLoading: _isLoading,
+
+      bottomNavigationBar:
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // ✅ change to AppColors.kPrimary, etc.
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, -2), // shadow on top
+            ),
+          ],
+        ),
+
+        child: Padding(
+          padding:  EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    checkColor: AppColors.kPrimary,
+                    fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return AppColors.kPrimaryLight;
+                      }
+                      return Colors.grey.shade300;
+                    }),
+                    value: _isChecked,
+                    onChanged: (value) {
+                      setState(() {
+                        _isChecked = value ?? false;
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: MyTextfield.textStyle(
+                          14,
+                          Colors.black,
+                          FontWeight.w400,
+                        ),
+                        children: [
+                           TextSpan(
+                              text: "I confirm that I have read, consent and agree to your "),
+                          TextSpan(
+                            text: "terms and conditions",
+                            style:  TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                AppRoutes.navigateTo(context,
+                                    Webviewscreen(tittle: 'Terms & Conditions'));
+                              },
+                          ),
+                           TextSpan(text: " and "),
+                          TextSpan(
+                            text: "Privacy Policy",
+                            style:  TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                AppRoutes.navigateTo(
+                                    context, Webviewscreen(tittle: 'Privacy Policy'));
+                              },
+                          ),
+                           TextSpan(
+                            text:
+                            ", and I am of legal age. I understand that I can change my communication preferences anytime.",
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+               SizedBox(height: 10),
+              _isChecked
+                  ? MyElevatedButton(
+                onPressed: _onSignUpPressed,
+                custom_design: false,
+                buttonText: 'Signup',
+                isLoading: _isLoading,
+              )
+                  :  SizedBox(),
+            ],
+          ),
         ),
       ),
     );
   }
-
-  Widget _buildLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 6),
-      child: MyTextfield.textStyle_w400(label,SizeConfig.screenWidth! * 0.038,Colors.black54),
-    );
-  }
-
-  Widget _buildTextField(String hint, TextEditingController controller,
-      {int maxLines = 1, TextInputType inputType = TextInputType.text}) {
-    return TextField(
-      controller: controller,
-      keyboardType: inputType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: AppColors.kPrimaryDark, width: 1),
+  Widget ChooseGender({required String label, required IconData icon, required bool selected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 5.0),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.kPrimary : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: selected
+                  ? AppColors.kPrimary
+                  : AppColors.kPrimary.withOpacity(0.3)),
         ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon,
+                color: selected ? Colors.white : AppColors.kPrimary, size: 15),
+            SizedBox(width: 3),
+            MyTextfield.textStyle_w600(
+                label, 15, selected ? Colors.white : Colors.grey),
+          ],
+        ),
       ),
     );
   }

@@ -220,8 +220,7 @@ class _ProductCardState extends State<ProductCard> {
 
         MyTextfield.textStyle_w600(widget.item.product, 18, AppColors.kPrimary),
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
-        MyTextfield.textStyle_w200(widget.item.composition??'No Composition', 12, Colors.grey[600]!),
-        const SizedBox(height: 4),
+        MyTextfield.textStyle_w400('Stock:${widget.item.stock}', 14, Colors.deepOrange),
         MyTextfield.textStyle_w600("${AppString.Rupees}${disPlayMrp?.toStringAsFixed(2)}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
         if (isCartMode)
@@ -300,10 +299,12 @@ class _ProductCardState extends State<ProductCard> {
                 ),
                   onPressed: () {
                     print('Add item=${widget.item.id}');
-                    cartCubit.addToCart(widget.item, 1, type: CartType.main);
 
-                    if (widget.returnStock == true) {
+                    if (widget.returnStock == true && cartCubit.state.cartItems.isEmpty) {
+                      cartCubit.addToCart(widget.item, 1, type: CartType.main);
                       _navigateBackWithCustomer();
+                    }else{
+                      cartCubit.addToCart(widget.item, 1, type: CartType.main);
                     }
                   },
                 child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
@@ -342,17 +343,33 @@ class _ProductCardState extends State<ProductCard> {
                     type: 1,
                     icon: Icons.add,
                     onTap: () {
-                      if (widget.saleCart==false && widget.editable) {
+                      final currentStock = widget.item.stock;
+                      final currentQty = widget.mode == ProductCardMode.cart && !widget.saleCart
+                          ? widget.item.qty
+                          : (context.read<CartCubit>().state.cartItems
+                          .firstWhere((e) => e.id == widget.item.id,
+                          orElse: () => widget.item)
+                          .qty);
+
+                      if (currentQty >= currentStock) {
+                        AppUtils.showSnackBar(context, 'can\'t add more than stock available');
+                        return;
+                      }
+
+                      if (widget.saleCart == false && widget.editable) {
                         setState(() {
                           widget.item.qty++;
                         });
                         widget.onUpdate?.call();
                       } else {
-                        cartCubit.incrementQuantity(widget.item.id!,
-                            type: CartType.main);
+                        context.read<CartCubit>().incrementQuantity(
+                          widget.item.id!,
+                          type: CartType.main,
+                        );
                       }
                     },
                   ),
+
                 ],
               );
             }else{

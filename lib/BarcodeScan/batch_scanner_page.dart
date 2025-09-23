@@ -11,7 +11,8 @@ import '../constant/all.dart';
 import 'package:image/image.dart' as img;
 
 class BatchScannerPage extends StatefulWidget {
-  const BatchScannerPage({super.key});
+  final int? flag;
+  const BatchScannerPage({super.key,required this.flag});
 
   @override
   State<BatchScannerPage> createState() => _BatchScannerPageState();
@@ -99,14 +100,82 @@ class _BatchScannerPageState extends State<BatchScannerPage>
       }
 
       //await scanBatchNumber(inputImage);
-      await scanBatchNumberAI(image);
+      //await scanBatchNumberAI(image);
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      if(recognizedText.text.isNotEmpty){
+        await scanBatchNumberAIText(recognizedText.text);
+      }
+
     } catch (e) {
       print("Batch OCR error: $e");
     } finally {
       _isBusy = false;
     }
   }
+  Future<Map<String, String>?> scanBatchNumberAIText(String text) async {
+    try {
+      final formData = FormData.fromMap({
+        'fullText': text,
+        'requirement':
+        'Extract batch number and medicine name if present. Keep it structured.',
+        'type': '1',
+      });
 
+      final dio = Dio();
+      final response = await dio.post(
+        'https://pixi.dexcy.in/api/process',
+        data: formData,
+      );
+
+      if (response.statusCode == 200) {
+        final json = response.data;
+        print('📄 API Raw: ${json.toString()}');
+
+        if (json['data'] is List && json['data'].isNotEmpty) {
+          final parsed =
+          json['data'].map((e) => MedicineData.fromJson(e)).toList();
+
+          final MedicineData first = parsed.first;
+          if (widget.flag==1) {
+            if (first.batch != null) {
+              print("✅ API AI batch number found: ${first.batch}");
+              _found = true;
+              scannedText = first.batch;
+              _timeoutTimer?.cancel();
+              await _player.seek(Duration.zero);
+              await _player.play();
+              await _cameraController?.stopImageStream();
+              AppUtils.showSnackBar(context, "${first.batch}");
+              Navigator.pop(context, {'code': first.batch});
+            } else {
+              AppUtils.showSnackBar(context, "❌ No batch number found");
+            }
+          }
+
+          if (widget.flag==2) {
+            if (first.name != null) {
+              print("✅ API AI batch number found: ${first.name}");
+              _found = true;
+              scannedText = first.name;
+              _timeoutTimer?.cancel();
+              await _player.seek(Duration.zero);
+              await _player.play();
+              await _cameraController?.stopImageStream();
+              AppUtils.showSnackBar(context, "${first.name}");
+              Navigator.pop(context, {'code': first.name});
+            } else {
+              AppUtils.showSnackBar(context, "❌ No Medicine name found");
+            }
+          }
+        }
+      } else {
+        print("❌ API call failed: ${response.statusMessage}");
+      }
+    } catch (e) {
+      print("❌ Error in scanBatchNumberAI: $e");
+    }
+    return null;
+  }
   InputImage? _convertCameraImage(CameraImage image, int rotation) {
     try {
       // Handle YUV_420_888 format

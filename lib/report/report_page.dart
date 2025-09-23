@@ -1,5 +1,9 @@
+import 'package:PixiDrugs/ListScreenNew/ExpenseListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import '../ListPageScreen/ListScreen.dart';
+import '../ListScreenNew/InvoiceReportScreen.dart';
+import '../ListScreenNew/SaleReportScreen.dart';
+import '../Stock/ProductList.dart';
 import 'DashboardCardModel.dart';
 
 class ReportPage extends StatefulWidget {
@@ -10,56 +14,106 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
+  String? role='';
   int selectedTabIndex = 0;
 
   final List<String> tabs = [
     'Today',
-    'Last 7 days',
-    'Last 30 days',
-    'Last 1 year',
+    'This Week',
+    'This Month',
+    'This Year'
   ];
 
-  final List<DashboardCardModel> cards = [
-    DashboardCardModel(title: 'Stock Value', amount: '₹0.00',color:Colors.teal),
-    DashboardCardModel(title: 'Cash+Online Balance', amount: '₹0.00',color:Colors.deepOrangeAccent),
-    DashboardCardModel(title: 'Sales Amt.', amount: '₹0.00',color:Colors.blue),
-    DashboardCardModel(title: 'Purchase Amt.', amount: '₹0.00',color:Colors.pink),
-    DashboardCardModel(title: 'Profit', amount: '₹0.00',color:Colors.deepPurple),
-    DashboardCardModel(title: 'Expenses', amount: '₹0.00',color:Colors.cyan),
-    DashboardCardModel(title: 'Stockist Due', amount: '₹0.00',color:Colors.green),
-    DashboardCardModel(title: 'Customer Due', amount: '₹0.00',color:Colors.red),
+  final List<DashboardCardModel> topCards = [
+    DashboardCardModel(
+        title: 'Stock Value',
+        amount: '₹0.00',
+        color: Colors.teal,
+        icon: null,
+        svgAsset: ''),
+    DashboardCardModel(
+        title: 'Cash+Online Balance',
+        amount: '₹0.00',
+        color: Colors.deepOrangeAccent,
+        icon: null,
+        svgAsset: ''),
+    DashboardCardModel(
+        title: 'Purchase amt.',
+        amount: '₹0.00',
+        color: Colors.pink,
+        icon: null,
+        svgAsset: ''),
+  ];
+
+  final List<DashboardCardModel> middleCards = [
+    DashboardCardModel(
+        title: 'Sales Amt.',
+        amount: '₹00.00',
+        color: Colors.purple,
+        svgAsset: AppImages.sale_amt,
+        icon: null),
+    DashboardCardModel(
+        title: 'Profit',
+        amount: '₹00.00',
+        color: Colors.teal,
+        svgAsset: AppImages.profit,
+        icon: null),
+  ];
+
+  final List<DashboardCardModel> bottomCards = [
+    DashboardCardModel(
+        title: 'Expenses',
+        amount: '₹0.00',
+        color: Colors.cyan,
+        icon: null,
+        svgAsset: ''),
+    DashboardCardModel(
+        title: 'Stockist Due',
+        amount: '₹0.00',
+        color: Colors.green,
+        icon: null,
+        svgAsset: ''),
+    DashboardCardModel(
+        title: 'Customer Due',
+        amount: '₹0.00',
+        color: Colors.red,
+        icon: null,
+        svgAsset: ''),
   ];
 
   @override
   void initState() {
     super.initState();
-    _GetReport();
+    _getReport();
   }
 
-  Future<void> _GetReport() async {
-    final userId = await SessionManager.getParentingId() ??'';
-    var range='';
-    if(selectedTabIndex==0){
-      range='today';
-    }else if(selectedTabIndex==2){
-      range='week';
-    }else if(selectedTabIndex==3){
-      range='month';
-    }else if(selectedTabIndex==4){
-      range='year';
+  Future<void> _getReport() async {
+    final userId = await SessionManager.getParentingId() ?? '';
+    role = await SessionManager.getRole();
+    String range = '';
+
+    if (selectedTabIndex == 0) {
+      range = 'today';
+    } else if (selectedTabIndex == 1) {
+      range = 'week';
+    } else if (selectedTabIndex == 2) {
+      range = 'month';
+    } else if (selectedTabIndex == 3) {
+      range = 'year';
     }
-    context.read<ApiCubit>().report(store_id:userId ,range: range);
+
+    context.read<ApiCubit>().report(store_id: userId, range: range);
     context.read<ApiCubit>().stream.listen((state) {
       if (state is ReportLoaded) {
         setState(() {
-         cards[0].amount=state.report.stock;
-         //cards[1].amount=state.report.b;
-         cards[2].amount=state.report.sales;
-         cards[3].amount=state.report.purchases;
-         cards[4].amount=state.report.profit;
-         cards[5].amount=state.report.expense;
-         cards[6].amount=state.report.sellerDue;
-         cards[7].amount=state.report.customerDue;
+          topCards[0].amount = state.report.stock;
+          // topCards[1].amount = state.report.balance;
+          topCards[2].amount = state.report.purchases;
+          middleCards[0].amount = state.report.sales;
+          middleCards[1].amount = role=='owner'?state.report.profit:'00.00';
+          bottomCards[0].amount =  role=='owner'?state.report.expense:'00.00';
+          bottomCards[1].amount = state.report.sellerDue;
+          bottomCards[2].amount = state.report.customerDue;
         });
       } else if (state is ReportError) {
         AppUtils.showSnackBar(context, 'Failed: ${state.error}');
@@ -67,119 +121,245 @@ class _ReportPageState extends State<ReportPage> {
     });
   }
 
+  Widget _buildTabBar() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+        child: Row(
+          children: List.generate(tabs.length, (index) {
+            final isSelected = selectedTabIndex == index;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedTabIndex = index;
+                    _getReport();
+                  });
+                },
+                child: Container(
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.kPrimary : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.kPrimaryDark),
+                  ),
+                  child: MyTextfield.textStyle_w800(
+                    tabs[index],
+                    14,
+                    isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = screenWidth < 400 ? 2 : screenWidth < 800 ? 3 : 4;
-    final aspectRatio = screenWidth < 400 ? 2.0 : 2.5;
 
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
           _buildTabBar(),
           const SizedBox(height: 12),
+
+          /// 🔹 Top Cards
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: topCards.map((card) {
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    if (card.title == 'Stock Value') {
+                      AppRoutes.navigateTo(context, ProductListPage(flag: 1,));
+                    } else if (card.title == 'Cash+Online Balance') {
+                      AppRoutes.navigateTo(context, Salereportscreen());
+                    } else if (card.title == 'Purchase amt.') {
+                      AppRoutes.navigateTo(context, Invoicereportscreen());
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: EdgeInsets.symmetric(
+                      vertical: screenWidth * 0.03,
+                      horizontal: screenWidth * 0.025,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: card.color.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(3, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FittedBox(
+                          child: MyTextfield.textStyle_w800(
+                            card.amount,
+                            16,
+                            card.color,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          child: MyTextfield.textStyle_w600(
+                            card.title.toUpperCase(),
+                            12,
+                            Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 🔹 Middle Cards
           LayoutBuilder(
             builder: (context, constraints) {
-              final screenWidth = constraints.maxWidth;
-              final crossAxisSpacing = screenWidth * 0.03;
-              final cardWidth = (screenWidth - (crossAxisSpacing * 1)) / 2; // 2 cards per row
+              final cardWidth = (constraints.maxWidth - 24) / 2;
 
               return Wrap(
-                spacing: crossAxisSpacing, // horizontal space
-                runSpacing: crossAxisSpacing, // vertical space
-                children: cards.map((item) {
-                  return SizedBox(
-                    width: cardWidth, // fixed width for uniform layout
-                    child: _buildCard(item.title, item.amount, item.color),
+                spacing: 8,
+                runSpacing: 8,
+                children: middleCards.map((card) {
+                  return  GestureDetector(
+                      onTap: () {
+                        if (card.title == 'Sales amt.') {
+                          AppRoutes.navigateTo(context, Salereportscreen());
+                        }
+                      },
+                      child: Container(
+                        width: cardWidth,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: card.color.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(3, 4),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 8),
+                                FittedBox(
+                                  child: MyTextfield.textStyle_w800(
+                                    card.amount,
+                                    18,
+                                    card.color,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                MyTextfield.textStyle_w600(
+                                  card.title.toUpperCase(),
+                                  12,
+                                  Colors.black,
+                                ),
+                              ],
+                            ),
+                            if (card.svgAsset.isNotEmpty)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: SvgPicture.asset(
+                                  card.svgAsset,
+                                  width: 60,
+                                  height: 60,
+                                ),
+                              ),
+                          ],
+                        ),
+                      )
                   );
                 }).toList(),
               );
             },
           ),
+
+          const SizedBox(height: 8),
+
+          /// 🔹 Bottom Cards
+          Row(
+            children: bottomCards.map((card) {
+              return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (role=='owner' && card.title == 'Expenses') {
+                        AppRoutes.navigateTo(context, ExpenseListScreen());
+                      }else if (card.title == 'Stockist Due') {
+                        AppRoutes.navigateTo(context, Invoicereportscreen(topCreditor: true,));
+                      }else if (card.title == 'Customer Due') {
+                        AppRoutes.navigateTo(context, Salereportscreen(topDebitor: true,));
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: EdgeInsets.symmetric(
+                        vertical: screenWidth * 0.03,
+                        horizontal: screenWidth * 0.025,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: card.color.withOpacity(0.25),
+                            blurRadius: 8,
+                            offset: const Offset(3, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FittedBox(
+                            child: MyTextfield.textStyle_w800(
+                              card.amount,
+                              16,
+                              card.color,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          FittedBox(
+                            child: MyTextfield.textStyle_w600(
+                              card.title.toUpperCase(),
+                              12,
+                              Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
   }
-
-  Widget _buildTabBar() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = selectedTabIndex == index;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTabIndex = index;
-                  _GetReport();
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.kPrimary : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.kPrimaryDark),
-                ),
-                child: MyTextfield.textStyle_w800(tabs[index], 14, isSelected ? Colors.white : Colors.black),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildCard(String title, String amount, Color colorValue) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          print('Tapped on: $title');
-          if (title == 'Cash+Online Balance') {
-            AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: colorValue.withOpacity(0.08),
-            border: Border.all(color: colorValue, width: 0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MyTextfield.textStyle_w800(amount, screenWidth * 0.04, colorValue),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: MyTextfield.textStyle_w400(
-                      title.toUpperCase(),
-                      screenWidth * 0.032,
-                      colorValue,
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: screenWidth * 0.033,
-                    color: colorValue,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-  }
-
 }

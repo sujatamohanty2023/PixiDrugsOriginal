@@ -3,8 +3,9 @@ import 'ProductTile.dart';
 import 'StockFilterWidget.dart';
 
 class ProductListPage extends StatefulWidget {
+  final List<InvoiceItem> searchResults;
   final int flag;
-  const ProductListPage({super.key, required this.flag});
+  ProductListPage({super.key, required this.flag,this.searchResults=const []});
 
   @override
   State<ProductListPage> createState() => _ProductListPageState();
@@ -46,13 +47,23 @@ class _ProductListPageState extends State<ProductListPage> {
                 padding: const EdgeInsets.all(10),
                 child: StockFilterWidget(
                   onApply: (sellerName, medicineName, composition, stockStatus, expiryStatus) {
+                    var stockStatusApi='';
+                    if(stockStatus=='In stock'){
+                      stockStatusApi='in_stock';
+                    }else if(stockStatus=='Out of stock'){
+                      stockStatusApi='out_of_stock';
+                    }else if(stockStatus=='Highest stock'){
+                      stockStatusApi='highstock';
+                    }else if(stockStatus=='Lowest stock'){
+                      stockStatusApi='lowstock';
+                    }
                     setState(() {
                       // Update the filter parameters
                       this.sellerName = sellerName;
                       this.medicineName = medicineName;
                       this.composition = composition;
-                      this.selectedStockStatus = stockStatus;
-                      this.selectedExpiryStatus = expiryStatus;
+                      this.selectedStockStatus = !stockStatus!.contains('Select')?stockStatus:stockStatusApi;
+                      this.selectedExpiryStatus = !expiryStatus!.contains('Select')?expiryStatus:'';
                     });
                     _fetchStockList(refresh: true);
                     Navigator.pop(context);  // Close the filter sheet
@@ -87,7 +98,11 @@ class _ProductListPageState extends State<ProductListPage> {
     super.initState();
     _searchController.addListener(_onSearch);
     _scrollController.addListener(_onScroll);
-    _fetchStockList(refresh: true);
+    if(widget.flag==4 && widget.searchResults.isNotEmpty){
+      _products.addAll(widget.searchResults);
+    }else {
+      _fetchStockList(refresh: true);
+    }
   }
 
   @override
@@ -122,7 +137,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
     final query = _searchController.text.trim();
 
-    final filters = {
+    final filter = {
       'seller': sellerName,
       'medicine': medicineName,
       'composition': composition,
@@ -131,8 +146,8 @@ class _ProductListPageState extends State<ProductListPage> {
     };
 
     if (widget.flag == 1) {
-      context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query,filters: filters );
-    }if (widget.flag == 4) {
+      context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query,filters: filter );
+    }if (widget.flag == 4 && widget.searchResults.isEmpty) {
       context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query);
     } else if (widget.flag == 2) {
       context.read<ApiCubit>().expiredStockList(user_id: userId, page: currentPage, query: query);
@@ -191,7 +206,7 @@ class _ProductListPageState extends State<ProductListPage> {
     }
 
     return PreferredSize(
-      preferredSize: const Size.fromHeight(88),
+      preferredSize: Size.fromHeight(widget.flag == 4?100:85),
       child: Container(
         color: AppColors.kPrimary,
         child: SafeArea(
@@ -199,23 +214,43 @@ class _ProductListPageState extends State<ProductListPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 8.0),
+                padding: const EdgeInsets.only(left: 8.0,right: 8),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (flag == 2 || flag == 3 || flag == 4)
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context,{'code':'manualAdd'}),
-                        child: SvgPicture.asset(
-                          AppImages.back,
-                          height: 24,
-                          color: AppColors.kWhiteColor,
+                    Row(
+                      children: [
+                        if (flag == 2 || flag == 3 || flag == 4)
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: SvgPicture.asset(
+                              AppImages.back,
+                              height: 24,
+                              color: AppColors.kWhiteColor,
+                            ),
+                          ),
+                        const SizedBox(width: 10),
+                        MyTextfield.textStyle_w600(
+                          getTitle(flag),
+                          SizeConfig.screenWidth! * 0.045,
+                          Colors.white,
                         ),
+                      ],
+                    ),
+                    // Right side: Custom button
+                    if(widget.flag == 4)
+                    SizedBox(
+                      height: 40,
+                      width: 100,
+                      child: MyElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context, {"goToCart": true});
+                        },
+                        backgroundColor: AppColors.kPrimaryLight,
+                        titleColor:AppColors.kPrimary,
+                        custom_design: true,
+                        buttonText: "Next",
                       ),
-                    const SizedBox(width: 10),
-                    MyTextfield.textStyle_w600(
-                      getTitle(flag),
-                      SizeConfig.screenWidth! * 0.045,
-                      Colors.white,
                     ),
                   ],
                 ),
@@ -226,33 +261,43 @@ class _ProductListPageState extends State<ProductListPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 12),
-                            const Icon(Icons.search, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: searchController,
-                                decoration: InputDecoration(
-                                  hintText: 'Search Product/Stockiest Name...',
-                                  hintStyle: MyTextfield.textStyle(
-                                      16, Colors.grey, FontWeight.w300),
-                                  border: InputBorder.none,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0,right: 8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 12),
+                              const Icon(Icons.search, color: Colors.grey),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  controller: searchController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search Product/Stockiest Name...',
+                                    hintStyle: MyTextfield.textStyle(
+                                        16, Colors.grey, FontWeight.w300),
+                                    border: InputBorder.none,
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (searchController.text.isNotEmpty)
+                              if(searchController.text.isNotEmpty)
                               IconButton(
-                                onPressed: onclearTap,
-                                icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                                  onPressed: onclearTap,
+                                  icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                                ),
+                              if(searchController.text.isEmpty && widget.flag == 4)
+                              IconButton(
+                                onPressed: (){
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(Icons.qr_code_scanner, color: AppColors.kPrimary),
                               ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -275,7 +320,7 @@ class _ProductListPageState extends State<ProductListPage> {
     return WillPopScope(
         onWillPop: () async {
           if (widget.flag == 4) {
-            Navigator.pop(context, {'code': 'manualAdd'});
+            Navigator.pop(context);
             return false; // Prevent default pop
           }
           return true;

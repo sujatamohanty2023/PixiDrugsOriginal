@@ -22,7 +22,7 @@ class SaleDetailsPage extends StatefulWidget {
 class _SaleDetailsPageState extends State<SaleDetailsPage> {
   List<InvoiceItem> cartItems=[];
   int billingid=0;
-  String name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
+  String salePersonName='',salePersonPhone='',name= '', phone= '', address= '', paymentType= '', referenceNumber= '',  referralName= '',  referralPhone= '', referralAmount = '';
   bool isReferralAmountGiven=false;
   double totalPrice = 0.0;
   double subtotalPrice = 0.0;
@@ -55,6 +55,8 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     address = widget.sale?.customer.address ?? "";
     paymentType = widget.sale?.paymentType ?? "";
     billingid=widget.sale?.invoiceNo??0;
+    salePersonName = widget.sale?.soldBy.name ?? "";
+    salePersonPhone = widget.sale?.soldBy.phone ?? "";
 
     _recalculateTotals(cartItems);
 
@@ -170,9 +172,31 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
                     padding: const EdgeInsets.only(bottom: 50.0,),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        MyTextfield.textStyle_w600("Invoice No: ${widget.sale?.invoiceNo ?? ''}",18,AppColors.kPrimary),
-                        MyTextfield.textStyle_w400("Date: ${widget.sale?.date ?? ''}",14,AppColors.secondaryColor),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white, // Background color
+                          borderRadius: BorderRadius.circular(12), // Rounded corners
+                          border: Border.all(
+                            color: AppColors.kPrimaryDark, // Border color
+                            width: 1, // Border width
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            MyTextfield.textStyle_w600("Invoice No: ${widget.sale?.invoiceNo ?? ''}",18,AppColors.kPrimary),
+                            MyTextfield.textStyle_w400("Date: ${widget.sale?.date ?? ''}",14,AppColors.secondaryColor),
+                            MyTextfield.textStyle_w400("Sale Person: ${widget.sale?.soldBy.name ?? ''}",14,AppColors.kBlackColor800),
+                            MyTextfield.textStyle_w400("Sale Person Phone: ${widget.sale?.soldBy.phone ?? ''}",14,AppColors.kBlackColor800),
+                            ]
+                          ),
+                        ),
+                      ),
                         const SizedBox(height: 6),
                         /// Address Widget with Edit Option
                         customerDetailWidget(name:name,phone: phone,address: address,

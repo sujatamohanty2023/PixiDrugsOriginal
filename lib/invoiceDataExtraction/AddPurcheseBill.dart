@@ -45,6 +45,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
   bool _isLoading = true;
   int? editIndex;
+  List<String> gstItems = ["0%", "3%","5%", "12%","18%","28%"];
 
   final _accessKey = 'AKIAZOZQGAKUA3XO3NB7';
   final _secretKey = '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';
@@ -207,8 +208,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       try {
         var formData = FormData.fromMap({
           'files': multipartFiles,
-          'requirement':
-          'Analyze this document and provide a detailed summary with key insights, main points, and actionable recommendations.',
+          'requirement': 'Analyze this document and provide a detailed summary with key insights, main points, and actionable recommendations.',
+          'type':3
         });
 
         var dio = Dio();
@@ -308,12 +309,11 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
   Invoice convertFromOcrInvoiceData(InvoiceData data) {
     List<InvoiceItem> items = data.item.map((item) {
-      final double gst = ((item.cgstRate ?? 0) + (item.sgstRate ?? 0) + (item.igstRate ?? 0)) * 100;
-      /*final int qty= item.qty! - item.freeQty!;
-      final int qtyFree= item.freeQty!;*/
-      final String gstFormatted = gst % 1 == 0
-          ? '${gst.toInt()}%'
-          : '${gst.toStringAsFixed(1)}%';
+      final double gst = ((item.cgstRate ?? 0) + (item.sgstRate ?? 0) + (item.igstRate ?? 0));
+      final String gstFormatted = '${gst}%';
+      if (!gstItems.contains(gstFormatted)) {
+        gstItems.add(gstFormatted); // add dynamically if missing
+      }
       print('gst=$gstFormatted');
       print('Data=${item.toString()}');
       return InvoiceItem(
@@ -325,7 +325,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         mrp: (item.mrp ?? 0).toStringAsFixed(2),
         rate: (item.rate ?? 0).toStringAsFixed(2),
         taxable: (item.taxableAmount ?? 0).toStringAsFixed(2),
-        discount: (item.discountAmount ?? 0).toStringAsFixed(2),
+        discount: (item.discountRate ?? 0).toStringAsFixed(2),
         qty: item.qty ?? 0,
         qty_free: item.freeQty ?? 0,
         gst: gstFormatted,
@@ -338,6 +338,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     double netAmount = items.fold(0.0, (sum, item) {
       return sum + (double.tryParse(item.total) ?? 0.0);
     });
+    final result =  AppUtils().extractTwoPhones(data.seller.phone??'');
+    final sellerPhone1= result['phone1'];
+    final sellerPhone2= result['phone2'];
 
     return Invoice(
       invoiceId: data.invoice.invoiceNumber ?? '',
@@ -345,13 +348,12 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       sellerName: data.seller.name ?? '',
       sellerGstin: data.seller.gstin ?? '',
       sellerAddress: data.seller.address ?? '',
-      sellerPhone: AppUtils().validateAndNormalizePhone(data.seller.phone),
+      sellerPhone1: sellerPhone1,
+      sellerPhone2: sellerPhone2,
       netAmount: netAmount.toStringAsFixed(2),
       items: items,
     );
   }
-
-
   Future<Uint8List> fileToBytes(String filePath) async {
     final file = File(filePath);
     return await file.readAsBytes();
@@ -413,8 +415,9 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     }
   }
   String normalizeGst(String? gst) {
-    if (gst == null || gst.isEmpty) return '0%';
-    return '${gst.replaceAll('%', '')}%';
+    if (gst == null || gst.trim().isEmpty) return '0%';
+    final numeric = gst.replaceAll('%', '').trim();
+    return '$numeric%';
   }
   void _populateControllers() {
     productNameController.text= product?.product ?? '';
@@ -692,7 +695,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                   children: [
                     Expanded(child: _formField("Taxable", taxableController,keyboardType: TextInputType.numberWithOptions(decimal: true)),),
                     const SizedBox(width: 12),
-                    Expanded(child: _dropdownField("GST", ["0%", "3%","5%", "12%","18%","28%"], gstRateController.text)),
+                    Expanded(child: _dropdownField("GST", gstItems, gstRateController.text)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -729,7 +732,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 100),
               ],
             ],
           ),

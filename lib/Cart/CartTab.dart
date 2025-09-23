@@ -1,11 +1,5 @@
 
 import 'package:PixiDrugs/constant/all.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-
-import '../BarcodeScan/ScanPage.dart';
-import '../BarcodeScan/barcode_screen_page.dart';
-import '../BarcodeScan/batch_scanner_page.dart';
-import '../Stock/ProductList.dart';
 
 class CartTab extends StatefulWidget {
 
@@ -16,7 +10,6 @@ class CartTab extends StatefulWidget {
 }
 
 class _CartTabState extends State<CartTab> {
-  List<InvoiceItem> searchResults = [];
   String userId='';
   final ImagePicker _picker = ImagePicker();
   String extractedBatchNumber = '';
@@ -34,31 +27,17 @@ class _CartTabState extends State<CartTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocListener<ApiCubit, ApiState>(
-        listener: (context, state) {
-          if (state is BarcodeScanLoaded && state.source=='scan') {
-            searchResults = state.list;
-            if (searchResults.isNotEmpty) {
-              context.read<CartCubit>().addToCart(searchResults.first, 1, type: CartType.main);
-            } else {
-              AppUtils.showSnackBar(context,'No products found.');
-            }
-          } else if (state is BarcodeScanError) {
-            AppUtils.showSnackBar(context,state.error);
-          }
-        },
-        child: Column(
-          children: [
-            cartAppBar(context),
-            Expanded(
-              child: Builder(
-                builder: (_) {
-                  return _buildCartContent(context);
-                },
-              ),
+      body:Column(
+        children: [
+          cartAppBar(context),
+          Expanded(
+            child: Builder(
+              builder: (_) {
+                return _buildCartContent(context);
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -75,9 +54,8 @@ class _CartTabState extends State<CartTab> {
 
   /// Shows empty page or the main CartPage
   Widget _buildCartOrEmpty(List<InvoiceItem> items) {
-    return items.isEmpty ? _buildEmptyPage() : CartPage();
+    return items.isEmpty ? _buildEmptyPage() :CartPage();
   }
-
   /// Shows a customizable empty cart page
   Widget _buildEmptyPage() {
     return Container(
@@ -103,17 +81,10 @@ class _CartTabState extends State<CartTab> {
     super.dispose();
   }
   Future<void> _QuickscanBarcode() async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => QuikScanPage()),
-      );
-      if (result.isNotEmpty && result['code']!='manualAdd') {
-       await context.read<ApiCubit>().BarcodeScan(code: result['code'],storeId: userId,);
-      }
-    } catch (e) {
-      AppUtils.showSnackBar(context,'Failed to scan barcode');
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => QuikScanPage()),
+    );
   }
 
   Widget cartAppBar(BuildContext context) {
@@ -133,14 +104,14 @@ class _CartTabState extends State<CartTab> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     MyTextfield.textStyle_w600('Sale Cart', SizeConfig.screenWidth! * 0.055, Colors.white),
-                    IconButton(
+                    /*IconButton(
                       icon: const Icon(
                         Icons.qr_code_scanner,
                         color: AppColors.kWhiteColor,
                         size: 30,
                       ),
                       onPressed: _QuickscanBarcode,
-                    ),
+                    ),*/
                   ],
                 ),
               ),

@@ -10,7 +10,8 @@ class Invoice {
   String? invoiceDate;
   String? sellerId;
   String? sellerName;
-  String? sellerPhone;
+  String? sellerPhone1;
+  String? sellerPhone2;
   String? sellerGstin;
   String? sellerAddress;
   String? userId;
@@ -25,11 +26,22 @@ class Invoice {
     this.sellerName='',
     this.sellerGstin='',
     this.sellerAddress='',
-    this.sellerPhone='',
+    this.sellerPhone1='',
+    this.sellerPhone2='',
     this.userId='',
     this.netAmount='',
     this.items = const [],
   });
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Invoice &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
   Invoice copyWith({
     int? id,
     String? invoiceId,
@@ -38,7 +50,8 @@ class Invoice {
     String? sellerName,
     String? sellerGstin,
     String? sellerAddress,
-    String? sellerPhone,
+    String? sellerPhone1,
+    String? sellerPhone2,
     String? userId,
     String? netAmount,
     List<InvoiceItem>? items,
@@ -51,7 +64,8 @@ class Invoice {
       sellerName: sellerName ?? this.sellerName,
       sellerGstin: sellerGstin ?? this.sellerGstin,
       sellerAddress: sellerAddress ?? this.sellerAddress,
-      sellerPhone: sellerPhone ?? this.sellerPhone,
+      sellerPhone1: sellerPhone1 ?? this.sellerPhone1,
+      sellerPhone2: sellerPhone2 ?? this.sellerPhone2,
       userId: userId ?? this.userId,
       netAmount: netAmount ?? this.netAmount,
       items: items ?? this.items,
@@ -68,7 +82,8 @@ class Invoice {
       sellerName: ApiParserUtils.parseString(json['seller_name']),
       sellerGstin: gstRaw.length > 15 ? gstRaw.substring(0, 15) : gstRaw,
       sellerAddress: ApiParserUtils.parseString(json['address']),
-      sellerPhone: ApiParserUtils.parseString(json['phone']),
+      sellerPhone1: ApiParserUtils.parseString(json['phone']),
+      sellerPhone2: ApiParserUtils.parseString(json['phone2']),
       netAmount: ApiParserUtils.parseString(json['net_amount']),
       userId: ApiParserUtils.parseString(json['user_id']),
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
@@ -83,7 +98,8 @@ class Invoice {
       invoiceDate: ApiParserUtils.parseString(json['invoice_date']),
       sellerName: ApiParserUtils.parseString(seller['name'], defaultValue: 'UnKnown'),
       sellerAddress: ApiParserUtils.parseString(seller['address']),
-      sellerPhone: ApiParserUtils.parseString(seller['mobile']),
+      sellerPhone1: ApiParserUtils.parseString(seller['mobile']),
+      sellerPhone2: ApiParserUtils.parseString(seller['mobile']),
       sellerId: ApiParserUtils.parseString(seller['id']),
       items: itemsJson.map((e) => InvoiceItem.fromJson(e)).toList(),
     );
@@ -93,7 +109,8 @@ class Invoice {
     'invoice_date': invoiceDate,
     'seller_name': sellerName,
     'address': sellerAddress,
-    'phone': sellerPhone,
+    'phone': sellerPhone1,
+    'phone2': sellerPhone2??'',
     'gst_no': sellerGstin,
     'user_id': userId,
     'net_amount': netAmount,

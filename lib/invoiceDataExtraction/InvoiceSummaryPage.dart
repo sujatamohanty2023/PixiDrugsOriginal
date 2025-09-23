@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
 import 'package:PixiDrugs/constant/all.dart';
 
-import '../constant/all.dart';
+import '../ListScreenNew/InvoiceReportScreen.dart';
 
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;
@@ -49,7 +49,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) =>
-                ListScreen(type: ListType.invoice)),
+            Invoicereportscreen()),
                 (route) => false,
           );
         });
@@ -61,7 +61,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) =>
-              ListScreen(type: ListType.invoice )),
+              Invoicereportscreen()),
               (route) => false,
         );
       });
@@ -287,10 +287,10 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                 });
               })),
               _buildKeyValueTile(
-                "Seller Phone",
-                invoice1.sellerPhone ?? '',
+                "Seller Phone1",
+                invoice1.sellerPhone1 ?? '',
                 onEdit: () => showEditDialog(
-                  "Seller Phone",invoice1.sellerPhone ?? '',
+                  "Seller Phone1",invoice1.sellerPhone1 ?? '',
                   (val) {
                     final normalizedPhone = AppUtils().validateAndNormalizePhone(val);
 
@@ -300,7 +300,26 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
                     }
 
                     setState(() {
-                      invoice1 = invoice1.copyWith(sellerPhone: normalizedPhone);
+                      invoice1 = invoice1.copyWith(sellerPhone1: normalizedPhone);
+                    });
+                  },
+                ),
+              ),
+              _buildKeyValueTile(
+                "Seller Phone2",
+                invoice1.sellerPhone2 ?? '',
+                onEdit: () => showEditDialog(
+                  "Seller Phone2",invoice1.sellerPhone2 ?? '',
+                      (val) {
+                    final normalizedPhone = AppUtils().validateAndNormalizePhone(val);
+
+                    if (normalizedPhone.isEmpty && val.isNotEmpty == true) {
+                      AppUtils.showSnackBar(context, 'Invalid phone number. Please enter a valid 10-digit Indian mobile number.');
+                      return; // Prevent saving invalid data
+                    }
+
+                    setState(() {
+                      invoice1 = invoice1.copyWith(sellerPhone2: normalizedPhone);
                     });
                   },
                 ),
@@ -369,7 +388,7 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       invoice.invoiceDate,
       invoice.sellerName,
       invoice.sellerAddress,
-      invoice.sellerPhone,
+      invoice.sellerPhone1,
       invoice.sellerGstin,
     ].every((field) => field != null && field.toString().trim().isNotEmpty);
   }

@@ -1,13 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../Profile/contact_us.dart';
 import 'OtpVerificationScreen.dart';
 import '../constant/all.dart';
-import '../Profile/WebviewScreen.dart';
 import 'FCMService.dart';
 import 'RegistationPage.dart';
 
@@ -25,7 +20,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.loginbg,
+      backgroundColor: AppColors.login_new,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -36,22 +31,21 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
               children: [
                 // 🔝 Image Section: 60% of screen height
                 Container(
-                  height: screenHeight * 0.50, // Fixed 60% of screen
+                  height: screenHeight * 0.50, // Fixed 50% of screen
                   width: screenWidth,
                   alignment: Alignment.center,
-                  padding: EdgeInsets.only(top: screenHeight * 0.05),
                   child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      // 📷 Add your registration icon image here
-                      Image.asset(
-                        AppImages.LoginIcon,
-                        fit: BoxFit.contain,
-                        width: screenWidth * 0.9,
+                      Align( // ✅ Centers the image
+                        child: Image.asset(
+                          AppImages.LoginIcon,
+                          fit: BoxFit.contain,
+                          width: screenWidth * 0.9,
+                        ),
                       ),
-                      const SizedBox(height: 8),
                       Positioned(
-                        right: 0,
-                        bottom: 10,
+                        bottom: SizeConfig.screenWidth! * 0.006,
                         child: GestureDetector(
                         onTap: () {
                           AppRoutes.navigateTo(
@@ -59,20 +53,20 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
                             SignUpScreen(),
                           );
                         },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryColor,
-                              borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 8.0,bottom: 8,right: 20,left: 20),
-                            child: MyTextfield.textStyle_w600(
-                              "New Registration", // (Consider fixing the spelling here)
-                              SizeConfig.screenWidth! * 0.055,
-                              AppColors.kWhiteColor,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: AppColors.myGradient2,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8.0,bottom: 8,right: 20,left: 20),
+                              child: MyTextfield.textStyle_w600(
+                                "New User? Registration Here", // (Consider fixing the spelling here)
+                                SizeConfig.screenWidth! * 0.045,
+                                AppColors.kWhiteColor,
+                              ),
                             ),
                           ),
-                        ),
                       )
                       )
 
@@ -110,10 +104,10 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: screenHeight * 0.03),
-        MyTextfield.textStyle_w800(AppString.loginText, SizeConfig.screenWidth! * 0.06, AppColors.kPrimary),
+        MyTextfield.textStyle_w800(AppString.loginText, SizeConfig.screenWidth! * 0.07, AppColors.kPrimary),
         SizedBox(height: screenHeight * 0.015),
-        MyTextfield.textStyle_w300(AppString.logindesc, SizeConfig.screenWidth! * 0.035, Colors.black54),
-        SizedBox(height: screenHeight * 0.02),
+        MyTextfield.textStyle_w300(AppString.logindesc, SizeConfig.screenWidth! * 0.045, Colors.black54),
+        SizedBox(height: screenHeight * 0.03),
 
         // 📞 Phone Input
         Container(
@@ -150,7 +144,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
           ),
         ),
 
-        SizedBox(height: screenHeight * 0.03),
+        SizedBox(height: screenHeight * 0.04),
 
         // 🔘 Continue Button
         SizedBox(

@@ -161,7 +161,7 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
 
     switch (widget.type) {
       case ListType.invoice:
-        await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage,query: searchQuery);
+        //await apiCubit.fetchInvoiceList(user_id: userId, page: currentPage,query: searchQuery);
         break;
       case ListType.sale:
         await apiCubit.fetchSaleList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,filter: searchQuery);
@@ -191,12 +191,6 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
     targetList.addAll(newItems);
     hasMoreData = lastPage > currentPage;
     if (hasMoreData) currentPage++;
-  }
-
-  void _updateSearchQuery(String query) {
-    setState(() {
-      searchQuery = query;
-    });
   }
 
   void _showDeleteDialog(BuildContext context, int id) {
@@ -509,9 +503,9 @@ class _ListScreenState extends State<ListScreen> with WidgetsBindingObserver, Ro
           onEditPressed: (sale) => AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true)),
           onPrintPressed: (sale) => /*_onButtonPrintPressed(context, sale)*/AppRoutes.navigateTo(context,
               ReceiptPrinterPage(sale: sale)),
-          onSharePressed: (sale) => ReceiptPdfGenerator.generateAndSharePdf(context, sale),
+          onSharePressed: (sale) =>(){}/* ReceiptPdfGenerator.generateAndSharePdf(context, sale,user)*/,
           onDownloadPressed: (sale) => (){
-            ReceiptPdfGenerator.downloadPdf(context, sale);
+            //ReceiptPdfGenerator.downloadPdf(context, sale,user);
           },
           onAddPressed: () {},
           onRefreshRequested: () => _fetchRecord(refresh: true),

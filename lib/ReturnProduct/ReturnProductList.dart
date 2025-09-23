@@ -2,11 +2,14 @@
 import 'package:PixiDrugs/constant/all.dart';
 
 import '../search/customerModel.dart';
+import 'ReturnCustomerCart.dart';
+import 'ReturnStockiestCart.dart';
 
 class ReturnProductListPage extends StatefulWidget {
   CartTypeSelection? cartTypeSelection;
   CustomerModel? selectedCustomer;
-  ReturnProductListPage({super.key,required this.cartTypeSelection, this.selectedCustomer});
+  final List<InvoiceItem>? searchResults;
+  ReturnProductListPage({super.key,required this.cartTypeSelection, this.selectedCustomer,this.searchResults});
 
   @override
   State<ReturnProductListPage> createState() => _ReturnProductListPageState();
@@ -21,7 +24,12 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearch);
-    _fetchStockList();
+    if(widget.searchResults!=null && widget.searchResults!.isNotEmpty){
+      _products.clear();
+      _products.addAll(widget.searchResults!);
+    }else {
+      _fetchStockList();
+    }
   }
   @override
   void dispose() {
@@ -68,17 +76,111 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
       _searchController.text='';
     });
   }
-
+  PreferredSizeWidget customAppBar(BuildContext context,
+      TextEditingController searchController, VoidCallback onclearTap) {
+    var tittle='Search Product';
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(110),
+      child: Container(
+        color: AppColors.kPrimary,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // ⬅️ Push left & right apart
+                  children: [
+                    // Left side: Back button + Title
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            AppImages.back,
+                            height: 24,
+                            color: AppColors.kWhiteColor,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        MyTextfield.textStyle_w600(
+                          tittle,
+                          SizeConfig.screenWidth! * 0.055,
+                          Colors.white,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 40,
+                      width: 100,
+                      child: MyElevatedButton(
+                        onPressed: () {
+                          if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
+                            AppRoutes.navigateTo(
+                              context,
+                              ReturnStockiestCart(selectedCustomer: widget.selectedCustomer),
+                            );
+                          } else if (widget.cartTypeSelection ==
+                              CartTypeSelection.CustomerReturn) {
+                            AppRoutes.navigateTo(
+                              context,
+                              ReturnCustomerCart(selectedCustomer: widget.selectedCustomer),
+                            );
+                          }
+                        },
+                        backgroundColor: AppColors.kPrimaryLight,
+                        titleColor:AppColors.kPrimary,
+                        custom_design: true,
+                        buttonText: "Next",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      const Icon(Icons.search, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search here...',
+                            hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      searchController.text.isNotEmpty?IconButton(
+                        onPressed: onclearTap,
+                        icon: const Icon(Icons.clear_rounded,
+                            color: Colors.grey),
+                      ):SizedBox(),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () async {
-          // Same as AppBar back arrow
-          Navigator.pop(context, {'code': 'manualAdd'});
-          // Return false to prevent default pop (optional, if you already pop manually)
-          return false;
-        },
-        child:  Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.kPrimary,
       appBar: customAppBar(context, _searchController, _onclearTap),
       body: BlocConsumer<ApiCubit, ApiState>(
@@ -98,30 +200,30 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
               }
             }
           },
-            builder: (context, state) {
-              final isLoading = state is StockListLoading ||
-                  state is BarcodeScanLoading ||
-                  state is CustomerBarcodeScanLoading;
-              Widget content;
+          builder: (context, state) {
+            final isLoading = state is StockListLoading ||
+                state is BarcodeScanLoading ||
+                state is CustomerBarcodeScanLoading;
+            Widget content;
 
-              if (isLoading) {
-                content = const Center(
-                  child: CircularProgressIndicator(color: AppColors.kPrimary),
-                );
-              } else {
-                content = ListView.builder(
-                  itemCount: _products.length,
-                  itemBuilder: (context, index) =>
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ProductCard(
-                          item: _products[index],
-                          returnStock: true,
-                          cartTypeSelection: widget.cartTypeSelection,
-                        ),
+            if (isLoading) {
+              content = const Center(
+                child: CircularProgressIndicator(color: AppColors.kPrimary),
+              );
+            } else {
+              content = ListView.builder(
+                itemCount: _products.length,
+                itemBuilder: (context, index) =>
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ProductCard(
+                        item: _products[index],
+                        returnStock: true,
+                        cartTypeSelection: widget.cartTypeSelection,
                       ),
-                );
-              }
+                    ),
+              );
+            }
             return Container(
               padding: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
@@ -136,79 +238,6 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
           }
 
       ),
-    )
     );
   }
-}
-// ✅ Custom AppBar with search + barcode
-PreferredSizeWidget customAppBar(BuildContext context,
-    TextEditingController searchController, VoidCallback onclearTap) {
-  var tittle='Search Product';
-  return PreferredSize(
-    preferredSize: const Size.fromHeight(120),
-    child: Container(
-      color: AppColors.kPrimary,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pop(context,{'code': 'manualAdd'});
-                    },
-                    child:
-                    SvgPicture.asset(
-                      AppImages.back,
-                      height: 24,
-                      color: AppColors.kWhiteColor,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  MyTextfield.textStyle_w600(tittle, SizeConfig.screenWidth! * 0.055, Colors.white)
-                ],
-              ),
-            ),
-            const SizedBox(height: 5),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    const Icon(Icons.search, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search here...',
-                          hintStyle: MyTextfield.textStyle(16 ,Colors.grey,FontWeight.w300),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    searchController.text.isNotEmpty?IconButton(
-                      onPressed: onclearTap,
-                      icon: const Icon(Icons.clear_rounded,
-                          color: Colors.grey),
-                    ):SizedBox(),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    ),
-  );
 }

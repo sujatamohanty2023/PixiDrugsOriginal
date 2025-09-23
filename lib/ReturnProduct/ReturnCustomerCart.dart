@@ -11,9 +11,11 @@ class ReturnCustomerCart extends StatefulWidget {
   CustomerReturnsResponse? customerReturnModel;
   bool detail;
   CustomerModel? selectedCustomer;
+  final List<CustomerModel>?CustomerList;
+  bool isEdit = false;
   ReturnCustomerCart({Key? key,
-    this.customerReturnModel,this.selectedCustomer,
-    this.detail = false,}) : super(key: key);
+    this.customerReturnModel,this.selectedCustomer,this.CustomerList,
+    this.detail = false,this.isEdit = false,}) : super(key: key);
 
   @override
   State<ReturnCustomerCart> createState() => _ReturnCustomerCartState();
@@ -46,34 +48,39 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
   void initState() {
     super.initState();
     _loadUserId();
-    if(widget.customerReturnModel!=null) {
-      selectedCustomer = CustomerModel(
-        id: widget.customerReturnModel!.customer.id ?? 0,
-        name: widget.customerReturnModel!.customer.name ?? '',
-        phone: widget.customerReturnModel!.customer.phone ?? '',
-        address: '',
-      );
-      final items =widget.customerReturnModel?.items;
-      final invoiceItems = items?.map((item) =>
-          InvoiceItem(
-            id: item.productId,
-            product: item.product.productName ?? '',
-            qty: item.quantity,
-            rate: item.price,
-            batch: item.batchNo,
-            expiry: item.expiry,
-            gst:item.gst,
-            discount: item.discount,
-          )).toList();
+    edit=widget.isEdit;
+    if(widget.CustomerList !=null){
+      _detail_Customer=widget.CustomerList!;
+    }else {
+      if (widget.customerReturnModel != null) {
+        selectedCustomer = CustomerModel(
+          id: widget.customerReturnModel!.customer.id ?? 0,
+          name: widget.customerReturnModel!.customer.name ?? '',
+          phone: widget.customerReturnModel!.customer.phone ?? '',
+          address: '',
+        );
+        final items = widget.customerReturnModel?.items;
+        final invoiceItems = items?.map((item) =>
+            InvoiceItem(
+              id: item.productId,
+              product: item.product.productName ?? '',
+              qty: item.quantity,
+              rate: (item.price ?? 0).toString(),
+              batch: item.batchNo,
+              expiry: item.expiry,
+              gst: (item.gst ?? 0).toString(),
+              discount: (item.discount ?? 0).toString(),
+            )).toList();
 
-      // Load into CartCubit
-      context.read<CartCubit>().loadItemsToCart(
-          invoiceItems!, type: CartType.main);
-      // Set selected reason from model
-      selectedReason = widget.customerReturnModel?.reason;
-    }
-    if(widget.selectedCustomer!=null) {
-      selectedCustomer=widget.selectedCustomer;
+        // Load into CartCubit
+        context.read<CartCubit>().loadItemsToCart(
+            invoiceItems!, type: CartType.main);
+        // Set selected reason from model
+        selectedReason = widget.customerReturnModel?.reason;
+      }
+      if (widget.selectedCustomer != null) {
+        selectedCustomer = widget.selectedCustomer;
+      }
     }
 
   }
@@ -82,36 +89,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
     return Scaffold(
       body: BlocListener<ApiCubit, ApiState>(
         listener: (context, state) {
-          if (state is CustomerBarcodeScanLoaded ) {
-            searchResults = state.list;
-            final cartCubit = context.read<CartCubit>();
-            if(searchResults.isNotEmpty){
-              if (cartCubit.state.cartItems.isEmpty && selectedCustomer==null) {
-                setState(() {
-                  for(var item in searchResults){
-                    var customer = CustomerModel(
-                      id: item.customerId ?? 0,
-                      name: item.customerName ?? '',
-                      phone: item.customerPhone ?? '',
-                      address: '',
-                    );
-                    _detail_Customer.add(customer);
-                  }
-
-                });
-              } else if (cartCubit.state.cartItems.isNotEmpty && selectedCustomer!=null && state.source=='scan'){
-                cartCubit.addToCart(
-                  searchResults.first,
-                  1,
-                  type: CartType.main,
-                );
-              }
-            } else {
-              AppUtils.showSnackBar(context, 'No products found.');
-            }
-          } else if (state is CustomerBarcodeScanError) {
-            AppUtils.showSnackBar(context, state.error);
-          } else if (state is SaleReturnAddLoaded) {
+          if (state is SaleReturnAddLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully retrun to stock');
               context.read<CartCubit>().clearCart(type: CartType.main);
@@ -260,7 +238,10 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                   product: item,
                   editable: edit || !widget.detail,
                   onQtyChanged: (qtyStr) {
-                    item.qty = int.tryParse(qtyStr) ?? 0;
+                    setState(() {
+                      item.qty = int.tryParse(qtyStr) ?? 0;
+                    });
+                    print("API=${item.qty}");
                   },
                 ),
 
@@ -340,7 +321,14 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                                 color: AppColors.kWhiteColor,
                                 size: 30,
                               ),
-                              onPressed: _QuickscanBarcode,
+                              onPressed: () async {
+                               // _QuickscanBarcode
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.CustomerReturn,
+                                      selectedCustomer: selectedCustomer)),
+                                );
+                              },
                             ),
                         ],
                       ),
@@ -352,24 +340,6 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
           ),
         )
     );
-  }
-  Future<void> _QuickscanBarcode() async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection:CartTypeSelection.CustomerReturn,
-            selectedCustomer: selectedCustomer)),
-      );
-      if (result.isNotEmpty && result['code'] !='manualAdd') {
-        context.read<ApiCubit>().customerbarcode(
-            code: result['code'],
-            storeId: userId,
-            customer_id:selectedCustomer!=null?selectedCustomer!.id.toString():''
-        );
-      }
-    } catch (e) {
-      AppUtils.showSnackBar(context,'Failed to scan barcode');
-    }
   }
   void _onCartItemTap(InvoiceItem item) {}
   Future<void> CustomerReturnApiCall() async {
@@ -388,9 +358,9 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
     map((item) => ReturnedItem(
       productId: item.id??0,
       quantity: item.qty,
-      price:double.parse(item.rate),
-      discount:double.parse(item.discount),
-      gst:double.parse(item.gst),
+      price: double.tryParse(item.rate) ?? 0,
+      discount: double.tryParse(item.discount) ?? 0,
+      gst: double.tryParse(item.gst) ?? 0,
       totalAmount: (item.qty * (double.tryParse(item.rate) ?? 0.0)),
     ))
         .toList();
@@ -399,6 +369,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
       0.0,
           (sum, item) => sum + (item.quantity * item.price),
     );
+    print("API=${selectedItems.first.quantity}");
     var returnModel = SaleReturnRequest(
       id: edit && widget.customerReturnModel !=null?widget.customerReturnModel?.id:0,
       storeId:int.parse(userId),

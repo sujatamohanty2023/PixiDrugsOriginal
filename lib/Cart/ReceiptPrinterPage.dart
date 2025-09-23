@@ -22,12 +22,8 @@ class ReceiptPrinterPage extends StatefulWidget {
 
 class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   late SaleModel products;
-  String? name, phone, address,paymentType;
-  String Medical_Name='';
-  String Medical_Phone='';
-  String Medical_GST='';
-  String Medical_Address='';
-  String Medical_Image='';
+  String? name, phone, address,paymentType,salePersonName;
+  UserProfile? user;
   double totalItemAmount = 0;
   double totalDiscount = 0;
   double totalAmount = 0;
@@ -53,6 +49,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
     phone = products.customer.phone;
     address = products.customer.address;
     paymentType = products.paymentType;
+    salePersonName = products.soldBy.name;
 
     totalItemAmount = calculateItemTotal(products.items);
     totalDiscount = calculateTotalDiscount(products.items);
@@ -76,11 +73,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
     context.read<ApiCubit>().stream.listen((state) {
       if (state is UserProfileLoaded) {
         setState(() {
-          Medical_Name = state.userModel.user.name;
-          Medical_Phone = state.userModel.user.phoneNumber;
-          Medical_GST = state.userModel.user.gstin;
-          Medical_Address = state.userModel.user.address;
-          Medical_Image = state.userModel.user.profilePicture;
+         user=state.userModel.user;
         });
       }
     });
@@ -207,11 +200,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.image(logoImage); // Use align: PosAlign.center if needed
       //printer.feed(1);
       printer.setStyles(boldStyle);
-      printer.text('$Medical_Name');
+      printer.text('${user?.name}');
       printer.setStyles(normalStyle);
-      printer.text('Gstin: $Medical_GST');
-      printer.text('Ph: $Medical_Phone');
-      printer.text('Address: $Medical_Address');
+      printer.text('Gstin: ${user?.gstin}');
+      printer.text('Ph: ${user?.gstin}');
+      printer.text('Address: ${user?.address}');
       printer.feed(1);
       printer.hr();
 
@@ -221,6 +214,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       printer.text('Ph: $phone');
       printer.text('Address: $address');
       printer.text('Payment Mode: $paymentType');
+      printer.text('Sale Person Name: $salePersonName');
       printer.hr();
 
       printer.row([
@@ -293,7 +287,8 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       );
       printer.feed(2);
       printer.text('Thank You!', styles: boldStyle);
-      printer.text('PixiDrugs by PixiZip', styles: boldStyle);
+
+      printer.text('Powered by PixiZip');
       printer.feed(1);
 
       printer.cut();
@@ -393,22 +388,22 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             MyTextfield.textStyle_w800(
-                              Medical_Name.toUpperCase(),
+                              user!.name.toUpperCase(),
                               18,
                               AppColors.kPrimary,
                             ),
                             MyTextfield.textStyle_w400(
-                              'GSTIN: $Medical_GST',
+                              'GSTIN: ${user?.gstin}',
                               16,
                               AppColors.kBlackColor900,
                             ),
                             MyTextfield.textStyle_w400(
-                              'Ph: $Medical_Phone',
+                              'Ph: ${user?.phoneNumber}',
                               16,
                               AppColors.kBlackColor900,
                             ),
                             MyTextfield.textStyle_w400(
-                              'Address: $Medical_Address',
+                              'Address: ${user?.address}',
                               16,
                               AppColors.kBlackColor900,
                             ),
@@ -441,6 +436,11 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                             ),
                             MyTextfield.textStyle_w400(
                               'Payment Mode: $paymentType',
+                              16,
+                              AppColors.kBlackColor900,
+                            ),
+                            MyTextfield.textStyle_w400(
+                              'Sale Person: $salePersonName',
                               16,
                               AppColors.kBlackColor900,
                             ),
@@ -612,7 +612,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                     child: MyElevatedButton(
                       buttonText: 'Share',
                       onPressed: () async {
-                        await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale);
+                        await ReceiptPdfGenerator.generateAndSharePdf(context, widget.sale,user!);
                         context.read<CartCubit>().clearCart(type: CartType.main);
                         Navigator.pop(context);
                       },
@@ -637,7 +637,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                     child: MyElevatedButton(
                       buttonText: 'Download',
                       onPressed: (){
-                        ReceiptPdfGenerator.downloadPdf(context, widget.sale);
+                        ReceiptPdfGenerator.downloadPdf(context, widget.sale,user!);
                         context.read<CartCubit>().clearCart(type: CartType.main);
                         Navigator.pop(context);
                       },

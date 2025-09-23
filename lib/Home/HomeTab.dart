@@ -3,7 +3,10 @@ import 'package:PixiDrugs/constant/all.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Dialog/update_bottom_sheet.dart';
-import '../ListPageScreen/SaleReportScreen.dart';
+import '../ListScreenNew/InvoiceReportScreen.dart';
+import '../ListScreenNew/SaleReportScreen.dart';
+import '../ListScreenNew/SaleReturnListScreen.dart';
+import '../ListScreenNew/StockistReturnList.dart';
 import '../Profile/contact_us.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
@@ -23,7 +26,8 @@ class DashboardItem {
 
 class HomeTab extends StatefulWidget {
   final VoidCallback onGoToCart;
-  const HomeTab({Key? key, required this.onGoToCart}) : super(key: key);
+  final VoidCallback onQuickScan;
+  const HomeTab({Key? key, required this.onGoToCart, required this.onQuickScan}) : super(key: key);
 
   @override
   _HomeTabState createState() => _HomeTabState();
@@ -41,6 +45,7 @@ class _HomeTabState extends State<HomeTab> {
   String? image = '';
   StreamSubscription? _profileSubscription;
   var dashboardItems = [];
+  bool _showReport = false;
 
   @override
   void initState() {
@@ -68,12 +73,12 @@ class _HomeTabState extends State<HomeTab> {
           }
       ),
       DashboardItem(title: "Sales Report", desc:"Track sales summary", icon:AppImages.sale_list, onTap: () {
-        //AppRoutes.navigateTo(context, ListScreen(type: ListType.sale));
         AppRoutes.navigateTo(context, Salereportscreen());
       }),
       DashboardItem(title: "Upload Invoice",desc: "Create a new invoice", icon:AppImages.add_invoice,onTap:  _UploadInvoice),
       DashboardItem(title: "Invoice History", desc:"View all previous invoices", icon:AppImages.invoice_list,onTap:  () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.invoice));
+        //AppRoutes.navigateTo(context, ListScreen(type: ListType.invoice));
+        AppRoutes.navigateTo(context, Invoicereportscreen());
       }),
       DashboardItem(title: "Expired Product",desc: "View expired items", icon:AppImages.expired,onTap:  () {
         Navigator.pushNamed(context, '/stockList', arguments: 2);
@@ -88,16 +93,16 @@ class _HomeTabState extends State<HomeTab> {
         _returnProduct('Start New Customer Return', 'This will clear the previous cart. Do you want to continue?',CartTypeSelection.CustomerReturn,2);
       }),
       DashboardItem(title: "Stock Return List", desc:"View returns made to suppliers", icon:AppImages.stock_return,onTap:  () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
+        AppRoutes.navigateTo(context, StockistReturnScreen());
       }),
       DashboardItem(title: "Sale Return List", desc:"View returns received from customers", icon:AppImages.customer_return,onTap:  () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
+        AppRoutes.navigateTo(context, SaleReturnScreen());
       }),
       DashboardItem(title: "Top Creditors", desc:"View returns made to suppliers", icon:AppImages.creditor,onTap:  () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.stockReturn));
+        AppRoutes.navigateTo(context, Invoicereportscreen(topCreditor: true,));
       }),
       DashboardItem(title: "Top Debitors", desc:"View returns received from customers", icon:AppImages.debitor,onTap:  () {
-        AppRoutes.navigateTo(context, ListScreen(type: ListType.saleReturn));
+        AppRoutes.navigateTo(context, Salereportscreen(topDebitor: true,));
       }),
     ];
 
@@ -252,7 +257,7 @@ class _HomeTabState extends State<HomeTab> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   MyTextfield.textStyle_w600(
-                      name ?? 'Guest', SizeConfig.screenWidth! * 0.055, Colors.white,maxLines: true),
+                      name ?? '', SizeConfig.screenWidth! * 0.055, Colors.white,maxLines: true),
                   Text(
                     email ?? '',
                     style: TextStyle(
@@ -266,9 +271,23 @@ class _HomeTabState extends State<HomeTab> {
             ),
             GestureDetector(
               onTap: onYouTubeTap,
-              child: SvgPicture.asset(
-                AppImages.youtube,
-                height: 30,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 10.0),
+                child: SvgPicture.asset(
+                  AppImages.youtube,
+                  height: 30,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: widget.onGoToCart,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: SvgPicture.asset(
+                  AppImages.cart,
+                  height: 30,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -353,8 +372,33 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
 
-                const SizedBox(height: 5),
-                const ReportPage(),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity, // Full width
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showReport = !_showReport;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        vertical: MediaQuery.of(context).size.height * 0.02, // Responsive height
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12), // Rounded corners
+                      ),
+                      backgroundColor: AppColors.kPrimary,
+                    ),
+                    child: MyTextfield.textStyle_w600(
+                      _showReport ? 'Hide Report' : 'Show Report',
+                      MediaQuery.of(context).size.width * 0.045,
+                      Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (_showReport) const ReportPage(),
                 const SizedBox(height: 10),
 
                 MyTextfield.textStyle_w800("My DashBoard", 18, Colors.black87),
@@ -395,6 +439,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _setSelectedImage(List<File> files) async {
+    print("🔍 Raw scannedDocuments = ${files.first}");
     if (files.isNotEmpty) {
       Navigator.push(
         context,
@@ -417,7 +462,7 @@ class _HomeTabState extends State<HomeTab> {
       positiveButton: 'Yes, Start New',
       onConfirmed: (int) async {
         context.read<CartCubit>().clearCart(type: CartType.main);
-        widget.onGoToCart();
+        widget.onQuickScan();
       },
     );
   }
@@ -436,39 +481,10 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
   Future<void> switchToReturnproductCart(CartTypeSelection type) async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection: type)),
     );
-
-    if (result != null) {
-      final scannedCode = result['code'];
-      CustomerModel? selectedCustomer = scannedCode == 'manualAdd'?result['selectedCustomer']:null;
-
-      if (scannedCode != null && scannedCode.toString().isNotEmpty) {
-        final userId = await SessionManager.getParentingId();
-
-        if (type == CartTypeSelection.StockiestReturn) {
-          if (scannedCode != 'manualAdd') {
-            context.read<ApiCubit>().BarcodeScan(
-              code: scannedCode,
-              storeId: userId!,
-            );
-          }
-          AppRoutes.navigateTo(context, ReturnStockiestCart(selectedCustomer:selectedCustomer));
-
-        } else if (type == CartTypeSelection.CustomerReturn) {
-          if (scannedCode != 'manualAdd') {
-            context.read<ApiCubit>().customerbarcode(
-              code: scannedCode,
-              storeId: userId!,
-              customer_id: '', // You can use otherValue here if needed
-            );
-          }
-          AppRoutes.navigateTo(context, ReturnCustomerCart(selectedCustomer:selectedCustomer));
-        }
-      }
-    }
   }
   Widget _buildTaskCard({
     required String title,

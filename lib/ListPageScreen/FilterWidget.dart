@@ -489,6 +489,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   bool _needsPaymentType() {
     return {
       ListType.sale,
+      ListType.invoice,
     }.contains(widget.type);
   }
   bool _needsReason() {
@@ -522,7 +523,7 @@ class _FilterWidgetState extends State<FilterWidget> {
       'Office Expenses',
       'Others'
     ],
-    ListType.ledger: ['All','Credit','Debit']
+    ListType.ledger: ['All','Credit','Debit',]
 
   };
 

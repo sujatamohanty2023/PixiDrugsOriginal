@@ -38,7 +38,6 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
     loadUserData();
   }
 
-
   void loadUserData() async {
     role = await SessionManager.getRole();
     String? userId = await SessionManager.getUserId();

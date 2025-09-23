@@ -2,6 +2,7 @@ import '../Api/ApiUtil/ApiParserUtils.dart';
 
 class SaleModel {
   final int invoiceNo;
+  final SoldBy soldBy;
   final String paymentType;
   final String date;
   final double totalAmount;
@@ -11,6 +12,7 @@ class SaleModel {
   final List<SaleItem> items;
 
   SaleModel({
+    required this.soldBy,
     required this.invoiceNo,
     required this.paymentType,
     required this.date,
@@ -21,8 +23,19 @@ class SaleModel {
     required this.items,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is SaleModel &&
+              runtimeType == other.runtimeType &&
+              invoiceNo == other.invoiceNo;
+
+  @override
+  int get hashCode => invoiceNo.hashCode;
+
   factory SaleModel.fromJson(Map<String, dynamic> json) {
     return SaleModel(
+      soldBy: SoldBy.fromJson(json['sold_by']),
       invoiceNo: ApiParserUtils.parseInt(json['invoice_no']),
       paymentType: ApiParserUtils.parseString(json['payment_type']),
       date: ApiParserUtils.parseString(json['date']),
@@ -38,6 +51,7 @@ class SaleModel {
   static SaleModel fromBillingResponse(Map<String, dynamic> json) {
     return SaleModel(
     invoiceNo: ApiParserUtils.parseInt(json['billing_id']),
+   soldBy: SoldBy.fromJson(json['sold_by']),
     paymentType: ApiParserUtils.parseString(json['payment_type']),
     date: DateTime.now().toString(),
     totalAmount: ApiParserUtils.parseDouble(json['total_amount']),
@@ -56,6 +70,21 @@ class SaleModel {
     itemProfit: 0.0,
     );
       }).toList(),
+    );
+  }
+}
+class SoldBy {
+  final int id;
+  final String name;
+  final String phone;
+
+  SoldBy({required this.id, required this.name,required this.phone});
+
+  factory SoldBy.fromJson(Map<String, dynamic> json) {
+    return SoldBy(
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      phone: ApiParserUtils.parseString(json['phone']),
     );
   }
 }

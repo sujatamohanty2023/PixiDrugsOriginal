@@ -6,7 +6,7 @@ import 'package:PixiDrugs/Stock/ProductList.dart';
 import 'package:PixiDrugs/constant/all.dart';
 import 'package:PixiDrugs/Profile/profileTab.dart';
 
-import '../BarcodeScan/ScanPage.dart';
+import '../ListScreenNew/LedgerListScreen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,22 +17,18 @@ class _HomePageState extends State<HomePage> {
   int selectedPos = 0;
 
   Future<void> switchToCart(int index) async {
-    final scannedCode = await Navigator.push(
+    setState(() {
+      selectedPos = index;
+    });
+  }
+  Future<void> switchToScan() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => QuikScanPage()),
     );
 
-    if (scannedCode != null) {
-      final userId = await SessionManager.getParentingId();
-      if(scannedCode['code'] !='manualAdd') {
-       context.read<ApiCubit>().BarcodeScan(
-          code: scannedCode['code'],
-          storeId: userId!,
-        );
-      }
-      setState(() {
-        selectedPos = index;
-      });
+    if (result != null && result is Map && result["goToCart"] == true) {
+      switchToCart(2); // Jump to Cart tab
     }
   }
   @override
@@ -42,9 +38,9 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (selectedPos) {
       case 0:
-        return HomeTab(onGoToCart: () => switchToCart(2));
+        return HomeTab(onGoToCart: () => switchToCart(2),onQuickScan: () => switchToScan());
       case 1:
-        return ListScreen(type: ListType.ledger);
+        return LedgerListScreen();
       case 2:
         return CartTab();
       case 3:
@@ -52,7 +48,7 @@ class _HomePageState extends State<HomePage> {
       case 4:
         return ProfileScreen();
       default:
-        return HomeTab(onGoToCart: () => switchToCart(2));
+        return HomeTab(onGoToCart: () => switchToCart(2),onQuickScan: () => switchToScan(),);
     }
   }
   @override
@@ -69,7 +65,7 @@ class _HomePageState extends State<HomePage> {
         initialActiveIndex: selectedPos,
         onTap: (int index) async {
           if (index == 2) {
-            final cartCubit = context.read<CartCubit>();
+            /*final cartCubit = context.read<CartCubit>();
             final cartState = cartCubit.state;
 
             final isCartEmpty = cartState.cartItems.isEmpty;
@@ -82,7 +78,9 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 selectedPos = index;
               });
-            }
+            }*/
+            switchToScan();
+            return;
           } else {
             setState(() {
               selectedPos = index;

@@ -37,8 +37,8 @@ class _FilterWidgetState extends State<StockFilterWidget> {
   String selectedStockStatus = '';
   String selectedExpiryStatus = "";
 
-  final List<String> stockStatusList = ['In stock', 'Out of stock'];
-  final List<String> expiryStatusList = ['Expired', 'Expiring Soon'];
+  final List<String> stockStatusList = ['Select','In stock', 'Out of stock','Highest stock','Lowest stock'];
+  final List<String> expiryStatusList = ['Select','Expired', 'Expiring Soon'];
 
   @override
   void initState() {

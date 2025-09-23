@@ -132,7 +132,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.loginbg,
+      backgroundColor: AppColors.login_new,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(

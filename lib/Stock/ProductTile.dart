@@ -9,6 +9,7 @@ class ProductTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final stock=  product!.stock;
     final bool isOutOfStock = stock<= 0;
+    final bool isLowStock = stock>0 && stock<=5;
     final DateTime now = DateTime.now();
     DateTime? expiryDate;
     bool isExpired = false;
@@ -108,6 +109,19 @@ class ProductTile extends StatelessWidget {
                                 16,
                                 isOutOfStock ? Colors.red : AppColors.secondaryColor,
                               ),
+                              SizedBox(width: 5,),
+                              if (isLowStock)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade100,
+                                    // border: Border.all(color: Colors.red),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: MyTextfield.textStyle_w400(
+                                      "Low Stock",14,Colors.deepOrange
+                                  ),
+                                )
                             ],
                           ),
                           if (!isOutOfStock) buildExpiryText(),

@@ -186,10 +186,12 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) {
+  Future<Map<String, dynamic>> PlaceOrderApi(OrderPlaceModel model) async {
+     var user_id=await SessionManager.getUserId();
     return _safeApiCall(() async => dio.post(
       '${AppString.baseUrl}api/checkout',
       data: {
+        'sold_by':user_id,
         'seller_id': model.seller_id,
         'name': model.name,
         'phone': model.phone,
@@ -246,12 +248,16 @@ class ApiRepository {
       },
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> invoiceList(String userId,int page,String query,) {
+  Future<Map<String, dynamic>> invoiceList(String userId,int page,String from,String to,String payment_type,String query,) {
     return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/invoicelist/',
       queryParameters: {
         'user_id': userId,
         'page': page,
+        'from_date': from,
+        'to_date': to,
+        'range': '',
+        'payment_type':payment_type,
         'per_page': 10,
         'search': query,
         'access_token': await SessionManager.getAccessToken()
@@ -267,12 +273,18 @@ class ApiRepository {
       'access_token': await SessionManager.getAccessToken(),
     };
 
-    // Add filters dynamically to the query parameters
     filters.forEach((key, value) {
       if (value != null && value.isNotEmpty) {
         queryParameters['filters[$key]'] = value;
       }
     });
+    final uri = Uri.parse(AppString.baseUrl).replace(
+      path: 'api/$apiName/',
+      queryParameters: queryParameters.map((k, v) => MapEntry(k, v.toString())),
+    );
+
+    print('🔎 API URL with filters: $uri');
+
      return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/$apiName/',
       queryParameters: queryParameters,

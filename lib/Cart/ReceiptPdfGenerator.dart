@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -12,7 +10,7 @@ import '../shareFileToWhatsApp.dart';
 
 class ReceiptPdfGenerator {
   /// Generate receipt PDF and return saved file path
-  static Future<String> _generatePdf(SaleModel saleItem) async {
+  static Future<String> _generatePdf(SaleModel saleItem,UserProfile user) async {
     final pdf = pw.Document();
 
     // ✅ Load font
@@ -62,6 +60,7 @@ class ReceiptPdfGenerator {
             totalDiscount,
             totalAmount,
             calculateSubtotal,
+            user,
           );
         },
       ),
@@ -76,9 +75,9 @@ class ReceiptPdfGenerator {
   }
 
   /// Download PDF (open in viewer / saved to storage)
-  static Future<void> downloadPdf(BuildContext context, SaleModel saleItem) async {
+  static Future<void> downloadPdf(BuildContext context, SaleModel saleItem,UserProfile user) async {
     try {
-      final filePath = await _generatePdf(saleItem);
+      final filePath = await _generatePdf(saleItem,user);
       AppUtils.showSnackBar(context, 'Download Completed...');
       await OpenFile.open(filePath); // Open with default PDF viewer
     } catch (e) {
@@ -86,9 +85,9 @@ class ReceiptPdfGenerator {
     }
   }
   /// Share PDF via WhatsApp
-  static Future<void> generateAndSharePdf(BuildContext context, SaleModel saleItem) async {
+  static Future<void> generateAndSharePdf(BuildContext context, SaleModel saleItem,UserProfile user) async {
     try {
-      final filePath = await _generatePdf(saleItem);
+      final filePath = await _generatePdf(saleItem,user);
       if (saleItem.customer.phone.isNotEmpty &&
           saleItem.customer.phone != 'no number') {
         await _sharePdfViaWhatsApp(saleItem, filePath);
@@ -110,6 +109,7 @@ class ReceiptPdfGenerator {
       double totalDiscount,
       double totalAmount,
       double Function(SaleItem) calculateSubtotal,
+      UserProfile user,
       ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -121,7 +121,7 @@ class ReceiptPdfGenerator {
           ),
         pw.Align(
           alignment: pw.Alignment.topRight,
-          child: pw.Text('PixiDrugs',
+          child: pw.Text(user.name ?? "-",
               style: pw.TextStyle(
                   font: ttf,
                   fontSize: 20,
@@ -130,15 +130,11 @@ class ReceiptPdfGenerator {
         ),
         pw.Align(
             alignment: pw.Alignment.topRight,
-            child: pw.Text('GSTIN: 1234567890',
+            child: pw.Text("Phone: ${user.phoneNumber ?? '-'}",
                 style: pw.TextStyle(font: ttf, fontSize: 9))),
         pw.Align(
             alignment: pw.Alignment.topRight,
-            child: pw.Text('Phone: 123456789',
-                style: pw.TextStyle(font: ttf, fontSize: 9))),
-        pw.Align(
-            alignment: pw.Alignment.topRight,
-            child: pw.Text('Address: Berhampur',
+            child: pw.Text("Address: ${user.address ?? '-'}",
                 style: pw.TextStyle(font: ttf, fontSize: 9))),
         pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
 
@@ -167,6 +163,8 @@ class ReceiptPdfGenerator {
         pw.Text('Phone: ${saleItem.customer.phone ?? ''}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
         pw.Text('Address: ${saleItem.customer.address ?? ''}',
+            style: pw.TextStyle(font: ttf, fontSize: 11)),
+        pw.Text('Sale Person: ${saleItem.soldBy.name ?? ''}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
         pw.SizedBox(height: 20),
 

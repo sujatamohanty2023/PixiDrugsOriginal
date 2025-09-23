@@ -1,6 +1,8 @@
 import 'package:PixiDrugs/constant/all.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
+import '../ReturnProduct/ReturnPdfGenerator.dart';
 import '../customWidget/BottomLoader.dart';
+import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
 import 'CustomerReturnsResponse.dart';
 
@@ -24,15 +26,40 @@ class SaleReturnListWidget extends StatefulWidget {
 }
 
 class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
+  UserProfile? user;
 
   @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+  void loadUserData() async {
+    String? userId = await SessionManager.getUserId();
+    if (userId != null) {
+      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
+    }
+  }
+  @override
   Widget build(BuildContext context) {
+    return BlocListener<ApiCubit, ApiState>(
+      listener: (context, state) {
+        // Replace ApiUserLoaded with your actual state containing UserProfile
+        if (state is UserProfileLoaded) {
+          setState(() {
+            user = state.userModel.user;
+          });
+        }
+      },
+      child: _buildBody(),
+    );
+  }
+  Widget _buildBody(){
     final screenWidth = MediaQuery.of(context).size.width;
     final itemCount = widget.items.length + (widget.hasMoreData ? 1 : 0);
     return  Container(
       child: widget.isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.kPrimary,))
-          : !widget.isLoading && widget.items.isEmpty
+          : widget.items.isEmpty
           ? NoItemPage(
         onTap: (){},
         image: AppImages.no_sale,
@@ -57,13 +84,7 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
   Widget _buildReturnCard(CustomerReturnsResponse item, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ReturnCustomerCart(customerReturnModel:item,detail: true,),),
-        );
-        if (result==true) {
-          widget.onRefreshRequested?.call();
-        }
+       GoNextPageFun(items:item);
       },
       child: Card(
         color: Colors.white,
@@ -95,6 +116,40 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  CustomPopupMenu(
+                    iconSize: screenWidth * 0.05,
+                    backgroundColor: AppColors.kWhiteColor,
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'share':
+                          ReturnPdfGenerator.generateCustomerReturnPdf(user!, stockReturn: item,share: true);
+                          break;
+                       case 'edit':
+                         GoNextPageFun(edit:true,items: item);
+                          break;
+                        case 'download':
+                          ReturnPdfGenerator.generateCustomerReturnPdf(user!, stockReturn: item,share: false);
+                          break;
+                      }
+                    },
+                    items: [
+                      CustomPopupMenuItemData(
+                        value: 'share',
+                        label: 'Share',
+                        iconAsset: AppImages.share,
+                      ),
+                      CustomPopupMenuItemData(
+                        value: 'download',
+                        label: 'Download',
+                        iconAsset: AppImages.download,
+                      ),
+                      CustomPopupMenuItemData(
+                        value: 'edit',
+                        label: 'Edit',
+                        iconAsset: AppImages.edit,
+                      ),
+                    ],
+                  ),
                   SizedBox(height: screenWidth * 0.015),
                   Builder(
                     builder: (context) {
@@ -119,5 +174,15 @@ class _SaleReturnListWidgetState extends State<SaleReturnListWidget> {
         ),
       ),
     );
+  }
+
+  Future<void> GoNextPageFun({bool edit=false, required CustomerReturnsResponse items}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ReturnCustomerCart(customerReturnModel:items,detail: true,isEdit:edit)),
+    );
+    if (result==true) {
+      widget.onRefreshRequested?.call();
+    }
   }
 }
