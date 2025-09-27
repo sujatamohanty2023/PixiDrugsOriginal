@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class addressWidget extends StatefulWidget {
   final String name,address,phone;

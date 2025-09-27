@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/onboardingscreen/intro_widget.dart';
+import '../../constant/all.dart';
+import '../onboardingscreen/intro_widget.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override

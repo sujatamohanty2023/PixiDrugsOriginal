@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class CommonConfirmationDialog {
   static Future<void> show<T>({

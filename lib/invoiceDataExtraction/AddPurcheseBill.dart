@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:aws_common/aws_common.dart';
 import 'package:aws_signature_v4/aws_signature_v4.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../AIResponse/InvoiceResponse.dart';
+import '../../constant/all.dart';
 
 class AddPurchaseBill extends StatefulWidget {
   final List<String> paths;
@@ -47,6 +49,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   int? editIndex;
   List<String> gstItems = ["0%", "3%","5%", "12%","18%","28%"];
 
+  double _loadingProgress = 0.0;
+  String _loadingStatus = "Initializing...";
+  bool _showProgressBar = false;
+
+  Timer? _debounceTimer;
+
+  // Validation state variables for field highlighting
+  bool _hasProductNameError = false;
+  bool _hasBatchNoError = false;
+  bool _hasExpDateError = false;
+  bool _hasHsnCodeError = false;
+  bool _hasGstRateError = false;
+  bool _hasUnitPerPackError = false;
+  bool _hasBilledQtyError = false;
+  bool _hasBilledQtyFreeError = false;
+  bool _hasRateError = false;
+  bool _hasMrpError = false;
+  bool _hasDiscError = false;
+  bool _hasTaxableError = false;
+  bool _hasTotalError = false;
+  bool _hasDiscountTypeError = false;
+
   final _accessKey = 'AKIAZOZQGAKUA3XO3NB7';
   final _secretKey = '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';
   final _region = 'us-east-1';
@@ -54,13 +78,15 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   @override
   void initState() {
     super.initState();
+    // Ensure GST items are unique and properly formatted
+    _cleanupGstItems();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
     });
-    rateController.addListener(_recalculateTaxableAndTotal);
-    billedQtyController.addListener(_recalculateTaxableAndTotal);
-    discController.addListener(_recalculateTaxableAndTotal);
-    gstRateController.addListener(_recalculateTaxableAndTotal);
+    rateController.addListener(_debouncedRecalculation);
+    billedQtyController.addListener(_debouncedRecalculation);
+    discController.addListener(_debouncedRecalculation);
+    gstRateController.addListener(_debouncedRecalculation);
     _discResetListener = () {
       if (discController.text.isNotEmpty && discController.text != '0') {
         setState(() {
@@ -76,10 +102,11 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   }
   @override
   void dispose() {
-    rateController.removeListener(_recalculateTaxableAndTotal);
-    billedQtyController.removeListener(_recalculateTaxableAndTotal);
-    discController.removeListener(_recalculateTaxableAndTotal);
-    gstRateController.removeListener(_recalculateTaxableAndTotal);
+    _debounceTimer?.cancel();
+    rateController.removeListener(_debouncedRecalculation);
+    billedQtyController.removeListener(_debouncedRecalculation);
+    discController.removeListener(_debouncedRecalculation);
+    gstRateController.removeListener(_debouncedRecalculation);
     if (_discResetListener != null) {
       discController.removeListener(_discResetListener!);
     }
@@ -104,7 +131,11 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   Future<void> _initialize() async {
     setState(() {
       _isLoading = true;
+      _loadingProgress = 0.0;
+      _loadingStatus = "Initializing...";
+      _showProgressBar = widget.paths.isNotEmpty;
     });
+
     try {
       Invoice? loadedInvoice;
 
@@ -113,13 +144,26 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       editIndex = args?['edit_product_index'] as int?;
 
       if (widget.paths.isEmpty && widget.invoice1 != null) {
+        setState(() {
+          _loadingStatus = "Loading invoice data...";
+          _loadingProgress = 1.0;
+        });
         loadedInvoice = widget.invoice1;
       } else if (widget.paths.isNotEmpty) {
         //loadedInvoice = await _readMultipleInvoicesAWS(widget.paths);
         loadedInvoice=await _readMultipleInvoicesAI(widget.paths);
       } else {
+        setState(() {
+          _loadingStatus = "Creating new invoice...";
+          _loadingProgress = 1.0;
+        });
         loadedInvoice = widget.invoice1 ?? Invoice(items: [InvoiceItem()]);
       }
+
+      setState(() {
+        _loadingStatus = "Processing invoice data...";
+        _loadingProgress = 0.9;
+      });
 
       setState(() {
         invoice = loadedInvoice;
@@ -140,16 +184,25 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           product = productList.isNotEmpty ? productList[0] : InvoiceItem();
         }
         _populateControllers();
+        _loadingStatus = "Completed!";
+        _loadingProgress = 1.0;
       });
     } catch (e) {
       print("❌ Failed to load invoice: $e");
       if (mounted) {
+        setState(() {
+          _loadingStatus = "Error loading invoice";
+          _loadingProgress = 1.0;
+        });
         AppUtils.showSnackBar(context,'Failed to read invoice data');
       }
     }finally {
       if (mounted) {
+        // Small delay to show completion
+        await Future.delayed(Duration(milliseconds: 500));
         setState(() {
-          _isLoading = false; // End loading
+          _isLoading = false;
+          _showProgressBar = false;
         });
       }
     }
@@ -200,16 +253,35 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     final invoiceIds = <String>{};
     List<MultipartFile> multipartFiles = [];
 
-    for (String path in paths) {
-      multipartFiles.add(await createMultipartFile(path));
+    setState(() {
+      _loadingStatus = "Preparing files...";
+      _loadingProgress = 0.1;
+    });
+
+    for (int i = 0; i < paths.length; i++) {
+      multipartFiles.add(await createMultipartFile(paths[i]));
+      setState(() {
+        _loadingProgress = 0.1 + (0.2 * (i + 1) / paths.length);
+        _loadingStatus = "Preparing file ${i + 1} of ${paths.length}...";
+      });
     }
 
     if (multipartFiles.isNotEmpty) {
       try {
+        setState(() {
+          _loadingStatus = "Uploading files to server...";
+          _loadingProgress = 0.3;
+        });
+
         var formData = FormData.fromMap({
           'files': multipartFiles,
           'requirement': 'Analyze this document and provide a detailed summary with key insights, main points, and actionable recommendations.',
           'type':3
+        });
+
+        setState(() {
+          _loadingStatus = "Processing...";
+          _loadingProgress = 0.5;
         });
 
         var dio = Dio();
@@ -219,12 +291,23 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         );
 
         if (response.statusCode == 200) {
+          setState(() {
+            _loadingStatus = "Parsing response data...";
+            _loadingProgress = 0.7;
+          });
+
           var jsonData = response.data['data'];
           print("Raw Data: ${jsonData.runtimeType} - $jsonData");
 
           final List<InvoiceData> data = [];
           if (jsonData is List) {
-            for (var fileEntry in jsonData) {
+            for (int i = 0; i < jsonData.length; i++) {
+              var fileEntry = jsonData[i];
+              setState(() {
+                _loadingProgress = 0.7 + (0.1 * (i + 1) / jsonData.length);
+                _loadingStatus = "Processing file ${i + 1} of ${jsonData.length}...";
+              });
+
               if (fileEntry is List) {
                 for (var invoiceJson in fileEntry) {
                   if (invoiceJson is Map<String, dynamic>) {
@@ -242,19 +325,32 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             print("⚠️ Unexpected data format: ${jsonData.runtimeType}");
             throw Exception("API returned unexpected data format.");
           }
+
+          setState(() {
+            _loadingStatus = "Converting to invoice format...";
+            _loadingProgress = 0.8;
+          });
+
           // Convert to internal model
-          for (var item in data) {
-            final invoice = convertFromOcrInvoiceData(item);
+          for (int i = 0; i < data.length; i++) {
+            final invoice = convertFromOcrInvoiceData(data[i]);
             allInvoices.add(invoice);
             if (invoice.invoiceId != null && invoice.invoiceId!.isNotEmpty) {
               invoiceIds.add(invoice.invoiceId!);
             }
+            setState(() {
+              _loadingProgress = 0.8 + (0.1 * (i + 1) / data.length);
+            });
           }
         }
       } catch (e) {
         print("❌ Error processing: $e");
-        // Optionally re-throw or handle gracefully
-        // For now, we let it continue to process other files if possible.
+        setState(() {
+          _loadingStatus = "Error: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}";
+          _loadingProgress = 1.0;
+        });
+        // Re-throw to let the calling function handle it
+        rethrow;
       }
     }
 
@@ -309,13 +405,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
 
   Invoice convertFromOcrInvoiceData(InvoiceData data) {
     List<InvoiceItem> items = data.item.map((item) {
-      final double gst = ((item.cgstRate ?? 0) + (item.sgstRate ?? 0) + (item.igstRate ?? 0));
-      final String gstFormatted = '${gst}%';
-      if (!gstItems.contains(gstFormatted)) {
-        gstItems.add(gstFormatted); // add dynamically if missing
-      }
+      final double gst = item.gstRate ?? 0;
+      final String gstFormatted = '${gst.toInt()}%';
+      _addUniqueGstItem(gstFormatted);
       print('gst=$gstFormatted');
       print('Data=${item.toString()}');
+      // Handle both discount rate and discount amount
+      final bool hasDiscountRate = (item.discountRate ?? 0) > 0;
+      final bool hasDiscountAmount = (item.discountAmount ?? 0) > 0;
+      
+      double discountValue = 0;
+      DiscountType? discountType;
+      
+      if (hasDiscountAmount && !hasDiscountRate) {
+        // Flat amount discount
+        discountValue = item.discountAmount ?? 0;
+        discountType = DiscountType.flat;
+      } else if (hasDiscountRate) {
+        // Percentage discount (prioritize rate if both are present)
+        discountValue = item.discountRate ?? 0;
+        discountType = DiscountType.percent;
+      }
+      
       return InvoiceItem(
         hsn: item.hsn ?? '',
         product: item.description ?? '',
@@ -325,7 +436,8 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         mrp: (item.mrp ?? 0).toStringAsFixed(2),
         rate: (item.rate ?? 0).toStringAsFixed(2),
         taxable: (item.taxableAmount ?? 0).toStringAsFixed(2),
-        discount: (item.discountRate ?? 0).toStringAsFixed(2),
+        discount: discountValue.toStringAsFixed(2),
+        discountType: discountType,
         qty: item.qty ?? 0,
         qty_free: item.freeQty ?? 0,
         gst: gstFormatted,
@@ -419,12 +531,48 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     final numeric = gst.replaceAll('%', '').trim();
     return '$numeric%';
   }
+
+  void _cleanupGstItems() {
+    print("🔧 Before cleanup: $gstItems");
+    
+    // Remove duplicates and ensure proper formatting
+    final Set<String> uniqueGstItems = <String>{};
+    for (String item in gstItems) {
+      final normalized = normalizeGst(item);
+      uniqueGstItems.add(normalized);
+    }
+    gstItems = uniqueGstItems.toList();
+    gstItems.sort((a, b) {
+      final numA = double.tryParse(a.replaceAll('%', '')) ?? 0;
+      final numB = double.tryParse(b.replaceAll('%', '')) ?? 0;
+      return numA.compareTo(numB);
+    });
+    
+    print("✅ After cleanup: $gstItems");
+  }
+
+  void _addUniqueGstItem(String gstRate) {
+    final normalized = normalizeGst(gstRate);
+    if (!gstItems.contains(normalized)) {
+      gstItems.add(normalized);
+      // Re-sort after adding new item
+      gstItems.sort((a, b) {
+        final numA = double.tryParse(a.replaceAll('%', '')) ?? 0;
+        final numB = double.tryParse(b.replaceAll('%', '')) ?? 0;
+        return numA.compareTo(numB);
+      });
+    }
+  }
   void _populateControllers() {
     productNameController.text= product?.product ?? '';
     batchNoController.text = product?.batch ?? '';
     expDateController.text = product?.expiry ?? '';
     hsnCodeController.text = product?.hsn.toString()??'0';
-    gstRateController.text = normalizeGst(product?.gst);
+    
+    // Normalize GST value and ensure it exists in gstItems
+    final normalizedGst = normalizeGst(product?.gst);
+    gstRateController.text = gstItems.contains(normalizedGst) ? normalizedGst : (gstItems.isNotEmpty ? gstItems.first : '0%');
+    
     unitPerPackController.text = product?.packing ?? '';
     billedQtyController.text = product?.qty.toString() ?? '';
     billedQtyFreeController.text = product?.qty_free.toString() ?? '0';
@@ -460,6 +608,28 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     discController.clear();
     taxableController.clear();
     totalController.clear();
+    
+    // Reset validation errors
+    _clearValidationErrors();
+  }
+
+  void _clearValidationErrors() {
+    setState(() {
+      _hasProductNameError = false;
+      _hasBatchNoError = false;
+      _hasExpDateError = false;
+      _hasHsnCodeError = false;
+      _hasGstRateError = false;
+      _hasUnitPerPackError = false;
+      _hasBilledQtyError = false;
+      _hasBilledQtyFreeError = false;
+      _hasRateError = false;
+      _hasMrpError = false;
+      _hasDiscError = false;
+      _hasTaxableError = false;
+      _hasTotalError = false;
+      _hasDiscountTypeError = false;
+    });
   }
 
   void _deleteRecord() async {
@@ -468,11 +638,11 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
       productList.removeAt(currentIndex);
       totalProducts = productList.length;
 
-      // Recalculate total
+      // Recalculate total safely
       total = 0;
       for (var item in productList) {
-        final sanitizedTotal = double.parse(item.total!.replaceAll(',', ''));
-        total += sanitizedTotal.round() ?? 0;
+        final sanitizedTotal = double.tryParse(item.total.replaceAll(',', '') ?? '0') ?? 0;
+        total += sanitizedTotal.round();
       }
 
       // Handle edge cases
@@ -548,7 +718,7 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
           gradient: AppColors.myGradient,
         ),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.kPrimary,)) // Show loader
+            ? _buildLoadingWidget() // Show enhanced loader
             :SingleChildScrollView(
           padding: const EdgeInsets.only(left: 16,right: 16,top: 16,bottom: 30),
           child: Column(
@@ -770,12 +940,22 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
               padding: const EdgeInsets.only(left:8,right: 8),
               child: ElevatedButton.icon(
                 onPressed: () {
+                  // Clear previous validation errors
+                  _clearValidationErrors();
+                  
+                  // Validate HSN Code
                   if (!RegExp(r'^\d+$').hasMatch(hsnCodeController.text)) {
-                    AppUtils.showSnackBar(context, 'Error:HSN Code must be numeric');
+                    setState(() {
+                      _hasHsnCodeError = true;
+                    });
                     return;
                   }
+                  
+                  // Validate Discount Type
                   if (!_isDiscountTypeValidForCurrentProduct()) {
-                    AppUtils.showSnackBar(context, 'Please select Discount Type');
+                    setState(() {
+                      _hasDiscountTypeError = true;
+                    });
                     return;
                   }
 
@@ -800,19 +980,63 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                   }
 
                   setState(() {
-                    if (productNameController.text.isNotEmpty &&
-                        batchNoController.text.isNotEmpty &&
-                        expDateController.text.isNotEmpty &&
-                        hsnCodeController.text.isNotEmpty &&
-                        gstRateController.text.isNotEmpty &&
-                        unitPerPackController.text.isNotEmpty &&
-                        billedQtyController.text.isNotEmpty &&
-                        billedQtyFreeController.text.isNotEmpty &&
-                        rateController.text.isNotEmpty &&
-                        mrpController.text.isNotEmpty &&
-                        discController.text.isNotEmpty &&
-                        taxableController.text.isNotEmpty &&
-                        totalController.text.isNotEmpty) {
+                    // Validate all required fields and mark errors
+                    bool hasValidationErrors = false;
+                    
+                    if (productNameController.text.isEmpty) {
+                      _hasProductNameError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (batchNoController.text.isEmpty) {
+                      _hasBatchNoError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (expDateController.text.isEmpty) {
+                      _hasExpDateError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (hsnCodeController.text.isEmpty) {
+                      _hasHsnCodeError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (gstRateController.text.isEmpty) {
+                      _hasGstRateError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (unitPerPackController.text.isEmpty) {
+                      _hasUnitPerPackError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (billedQtyController.text.isEmpty) {
+                      _hasBilledQtyError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (billedQtyFreeController.text.isEmpty) {
+                      _hasBilledQtyFreeError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (rateController.text.isEmpty) {
+                      _hasRateError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (mrpController.text.isEmpty) {
+                      _hasMrpError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (discController.text.isEmpty) {
+                      _hasDiscError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (taxableController.text.isEmpty) {
+                      _hasTaxableError = true;
+                      hasValidationErrors = true;
+                    }
+                    if (totalController.text.isEmpty) {
+                      _hasTotalError = true;
+                      hasValidationErrors = true;
+                    }
+                    
+                    if (!hasValidationErrors) {
                       _saveCurrentProductData();
                       if (editIndex != null) {
                         final updatedInvoice = invoice!.copyWith(items: productList);
@@ -833,8 +1057,6 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
                           _populateControllers();
                         }
                       }
-                    } else {
-                      AppUtils.showSnackBar(context,'Please enter all required fields.');
                     }
                   });
 
@@ -865,35 +1087,108 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
   }
 
   Widget _formField(String label, TextEditingController controller, {String? hint,TextInputType keyboardType = TextInputType.text}) {
+    // Determine if this field has an error
+    bool hasError = false;
+    if (label == "Product Name") hasError = _hasProductNameError;
+    else if (label == "Batch No") hasError = _hasBatchNoError;
+    else if (label == "Expiry Date") hasError = _hasExpDateError;
+    else if (label == "HSN Code") hasError = _hasHsnCodeError;
+    else if (label == "Packing") hasError = _hasUnitPerPackError;
+    else if (label == "Qty") hasError = _hasBilledQtyError;
+    else if (label == "Free") hasError = _hasBilledQtyFreeError;
+    else if (label == "MRP") hasError = _hasMrpError;
+    else if (label == "Rate") hasError = _hasRateError;
+    else if (label == "Discount Value") hasError = _hasDiscError;
+    else if (label == "Taxable") hasError = _hasTaxableError;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             MyTextfield.textStyle_w400(
-                label, AppUtils.size_16, Colors.black54),
+                label, AppUtils.size_16, hasError ? Colors.red : Colors.black54),
             MyTextfield.textStyle_w400(" *", AppUtils.size_16, Colors.red)
           ],
         ),
         SizedBox(height: 5),
-        MyEdittextfield(
-          controller: controller, hintText: "Enter $label",keyboardType: keyboardType,),
+        Container(
+          decoration: hasError ? BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.red, width: 2),
+          ) : null,
+          child: MyEdittextfield(
+            controller: controller, 
+            hintText: hasError ? "This field is required" : "Enter $label",
+            keyboardType: keyboardType,
+            onChanged: (value) {
+              // Clear error when user starts typing
+              if (hasError && value.isNotEmpty) {
+                setState(() {
+                  if (label == "Product Name") _hasProductNameError = false;
+                  else if (label == "Batch No") _hasBatchNoError = false;
+                  else if (label == "Expiry Date") _hasExpDateError = false;
+                  else if (label == "HSN Code") _hasHsnCodeError = false;
+                  else if (label == "Packing") _hasUnitPerPackError = false;
+                  else if (label == "Qty") _hasBilledQtyError = false;
+                  else if (label == "Free") _hasBilledQtyFreeError = false;
+                  else if (label == "MRP") _hasMrpError = false;
+                  else if (label == "Rate") _hasRateError = false;
+                  else if (label == "Discount Value") _hasDiscError = false;
+                  else if (label == "Taxable") _hasTaxableError = false;
+                });
+              }
+            },
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: MyTextfield.textStyle_w400(
+              "This field is required", 
+              AppUtils.size_14,
+              Colors.red
+            ),
+          ),
       ],
     );
   }
   Widget _dropdownField(String label, List<String> items, String? selectedValue) {
+    // Determine if this field has an error
+    bool hasError = false;
+    if (label == "GST") hasError = _hasGstRateError;
+    else if (label == "Discount Type") hasError = _hasDiscountTypeError;
+    
+    // Ensure the selected value exists in items, otherwise set to first item or null
+    String? validatedValue;
+    if (selectedValue != null && items.contains(selectedValue)) {
+      validatedValue = selectedValue;
+    } else if (items.isNotEmpty) {
+      validatedValue = items.first;
+      // Update controller if we had to change the value
+      if (label == "GST" && validatedValue != selectedValue) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          gstRateController.text = validatedValue!;
+        });
+      }
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            MyTextfield.textStyle_w400(label, AppUtils.size_16, Colors.black54),
+            MyTextfield.textStyle_w400(
+              label, 
+              AppUtils.size_16, 
+              hasError ? Colors.red : Colors.black54
+            ),
             MyTextfield.textStyle_w400(" *", AppUtils.size_16, Colors.red)
           ],
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: selectedValue,
+          value: validatedValue,
           iconEnabledColor: AppColors.kGreyColor800,
           iconDisabledColor: AppColors.kGreyColor800,
           decoration: InputDecoration(
@@ -903,15 +1198,15 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: AppColors.kPrimaryDark,
-                width: 1,
+                color: hasError ? Colors.red : AppColors.kPrimaryDark,
+                width: hasError ? 2 : 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: AppColors.kPrimaryDark,
-                width: 1,
+                color: hasError ? Colors.red : AppColors.kPrimaryDark,
+                width: hasError ? 2 : 1,
               ),
             ),
           ),
@@ -921,6 +1216,14 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
             child: MyTextfield.textStyle_w600(e, AppUtils.size_14, Colors.black),
           )).toList(),
           onChanged: (value) {
+            // Clear error when user makes selection
+            if (hasError) {
+              setState(() {
+                if (label == "GST") _hasGstRateError = false;
+                else if (label == "Discount Type") _hasDiscountTypeError = false;
+              });
+            }
+            
             if (label == "GST") {
               gstRateController.text = value!;
             } else if (label == "Discount Type") {
@@ -934,19 +1237,32 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
               });
             }
           },
-        )
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: MyTextfield.textStyle_w400(
+              label == "Discount Type" ? "Please select discount type" : "This field is required", 
+              AppUtils.size_14,
+              Colors.red
+            ),
+          ),
       ],
     );
   }
   void _recalculateTaxableAndTotal() {
+    if (product == null) return;
+
     double rate = double.tryParse(rateController.text) ?? 0;
     int qty = int.tryParse(billedQtyController.text) ?? 0;
     double discountValue = double.tryParse(discController.text) ?? 0;
 
-    double subtotal = rate * qty; // Including free qty in calculation? Adjust if needed.
+    if (rate == 0 && qty == 0) return; // Skip calculation if no meaningful input
+
+    double subtotal = rate * qty;
 
     double discountAmount = 0;
-    if (product?.discountType == DiscountType.percent) {
+    if (product!.discountType == DiscountType.percent) {
       discountAmount = subtotal * (discountValue / 100);
     } else {
       discountAmount = discountValue;
@@ -957,16 +1273,29 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
     double gstAmount = taxable * (gstRate / 100);
     double total = taxable + gstAmount;
 
-    // Update controllers
-    taxableController.text = taxable.toStringAsFixed(2);
-    totalController.text = total.toStringAsFixed(2);
+    // Batch update controllers to reduce rebuilds
+    final taxableFormatted = taxable.toStringAsFixed(2);
+    final totalFormatted = total.toStringAsFixed(2);
 
-    // Optional: Update product model immediately
-    if (product != null) {
-      product?.taxable = taxable.toStringAsFixed(2);
-      product?.total = total.toStringAsFixed(2);
+    if (taxableController.text != taxableFormatted) {
+      taxableController.text = taxableFormatted;
     }
+    if (totalController.text != totalFormatted) {
+      totalController.text = totalFormatted;
+    }
+
+    // Update product model immediately
+    product!.taxable = taxableFormatted;
+    product!.total = totalFormatted;
   }
+
+  void _debouncedRecalculation() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(Duration(milliseconds: 300), () {
+      _recalculateTaxableAndTotal();
+    });
+  }
+
   void showEditDialog({
     required BuildContext context,
     required String title,
@@ -979,6 +1308,89 @@ class _AddPurchaseBillState extends State<AddPurchaseBill> {
         title: title,
         initialValue: initialValue,
         onSave: onSave,
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: AppColors.kWhiteColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                )
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: SpinKitThreeBounce(
+                    color:AppColors.kPrimary,
+                    size: 30.0,
+                  ),
+                ),
+                SizedBox(height: 24),
+                if (_showProgressBar) ...[
+                  Container(
+                    width: 250,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MyTextfield.textStyle_w600(
+                              "Progress",
+                              AppUtils.size_14,
+                              AppColors.kBlackColor800,
+                            ),
+                            MyTextfield.textStyle_w600(
+                              "${(_loadingProgress * 100).toInt()}%",
+                              AppUtils.size_14,
+                              AppColors.kPrimary,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: _loadingProgress,
+                            backgroundColor: AppColors.kGreyColor700,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+                            minHeight: 8,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        MyTextfield.textStyle_w400(
+                          _loadingStatus,
+                          AppUtils.size_14,
+                          AppColors.kBlackColor800,
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  SizedBox(height: 16),
+                  MyTextfield.textStyle_w400(
+                    "Loading...",
+                    AppUtils.size_16,
+                    AppColors.kBlackColor800,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class ProductTile extends StatelessWidget {
   InvoiceItem? product;
@@ -18,7 +18,7 @@ class ProductTile extends StatelessWidget {
     try {
       expiryDate = parseFlexibleExpiry(product!.expiry);
       isExpired = expiryDate.isBefore(now);
-      isExpiringSoon = !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
+      isExpiringSoon = !isExpired && expiryDate.isBefore(now.add(const Duration(days: 240)));
     } catch (e) {
       // Handle parsing error — expiryDate stays null
     }

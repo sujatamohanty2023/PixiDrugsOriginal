@@ -192,7 +192,7 @@ class Link {
     return Link(
       url: ApiParserUtils.parseString(json['url']),
       label: ApiParserUtils.parseString(json['label']),
-      active: json['active'] == true || json['active'] == 1 || json['active'] == 'true',
+      active: ApiParserUtils.parseBool(json['active']),
     );
   }
 

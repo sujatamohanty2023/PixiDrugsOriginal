@@ -9,7 +9,7 @@ import '../ReturnProduct/ReturnProductList.dart';
 import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../Stock/ProductList.dart';
 import '../search/customerModel.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import 'utilScanner/CornerPainter.dart';
 import 'utilScanner/ScanLinePainter.dart';
 import 'utilScanner/ScannerOverlayPainter.dart';
@@ -39,7 +39,7 @@ class _QuikScanPageState extends State<QuikScanPage>
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  final AudioPlayer _player = AudioPlayer();
+   final AudioPlayer _player = AudioPlayer();
   bool isloader = false;
 
   Timer? _scanTimer;
@@ -61,13 +61,13 @@ class _QuikScanPageState extends State<QuikScanPage>
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
-    _player.setAsset('assets/sound/scanner.mpeg');
+     _player.setAsset('assets/sound/scanner.mpeg');
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _player.dispose();
+     _player.dispose();
     _scanTimer?.cancel();
     _scannerController.dispose();
     super.dispose();
@@ -121,7 +121,7 @@ class _QuikScanPageState extends State<QuikScanPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocListener<ApiCubit, ApiState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is BarcodeScanLoaded && state.source == 'scan') {
             searchResults = state.list;
             if (widget.cartTypeSelection == null) {
@@ -132,10 +132,13 @@ class _QuikScanPageState extends State<QuikScanPage>
                   type: CartType.main,
                 );
               } else if (searchResults.isNotEmpty && searchResults.length > 1) {
-                AppRoutes.navigateTo(
+                final result = await Navigator.push(
                   context,
-                  ProductListPage(flag: 4, searchResults: searchResults),
+                  MaterialPageRoute(builder: (context) => ProductListPage(flag: 4, searchResults: searchResults)),
                 );
+                if (result != null && result is Map && result["goToCart"] == true) {
+                  Navigator.pop(context, {"goToCart": true});
+                }
               }
             } else if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
               if (searchResults.isNotEmpty && searchResults.length == 1) {
@@ -175,14 +178,24 @@ class _QuikScanPageState extends State<QuikScanPage>
                   }
                 }
               } else {
-                AppRoutes.navigateTo(
-                  context,
-                  ReturnProductListPage(
-                      cartTypeSelection: widget.cartTypeSelection,
-                      selectedCustomer: widget.selectedCustomer,
-                      searchResults:searchResults
-                  ),
-                );
+                 final result = await Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder:
+                         (context) => ReturnProductListPage(
+                       cartTypeSelection: widget.cartTypeSelection,
+                       selectedCustomer: widget.selectedCustomer,
+                             searchResults:searchResults
+                     ),
+                   ),
+                 );
+                 if (result != null && result['goToReturnCart'] == true ){
+                    if(widget.selectedCustomer!=null ) {
+                      Navigator.pop(context);
+                    }else{
+                      ReturnCartCall(widget.selectedCustomer!);
+                    }
+                }
               }
             }
             setState(() {
@@ -199,20 +212,9 @@ class _QuikScanPageState extends State<QuikScanPage>
             final cartCubit = context.read<CartCubit>();
             if (state.list.isNotEmpty) {
               if (cartCubit.state.cartItems.isEmpty && widget.selectedCustomer == null) {
-                List<CustomerModel> _detail_Customer = [];
-                for(var item in state.list){
-                  var customer = CustomerModel(
-                    id: item.customerId ?? 0,
-                    name: item.customerName ?? '',
-                    phone: item.customerPhone ?? '',
-                    address: '',
-                  );
-                  _detail_Customer.add(customer);
-                }
-
                 AppRoutes.navigateTo(
                   context,
-                  ReturnCustomerCart(CustomerList: _detail_Customer),
+                  ReturnCustomerCart(searchResults:state.list),
                 );
               } else if(cartCubit.state.cartItems.isNotEmpty && state.list.length == 1){
                 final cartCubit = context.read<CartCubit>();
@@ -231,7 +233,7 @@ class _QuikScanPageState extends State<QuikScanPage>
                 );
 
                 if (!alreadyInCart && state.source == 'scan') {
-                  cartCubit.addToCart(scannedItem, 1, type: CartType.main);
+                  cartCubit.addToCart(scannedItem, 1, type: CartType.main,isCustomerReturn:true);
                 } else if (alreadyInCart && state.source == 'scan') {
                   cartCubit.incrementQuantity(
                     scannedItem.id!,
@@ -243,18 +245,32 @@ class _QuikScanPageState extends State<QuikScanPage>
                   ReturnStockiestCart(selectedCustomer: selectedCustomer),
                 );
               }else if(cartCubit.state.cartItems.isNotEmpty && state.list.length>1){
-                AppRoutes.navigateTo(
+                final result = await Navigator.push(
                   context,
-                  ReturnProductListPage(
-                      cartTypeSelection: widget.cartTypeSelection,
-                      selectedCustomer: widget.selectedCustomer,
-                      searchResults:searchResults
+                  MaterialPageRoute(
+                    builder:
+                        (context) => ReturnProductListPage(
+                        cartTypeSelection: widget.cartTypeSelection,
+                        selectedCustomer: widget.selectedCustomer,
+                        searchResults:searchResults
+                    ),
                   ),
                 );
+                if (result != null && result['goToReturnCart'] == true ){
+                  if(widget.selectedCustomer!=null ) {
+                    Navigator.pop(context);
+                  }else{
+                    ReturnCartCall(widget.selectedCustomer!);
+                  }
+                }
               }
             }
           } else if (state is CustomerBarcodeScanError) {
             AppUtils.showSnackBar(context, state.error);
+              setState(() {
+                    isloader = false;
+                    showButtons = true;
+              });
           }
         },
         child: SafeArea(
@@ -335,18 +351,7 @@ class _QuikScanPageState extends State<QuikScanPage>
                                 if(widget.cartTypeSelection==null) {
                                   Navigator.pop(context, {"goToCart": true});
                                 }else{
-                                  if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
-                                    AppRoutes.navigateTo(
-                                      context,
-                                      ReturnStockiestCart(selectedCustomer: widget.selectedCustomer),
-                                    );
-                                  } else if (widget.cartTypeSelection ==
-                                      CartTypeSelection.CustomerReturn) {
-                                    AppRoutes.navigateTo(
-                                      context,
-                                      ReturnCustomerCart(selectedCustomer: widget.selectedCustomer),
-                                    );
-                                  }
+                                  ReturnCartCall(widget.selectedCustomer!);
                                 }
                               },
                             ),
@@ -473,7 +478,6 @@ class _QuikScanPageState extends State<QuikScanPage>
       ),
     );
   }
-
   Future<void> AddManualClickReturn() async {
     final result = await Navigator.push(
       context,
@@ -485,28 +489,19 @@ class _QuikScanPageState extends State<QuikScanPage>
             ),
       ),
     );
-    /*if (result != null) {
-      Navigator.pop(context, result);
-    }*/
 
-    if (result != null) {
-      final scannedCode = result['code'];
+    if (result != null && result['selectedCustomer']!=null) {
       CustomerModel? selectedCustomer = result['selectedCustomer'];
 
-      if (scannedCode != null && scannedCode.toString().isNotEmpty) {
-        if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
-          AppRoutes.navigateTo(
-            context,
-            ReturnStockiestCart(selectedCustomer: selectedCustomer),
-          );
-        } else if (widget.cartTypeSelection ==
-            CartTypeSelection.CustomerReturn) {
-          AppRoutes.navigateTo(
-            context,
-            ReturnCustomerCart(selectedCustomer: selectedCustomer),
-          );
-        }
+      if (selectedCustomer != null) {
+        ReturnCartCall(selectedCustomer);
       }
+    }else if (result != null && result['goToReturnCart'] == true ){
+        if(widget.selectedCustomer!=null ) {
+          Navigator.pop(context);
+        }else{
+          ReturnCartCall(widget.selectedCustomer!);
+        }
     }
   }
 
@@ -521,9 +516,10 @@ class _QuikScanPageState extends State<QuikScanPage>
   }
 
   Future<void> addToCart(String code) async {
+    scannedCode=code;
     if (code.isNotEmpty) {
-      _player.seek(Duration.zero);
-      _player.play();
+       _player.seek(Duration.zero);
+       _player.play();
 
       // Normal sale flow
       final userId = await SessionManager.getParentingId();
@@ -549,67 +545,48 @@ class _QuikScanPageState extends State<QuikScanPage>
       AppUtils.showSnackBar(context, "❌ No information found");
     }
   }
+  String _normalizeUri(String rawUri) {
+    if (rawUri.startsWith('file://')) {
+      return rawUri.replaceFirst('file://', '');
+    }
+    return rawUri;
+  }
 
   Future<void> Scan_BatchNo_MedicineName({required int flag}) async {
     dynamic scannedDocuments;
     try {
-      scannedDocuments = await FlutterDocScanner().getScannedDocumentAsImages(
-        page: 1,
-      );
+      scannedDocuments = await FlutterDocScanner().getScannedDocumentAsImages(page: 1);
       print("🔍 Raw scannedDocuments = $scannedDocuments");
     } on PlatformException {
-      AppUtils.showSnackBar(context, "Failed to scan document.");
+      AppUtils.showSnackBar(context, "Failed to get scanned documents.");
       return;
     }
 
     if (scannedDocuments == null ||
-        !(scannedDocuments is Map) ||
+        scannedDocuments is! Map ||
         !scannedDocuments.containsKey("Uri")) {
       AppUtils.showSnackBar(context, "No document scanned.");
       return;
     }
 
-    var page =
-        scannedDocuments["Uri"]; // ← This is likely a String or Page object, NOT a List
+    final pagesString = scannedDocuments["Uri"] as String;
+    print("🧾 pagesString: $pagesString");
 
-    print("✅ Page runtimeType: ${page.runtimeType}");
-    print("✅ Page value: $page");
+    final List<File> scannedFiles = [];
 
-    String? rawUri;
+    final regex = RegExp(r'imageUri=([^}\s]+)');
+    final matches = regex.allMatches(pagesString);
 
-    // CASE 1: It's already a String like "Page{imageUri=...}"
-    if (page is String) {
-      final regex = RegExp(r'Page\{imageUri=([^}]+\.jpg)\}');
-      final match = regex.firstMatch(page);
-      rawUri = match?.group(1);
-    }
-    // CASE 2: It's an object with .imageUri property
-    else if (page is dynamic && page.imageUri != null) {
-      rawUri = page.imageUri as String?;
-    }
-    // CASE 3: It's a Map
-    else if (page is Map<String, dynamic> && page.containsKey('imageUri')) {
-      rawUri = page['imageUri'] as String?;
+    for (final match in matches) {
+      final uri = match.group(1);
+      if (uri != null) {
+        print("🔗 Extracted URI from string: $uri");
+        scannedFiles.add(File(_normalizeUri(uri)));
+      }
     }
 
-    if (rawUri == null || rawUri.isEmpty) {
-      AppUtils.showSnackBar(context, "Could not extract image path.");
-      print("⚠️ Failed to extract imageUri from: $page");
-      return;
-    }
-
-    print("✅ Extracted rawUri: $rawUri");
-
-    // Convert file:// URI to local path
-    String localPath =
-        rawUri.startsWith('file://')
-            ? rawUri.replaceFirst('file://', '')
-            : rawUri;
-
-    final file = File(localPath);
-    if (!await file.exists()) {
-      AppUtils.showSnackBar(context, "Image file not found.");
-      print("⚠️ File does not exist at: $localPath");
+    if (scannedFiles.isEmpty) {
+      AppUtils.showSnackBar(context, "Could not extract any image paths.");
       return;
     }
 
@@ -619,7 +596,7 @@ class _QuikScanPageState extends State<QuikScanPage>
     });
 
     try {
-      final inputImage = InputImage.fromFile(file);
+      final inputImage = InputImage.fromFile(scannedFiles.first);
       final textRecognizer = TextRecognizer(
         script: TextRecognitionScript.latin,
       );
@@ -693,5 +670,23 @@ class _QuikScanPageState extends State<QuikScanPage>
       print("❌ Error in scanBatchNumberAI: $e");
     }
     return null;
+  }
+
+  void ReturnCartCall(CustomerModel selectedCustomer) {
+    if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ReturnStockiestCart(selectedCustomer: selectedCustomer),
+        ),
+      );
+    } else if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ReturnCustomerCart(selectedCustomer: selectedCustomer),
+        ),
+      );
+    }
   }
 }

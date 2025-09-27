@@ -1,7 +1,8 @@
-import 'package:PixiDrugs/Cart/customerDetailWidget.dart';
-import 'package:PixiDrugs/Dialog/success_dialog.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../Cart/customerDetailWidget.dart';
+import '../Dialog/success_dialog.dart';
+import '../SaleList/sale_model.dart';
+import '../../constant/all.dart';
+import '../widgets/app_loader.dart';
 import 'CustomerDetailBottomSheet.dart';
 import 'ReceiptPrinterPage.dart';
 
@@ -50,15 +51,18 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
     return BlocListener<ApiCubit, ApiState>(
       listener: (context, state) {
         if (state is OrderPlaceLoaded) {
-          Navigator.pop(context); // Dismiss loading
+          AppLoader.hide();
           AppUtils.showSnackBar(context,state.message);
           print("${state.saleModel}");
           if (state.message == "Bill submitted successfully.") {
             SuccessOrderPlaceCall(state.saleModel);
           }
         } else if (state is OrderPlaceError) {
-          Navigator.pop(context); // Dismiss loading
-          AppUtils.showSnackBar(context,'Failed to CheckOut: ${state.error}');
+          AppLoader.hide();
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.handleApiError(state.error, () => _paymentPageCall());
+          });
         }
       },
       child: BlocBuilder<CartCubit, CartState>(
@@ -205,22 +209,13 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
         note:referralNote,
       );
       print('API URL: ${model.toString()}');
-      _showLoadingDialog(); // Show loading
+      AppLoader.show(context, message: "Placing your order...");
       context.read<ApiCubit>().placeOrder(orderPlaceModel: model);
     } else {
       AppUtils.showSnackBar(context,'Unexpected error occurred');
     }
   }
 
-  void _showLoadingDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: AppColors.kPrimary),
-      ),
-    );
-  }
 
   void SuccessOrderPlaceCall(SaleModel sale) {
     final parentContext = context;

@@ -1,18 +1,19 @@
-import 'package:PixiDrugs/Cart/CustomerDetailBottomSheet.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-
-import '../Cart/ProductCard.dart';
+import '../Cart/CustomerDetailBottomSheet.dart';
+import '../../constant/all.dart';
+import '../SaleList/sale_model.dart';
 import '../Cart/customerDetailWidget.dart';
+import '../widgets/app_loader.dart';
 
 class SaleDetailsPage extends StatefulWidget {
   final SaleModel? sale;
   final bool? edit;
+  final VoidCallback onSaleUpdated;
 
   const SaleDetailsPage({
     Key? key,
     required this.sale,
     required this.edit,
+    required this.onSaleUpdated,
   }) : super(key: key);
 
   @override
@@ -127,10 +128,16 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
     return BlocListener<ApiCubit, ApiState>(
       listener: (context, state) {
         if (state is SaleEditLoaded) {
-          Navigator.pop(context,true); // Dismiss loading
+          AppLoader.hide();
           AppUtils.showSnackBar(context,state.message);
+          Navigator.of(context, rootNavigator: true).pop();  // Dismiss loading
+          print('SaleDetailsPage: calling onSaleUpdated callback');
+          // Delay callback to ensure navigation completes
+          Future.delayed(Duration(milliseconds: 100), () {
+            widget.onSaleUpdated.call();
+          });
         } else if (state is SaleEditError) {
-          Navigator.pop(context,true); // Dismiss loading
+          AppLoader.hide();
           AppUtils.showSnackBar(context,'Error: ${state.error}');
         }
       },
@@ -315,19 +322,11 @@ class _SaleDetailsPageState extends State<SaleDetailsPage> {
       note:referralNote,
     );
     print('API URL: ${model.toString()}');
-    _showLoadingDialog(); // Show loading
+    AppLoader.show(context, message: "updating...");
     context.read<ApiCubit>().SaleEdit(billingid:billingid.toString(),orderPlaceModel: model);
 
   }
-  void _showLoadingDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: AppColors.kPrimary),
-      ),
-    );
-  }
+
   void _onCartItemTap(InvoiceItem item) {}
   Future<void> checkUserData() async {
     showModalBottomSheet(

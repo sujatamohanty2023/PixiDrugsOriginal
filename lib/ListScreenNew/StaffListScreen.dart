@@ -1,13 +1,12 @@
 
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 import '../Home/HomePageScreen.dart';
 import '../Staff/AddStaffScreen.dart';
 import '../Staff/StaffModel.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
 
 class StaffListScreen extends StatefulWidget {
 
@@ -25,6 +24,7 @@ class _StaffListScreenState extends State<StaffListScreen> with WidgetsBindingOb
   bool isLoadingMore = false;
   bool hasMoreData = true;
   bool isRefresh = false;
+  bool isInitialLoad = true;
 
   final staffList = <StaffModel>[];
   @override
@@ -76,15 +76,30 @@ class _StaffListScreenState extends State<StaffListScreen> with WidgetsBindingOb
     if (refresh) {
       currentPage = 1;
       hasMoreData = true;
-      isRefresh=true;
+      isRefresh = true;
+      if (!isInitialLoad) {
+        setState(() {}); // Only trigger rebuild if not initial load
+      }
     }
 
     if (isLoadingMore || !hasMoreData) return;
 
-    setState(() => isLoadingMore = true);
+    setState(() {
+      isLoadingMore = true;
+    });
 
-    await context.read<ApiCubit>().fetchStaffList(store_id: userId, page: currentPage);
-    setState(() => isLoadingMore = false);
+    try {
+      await context.read<ApiCubit>().fetchStaffList(
+        store_id: userId,
+        page: currentPage
+      );
+    } catch (e) {
+      print("Error fetching staff list: $e");
+    }
+
+    setState(() {
+      isLoadingMore = false;
+    });
   }
 
   void _updatePaginatedList<T extends Object>(
@@ -129,48 +144,83 @@ class _StaffListScreenState extends State<StaffListScreen> with WidgetsBindingOb
         builder: (context, state) {
           final isLoading = state is StaffListLoading;
 
+          // Handle API errors globally  
+          if (state is StaffListError) {
+            final errorMessage = state.error;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AppUtils.handleApiError(context, errorMessage);
+            });
+          }
+
           // Populate lists from state
           if (state is StaffListLoaded) {
             _updatePaginatedList(staffList, state.staffList, state.last_page);
+            if (isInitialLoad) {
+              isInitialLoad = false;
+            }
           }
 
-          return Container(
-            color: AppColors.kPrimary,
-            padding: EdgeInsets.only(top: screenWidth * 0.06),
-            child: Column(
-              children: [
-                _buildTopBar(screenWidth),
-                SizedBox(height: screenWidth * 0.01,),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () => _fetchRecord(refresh: true),
-                    color: AppColors.kPrimary,
-                    backgroundColor: AppColors.kPrimaryLight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.myGradient,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(screenWidth * 0.07),
-                          topRight: Radius.circular(screenWidth * 0.07),
+          return Stack(
+            children: [
+              Container(
+                color: AppColors.kPrimary,
+                padding: EdgeInsets.only(top: screenWidth * 0.06),
+                child: Column(
+                  children: [
+                    _buildTopBar(screenWidth),
+                    SizedBox(height: screenWidth * 0.01,),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () => _fetchRecord(refresh: true),
+                        color: AppColors.kPrimary,
+                        backgroundColor: AppColors.kPrimaryLight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppColors.myGradient,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(screenWidth * 0.07),
+                              topRight: Radius.circular(screenWidth * 0.07),
+                            ),
+                          ),
+                          child: isInitialLoad || ((isLoading || isRefresh) && staffList.isEmpty)
+                              ?SpinKitThreeBounce(
+                            color:AppColors.kPrimary,
+                            size: 30.0,
+                          )
+                              : staffList.isEmpty
+                                  ? NoItemPage(
+                                      onTap: _onAddStaff,
+                                      image: AppImages.empty_cart,
+                                      tittle: "No Staff Members",
+                                      description: "Add staff to manage inventory, sales,\nand keep your business running smoothly.",
+                                      button_tittle: "Add Staff",
+                                    )
+                                  : _buildListBody(isLoading),
                         ),
                       ),
-                      child:(isLoading || isRefresh) && staffList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
-                          : (!isLoading && !isRefresh) && staffList.isEmpty
-                          ?NoItemPage(
-                        onTap: _onAddStaff,
-                        image: AppImages.empty_cart,
-                        tittle: "No Staff Members",
-                        description: "Add staff to manage inventory, sales,\nand keep your business running smoothly.",
-                        button_tittle: "Add Staff",
-                      )
-                          : _buildListBody(isLoading),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
+        },
+      ),
+      floatingActionButton: BlocBuilder<ApiCubit, ApiState>(
+        builder: (context, state) {
+          // Show floating action button only when list is not empty
+          if (staffList.isNotEmpty) {
+            return FloatingActionButton(
+              onPressed: _onAddStaff,
+              backgroundColor: AppColors.kPrimary,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              tooltip: 'Add Staff',
+            );
+          }
+          return SizedBox.shrink(); // Hide when list is empty
         },
       ),
     );

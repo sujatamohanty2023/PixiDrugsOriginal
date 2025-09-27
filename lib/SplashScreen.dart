@@ -1,5 +1,8 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import 'package:flutter/services.dart';
+
+import '../Api/app_initialization_service.dart';
+import '../../constant/all.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,6 +15,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: AppColors.kWhiteColor,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
     _navigateToNextScreen();
   }
 
@@ -20,12 +28,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final showOnboarding = prefs.getBool('onBoardComplete') ?? false;
     final userId = await SessionManager.getParentingId() ??'';
+
     if (!showOnboarding) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const IntroScreen()),
       );
     } else if (userId.isNotEmpty) {
+      // Load user profile once when app starts
+      await AppInitializationService.initializeUserProfile(context);
       AppRoutes.navigateToHome(context);
     }else{
       Navigator.pushNamed(context, '/login');

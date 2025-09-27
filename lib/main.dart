@@ -1,9 +1,9 @@
-import 'package:PixiDrugs/Home/HomePageScreen.dart';
-import 'package:PixiDrugs/SplashScreen.dart';
-import 'package:PixiDrugs/Stock/ProductList.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/login/FCMService.dart';
-import 'package:PixiDrugs/login/mobileLoginScreen.dart';
+import '../Home/HomePageScreen.dart';
+import '../SplashScreen.dart';
+import '../Stock/ProductList.dart';
+import '../../constant/all.dart';
+import '../login/FCMService.dart';
+import '../login/mobileLoginScreen.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'Api/api_repository.dart';

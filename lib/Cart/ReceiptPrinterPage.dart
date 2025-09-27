@@ -1,13 +1,13 @@
-import 'package:PixiDrugs/Cart/ReceiptPdfGenerator.dart';
-import 'package:flutter/material.dart';
+import '../Api/app_initialization_service.dart';
+import '../Cart/ReceiptPdfGenerator.dart';
 import 'package:flutter/services.dart';
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:PixiDrugs/Home/HomePageScreen.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../Home/HomePageScreen.dart';
+import '../SaleList/sale_model.dart';
+import '../../constant/all.dart';
 import 'package:image/image.dart' as img;
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:esc_pos_printer/esc_pos_printer.dart';
 
 class ReceiptPrinterPage extends StatefulWidget {
   final ScrollController? scrollController;
@@ -43,7 +43,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
   @override
   void initState() {
     super.initState();
-    _GetProfileCall();
+    user=AppInitializationService.getCachedProfile(context);
     products = widget.sale;
     name = products.customer.name;
     phone = products.customer.phone;
@@ -65,19 +65,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
       }
     });
   }
-  void _GetProfileCall() async {
-    String? userId = await SessionManager.getParentingId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
-    }
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is UserProfileLoaded) {
-        setState(() {
-         user=state.userModel.user;
-        });
-      }
-    });
-  }
+
 
   double calculateItemTotal(List<SaleItem> items) {
     double totalOriginal = 0;
@@ -579,7 +567,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                         const SizedBox(height: 20),
                         Center(
                           child: MyTextfield.textStyle_w400(
-                            'PixiDrugs by PixiZip 🙏',
+                            'PixiDrugs powered by PixiZip',
                             20,
                             AppColors.kPrimary,
                           ),
@@ -648,7 +636,7 @@ class _ReceiptPrinterPageState extends State<ReceiptPrinterPage> {
                     child: MyElevatedButton(
                         buttonText: 'Normal Print',
                         onPressed: () {
-                          _printBill(context);
+                          //_printBill(context);
                         }
                     ),
                   ),

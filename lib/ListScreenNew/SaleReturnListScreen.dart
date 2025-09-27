@@ -1,14 +1,17 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../Api/app_initialization_service.dart';
+
 import 'package:intl/intl.dart';
 import '../Home/HomePageScreen.dart';
 import '../ReturnProduct/ReturnCustomerCart.dart';
 import '../ReturnProduct/ReturnPdfGenerator.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
 import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
+import 'FilterWidget.dart';
 
 class SaleReturnScreen extends StatefulWidget {
 
@@ -49,11 +52,8 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> with WidgetsBinding
     _fetchRecord(refresh: true);
   }
   Future<void> _loadUserRole() async {
-    role = await SessionManager.getRole();
-    String? userId = await SessionManager.getUserId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
-    }
+    role = await AppInitializationService.getRole();
+    user=AppInitializationService.getCachedProfile(context);
   }
 
   @override
@@ -210,7 +210,12 @@ class _SaleReturnScreenState extends State<SaleReturnScreen> with WidgetsBinding
                         ),
                       ),
                       child:(isLoading || isRefresh) && saleReturnList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
+                      Center(
+                        child: SpinKitThreeBounce(
+                          color:AppColors.kPrimary,
+                          size: 30.0,
+                        ),
+                      )
                           : (!isLoading && !isRefresh) && saleReturnList.isEmpty
                           ? NoItemPage(
                         onTap: (){},

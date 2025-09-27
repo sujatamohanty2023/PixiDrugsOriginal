@@ -1,4 +1,7 @@
-import '../constant/all.dart';
+import 'package:flutter/services.dart';
+
+import '../../constant/all.dart';
+import '../Api/app_initialization_service.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -22,6 +25,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: AppColors.secondaryColor,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
     sendOTP();
     _startResendTimer();
   }

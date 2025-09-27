@@ -1,6 +1,5 @@
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/search/customerModel.dart';
-import '../BarcodeScan/ScanPage.dart';
+import '../../constant/all.dart';
+import '../search/customerModel.dart';
 import '../Cart/address_widget.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
 import 'ReturnItemTile.dart';
@@ -89,7 +88,9 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
               AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
             }
           } else if (state is StockReturnAddError) {
-            AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () => StockestReturnApiCall());
+            });
           }else if (state is StockReturnEditLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully Updated');
@@ -99,7 +100,9 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
               AppUtils.showSnackBar(context,'Failed to Update');
             }
           } else if (state is StockReturnEditError) {
-            AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () => StockestReturnApiCall());
+            });
           }
         },
         child: BlocBuilder<CartCubit, CartState>(
@@ -230,6 +233,9 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
                       item.qty = int.tryParse(qtyStr) ?? 0;
                     });
                   },
+                  onDelete: (edit || !widget.detail) ? () {
+                    context.read<CartCubit>().removeItemFromCart(item, type: CartType.main);
+                  } : null,
                 ),
 
               ),

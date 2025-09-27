@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class EditValueDialog extends StatelessWidget {
   final String title;

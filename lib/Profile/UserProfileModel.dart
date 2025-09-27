@@ -11,8 +11,8 @@ class UserProfileResponse {
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
     return UserProfileResponse(
-      message: json['message'] ?? '',
-      user: UserProfile.fromJson(json['user']),
+      message: ApiParserUtils.parseString(json['message']),
+      user: UserProfile.fromJson(ApiParserUtils.parseMap(json['user'])),
     );
   }
 

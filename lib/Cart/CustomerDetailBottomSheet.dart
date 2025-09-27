@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
-import '../ListPageScreen/FilterWidget.dart';
+import '../ListScreenNew/FilterWidget.dart';
 import '../customWidget/PaymentTypeWidget.dart'; // adjust this import path to your project
 
 class CustomerDetailBottomSheet extends StatefulWidget {

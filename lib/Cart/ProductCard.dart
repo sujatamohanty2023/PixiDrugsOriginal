@@ -1,5 +1,5 @@
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/search/customerModel.dart';
+import '../../constant/all.dart';
+import '../search/customerModel.dart';
 
 import '../search/sellerModel.dart';
 
@@ -135,6 +135,7 @@ class _ProductCardState extends State<ProductCard> {
                                   0.0,
                               type: CartType.main,
                               unitType: selectedUnitType!,
+                              billingId: widget.cartTypeSelection == CartTypeSelection.CustomerReturn ? widget.item.billingId : null,
                             );
 
                             widget.onUpdate?.call();
@@ -209,7 +210,7 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
   Widget _buildProductDetails(BuildContext context, CartCubit cartCubit, bool isCartMode, bool isEditable) {
-
+    var stock=widget.item.stock;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -220,7 +221,7 @@ class _ProductCardState extends State<ProductCard> {
 
         MyTextfield.textStyle_w600(widget.item.product, 18, AppColors.kPrimary),
         MyTextfield.textStyle_w200('Batch No.${widget.item.batch}', 12, AppColors.kPrimary),
-        MyTextfield.textStyle_w400('Stock:${widget.item.stock}', 14, Colors.deepOrange),
+        MyTextfield.textStyle_w400('Stock:${stock}', 14, Colors.deepOrange),
         MyTextfield.textStyle_w600("${AppString.Rupees}${disPlayMrp?.toStringAsFixed(2)}", 16, Colors.green),
         if (isCartMode) const SizedBox(height: 4),
         if (isCartMode)
@@ -245,6 +246,7 @@ class _ProductCardState extends State<ProductCard> {
                         discountSale,
                         type: CartType.main,
                         discountType: widget.item.discountType??DiscountType.percent,
+                        billingId: widget.cartTypeSelection == CartTypeSelection.CustomerReturn ? widget.item.billingId : null,
                       );
                     }
                   },
@@ -270,7 +272,14 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
+              if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn) {
+                // For CustomerReturn, check both billing_id and id
+                cartItem = state.cartItems.firstWhere((e) => 
+                  e.id == widget.item.id && e.billingId == widget.item.billingId);
+              } else {
+                // For other types, check only id
+                cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
+              }
             } catch (e) {
               cartItem = null;
             }
@@ -301,20 +310,21 @@ class _ProductCardState extends State<ProductCard> {
                     print('Add item=${widget.item.id}');
 
                     if (widget.returnStock == true && cartCubit.state.cartItems.isEmpty) {
-                      cartCubit.addToCart(widget.item, 1, type: CartType.main);
+                      cartCubit.addToCart(widget.item, 1, type: CartType.main, isCustomerReturn: widget.cartTypeSelection == CartTypeSelection.CustomerReturn);
                       _navigateBackWithCustomer();
                     }else{
-                      cartCubit.addToCart(widget.item, 1, type: CartType.main);
+                      cartCubit.addToCart(widget.item, 1, type: CartType.main, isCustomerReturn: widget.cartTypeSelection == CartTypeSelection.CustomerReturn);
                     }
                   },
                 child: MyTextfield.textStyle_w600("Add", 14, Colors.white),
               );
-            } else if (quantity>=1 && !isOutOfStock) {
+            } else if ((widget.saleCart==false)||quantity>=1 && !isOutOfStock) {
               return Row(
                 children: [
                   _buildQuantityButton(
                     type: 0,
                     icon: Icons.remove,
+                    enabled: widget.saleCart || widget.editable || isSearchMode,
                     onTap: () {
                       if (widget.saleCart==false && widget.editable) {
                         if (widget.item.qty <= 1) {
@@ -328,10 +338,12 @@ class _ProductCardState extends State<ProductCard> {
                       } else {
                         if (quantity <= 1) {
                           cartCubit.removeFromCart(widget.item.id!,
-                              type: CartType.main);
+                              type: CartType.main,
+                              billingId: widget.cartTypeSelection == CartTypeSelection.CustomerReturn ? widget.item.billingId : null);
                         } else {
                           cartCubit.decrementQuantity(widget.item.id!,
-                              type: CartType.main);
+                              type: CartType.main,
+                              billingId: widget.cartTypeSelection == CartTypeSelection.CustomerReturn ? widget.item.billingId : null);
                         }
                       }
                     },
@@ -342,12 +354,15 @@ class _ProductCardState extends State<ProductCard> {
                   _buildQuantityButton(
                     type: 1,
                     icon: Icons.add,
+                    enabled: widget.saleCart || widget.editable || isSearchMode,
                     onTap: () {
                       final currentStock = widget.item.stock;
                       final currentQty = widget.mode == ProductCardMode.cart && !widget.saleCart
                           ? widget.item.qty
                           : (context.read<CartCubit>().state.cartItems
-                          .firstWhere((e) => e.id == widget.item.id,
+                          .firstWhere((e) => widget.cartTypeSelection == CartTypeSelection.CustomerReturn 
+                              ? (e.id == widget.item.id && e.billingId == widget.item.billingId)
+                              : e.id == widget.item.id,
                           orElse: () => widget.item)
                           .qty);
 
@@ -365,6 +380,7 @@ class _ProductCardState extends State<ProductCard> {
                         context.read<CartCubit>().incrementQuantity(
                           widget.item.id!,
                           type: CartType.main,
+                          billingId: widget.cartTypeSelection == CartTypeSelection.CustomerReturn ? widget.item.billingId : null,
                         );
                       }
                     },
@@ -399,7 +415,6 @@ class _ProductCardState extends State<ProductCard> {
     }
 
     var result = {
-      'code': 'manualAdd',
       'selectedCustomer': updatedCustomer,
     };
     Navigator.pop(context, result);
@@ -413,7 +428,14 @@ class _ProductCardState extends State<ProductCard> {
           builder: (context, state) {
             InvoiceItem? cartItem;
             try {
-              cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
+              if (widget.cartTypeSelection == CartTypeSelection.CustomerReturn) {
+                // For CustomerReturn, check both billing_id and id
+                cartItem = state.cartItems.firstWhere((e) => 
+                  e.id == widget.item.id && e.billingId == widget.item.billingId);
+              } else {
+                // For other types, check only id
+                cartItem = state.cartItems.firstWhere((e) => e.id == widget.item.id);
+              }
             } catch (e) {
               cartItem = null;
             }
@@ -428,18 +450,19 @@ class _ProductCardState extends State<ProductCard> {
     required int type,
     required IconData icon,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppColors.kPrimary,
+          color: enabled ? AppColors.kPrimary : Colors.grey.shade400,
           borderRadius: type == 0
               ? const BorderRadius.only(topLeft: Radius.circular(15), bottomLeft: Radius.circular(15))
               : const BorderRadius.only(topRight: Radius.circular(15), bottomRight: Radius.circular(15)),
         ),
-        child: Icon(icon, color: Colors.white, size: 16),
+        child: Icon(icon, color: enabled ? Colors.white : Colors.grey.shade600, size: 16),
       ),
     );
   }
@@ -526,14 +549,15 @@ class _ProductCardState extends State<ProductCard> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SvgPicture.asset(AppImages.delete, height: 18, width: 18, color: AppColors.kWhiteColor),
-                        const SizedBox(width: 5),
-                        const Text("Remove", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w300, fontSize: 14)),
+                        SizedBox(width: 5),
+                        MyTextfield.textStyle_w400("Remove",14, Colors.white),
                       ],
                     ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

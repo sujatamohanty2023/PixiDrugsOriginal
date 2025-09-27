@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
@@ -6,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../shareFileToWhatsApp.dart';
 import 'LedgerModel.dart';
 
@@ -21,7 +22,7 @@ class LedgerPdfGenerator {
     final ttf = pw.Font.ttf(fontData);
 
     // Load and resize logo image
-    final ByteData data = await rootBundle.load(AppImages.AppIcon);
+    final ByteData data = await rootBundle.load(AppImages.pdf_logo);
     final Uint8List bytes = data.buffer.asUint8List();
     final img.Image? original = img.decodeImage(bytes);
     final resized = img.copyResize(original!, width: 384);
@@ -41,31 +42,84 @@ class LedgerPdfGenerator {
       ),
     );
 
-    // Save PDF
+    // Save PDF with proper error handling
     Directory? downloadsDir;
-    if (Platform.isAndroid) {
-      downloadsDir = Directory('/storage/emulated/0/Download');
-    } else {
-      downloadsDir = await getApplicationDocumentsDirectory();
+    try {
+      if (Platform.isAndroid) {
+        // Try external storage first, fallback to app documents
+        final externalDir = Directory('/storage/emulated/0/Download');
+        if (await externalDir.exists()) {
+          downloadsDir = externalDir;
+        } else {
+          downloadsDir = await getApplicationDocumentsDirectory();
+        }
+      } else {
+        downloadsDir = await getApplicationDocumentsDirectory();
+      }
+
+      // Ensure directory exists
+      if (!await downloadsDir.exists()) {
+        await downloadsDir.create(recursive: true);
+      }
+
+      final fileName = "ledger_${ledger.sellerName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf";
+      final file = File("${downloadsDir.path}/$fileName");
+      
+      await file.writeAsBytes(await pdf.save());
+      
+      // Verify file was written
+      if (!await file.exists() || await file.length() == 0) {
+        throw Exception("Failed to write PDF file");
+      }
+
+      return file.path;
+    } catch (e) {
+      // Fallback to app cache directory if all else fails
+      final cacheDir = await getTemporaryDirectory();
+      final fileName = "ledger_${ledger.sellerName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf";
+      final file = File("${cacheDir.path}/$fileName");
+      await file.writeAsBytes(await pdf.save());
+      return file.path;
     }
-
-    final file = File("${downloadsDir.path}/ledger_${DateTime.now().millisecondsSinceEpoch}.pdf");
-    await file.writeAsBytes(await pdf.save());
-
-    return file.path;
   }
 
   /// 📥 Download and open PDF
   static Future<void> downloadLedgerPdf(BuildContext context, LedgerModel ledger,UserProfile user) async {
     try {
       final path = await _generateLedgerPdf(ledger,user);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("PDF saved to Downloads")),
-      );
-      await OpenFile.open(path);
+      
+      // Check if file was created successfully
+      final file = File(path);
+      if (await file.exists()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("PDF downloaded: ${file.path.split('/').last}"),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        
+        // Try to open the file
+        final result = await OpenFile.open(path);
+        if (result.type != ResultType.done) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("PDF saved but couldn't open automatically. Check Downloads folder."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } else {
+        throw Exception("Failed to create PDF file");
+      }
     } catch (e) {
+      print("Error downloading PDF: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text("Error downloading PDF: ${e.toString()}"),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
       );
     }
   }
@@ -74,31 +128,42 @@ class LedgerPdfGenerator {
   static Future<void> generateAndShareLedgerPdf(BuildContext context, LedgerModel ledger,UserProfile user) async {
     try {
       final path = await _generateLedgerPdf(ledger,user);
-      if (ledger.phone.isNotEmpty) {
+      
+      // Check if phone is valid (not empty, not 'NA', and has valid format)
+      final phone = ledger.phone.trim();
+      if (phone.isNotEmpty && !phone.contains('NA') && phone.length >= 10) {
+        // Clean phone number: remove +91, spaces, and ensure it starts with 91
+        String cleanPhone = phone.replaceAll(RegExp(r'[+\s-]'), '');
+        if (!cleanPhone.startsWith('91') && cleanPhone.length == 10) {
+          cleanPhone = '91$cleanPhone';
+        }
+        
         await shareFileToWhatsApp(
-          phoneNumber: "91${ledger.phone.replaceAll('+91', '')}",
+          phoneNumber: cleanPhone,
           filePath: path,
-          message: '''
-Dear ${ledger.sellerName},
+          message: '''Dear ${ledger.sellerName},
 
 Please find your latest ledger summary attached.
 
 Net Due: ₹${ledger.dueAmount}
 
 Thank you,
-PixiDrugs
-''',
+PixiDrugs''',
         );
+        AppUtils.showSnackBar(context, "PDF shared successfully");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid mobile number")),
-        );
+        AppUtils.showSnackBar(context, "Please add a valid mobile number for this party");
       }
     } catch (e) {
+      print("Error sharing PDF: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error sharing PDF: $e")),
+        SnackBar(content: Text("Error sharing PDF: ${e.toString()}"), backgroundColor: Colors.red),
       );
     }
+  }
+  static String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   /// 📄 PDF Layout Builder
@@ -121,14 +186,14 @@ PixiDrugs
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Image(pw.MemoryImage(logoBytes), width: 80),
+                pw.SizedBox(height: 30),
                 pw.Text(
-                  user.name ?? "-",
-                  style: pw.TextStyle(font: ttf, fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.blue),
+                  user.name.toUpperCase() ?? "-",
+                  style: pw.TextStyle(font: ttf, fontSize: 25, fontWeight: pw.FontWeight.bold, color: PdfColors.blue),
                 ),
                 pw.SizedBox(height: 4),
                 pw.Text("Phone: ${user.phoneNumber ?? '-'}", style: pw.TextStyle(fontSize: 12, font: ttf)),
-                pw.Text("Address: ${user.address ?? '-'}", style: pw.TextStyle(fontSize: 12, font: ttf)),
+                pw.Text("Address: ${_capitalizeFirstLetter(user.address ?? '-')}", style: pw.TextStyle(fontSize: 12, font: ttf)),
               ],
             ),
           ],
@@ -162,6 +227,8 @@ PixiDrugs
         _buildLedgerTable(last7, ttf),
         pw.SizedBox(height: 12),
         _buildLedgerSummary(ledger, ttf),
+        pw.SizedBox(height: 30),
+        pw.Image(pw.MemoryImage(logoBytes), height: 150),
       ],
     );
   }

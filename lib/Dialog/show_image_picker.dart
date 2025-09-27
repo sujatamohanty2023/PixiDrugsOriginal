@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart'; // Import your constants
+import '../../constant/all.dart'; // Import your constants
 
 void showImageBottomSheet(
     BuildContext context, Function(List<File>) onFileSelected,

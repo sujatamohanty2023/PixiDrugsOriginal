@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class MyChipWidget extends StatelessWidget {
   Color color;

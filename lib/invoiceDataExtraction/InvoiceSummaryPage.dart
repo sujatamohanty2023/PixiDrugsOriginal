@@ -1,8 +1,7 @@
 import 'package:intl/intl.dart';
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
-import 'package:PixiDrugs/constant/all.dart';
-
 import '../ListScreenNew/InvoiceReportScreen.dart';
+import '../../constant/all.dart';
+import 'InvoiceModel.dart';
 
 class InvoiceSummaryPage extends StatefulWidget {
   final Invoice invoice;
@@ -66,9 +65,13 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
         );
       });
     }  else if (state is InvoiceAddError) {
-      AppUtils.showSnackBar(context, state.error);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.handleApiError(state.error, () => AddInvoiceApiCall());
+      });
     }else if ( state is InvoiceEditError) {
-      AppUtils.showSnackBar(context,state.error);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.handleApiError(state.error, () => AddInvoiceApiCall());
+      });
     }
   }
 

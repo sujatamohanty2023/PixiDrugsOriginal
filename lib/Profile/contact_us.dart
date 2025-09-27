@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class ContactUsPage extends StatelessWidget {
   final String whatsappNumber = "9124004386";

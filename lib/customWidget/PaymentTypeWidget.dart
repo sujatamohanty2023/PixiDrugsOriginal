@@ -1,5 +1,5 @@
-import 'package:PixiDrugs/constant/color.dart';
-import 'package:PixiDrugs/customWidget/size_confige.dart';
+import '../constant/color.dart';
+import '../customWidget/size_confige.dart';
 import 'package:flutter/material.dart';
 
 import '../constant/utils.dart';

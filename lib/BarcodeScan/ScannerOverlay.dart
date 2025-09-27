@@ -1,8 +1,8 @@
-import 'package:PixiDrugs/BarcodeScan/utilScanner/CornerPainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScanLinePainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
+import '../BarcodeScan/utilScanner/CornerPainter.dart';
+import '../BarcodeScan/utilScanner/ScanLinePainter.dart';
+import '../BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
 
-import '../constant/all.dart';
+import '../../constant/all.dart';
 
 class ScannerOverlay extends StatelessWidget {
   final Animation<double> animation;

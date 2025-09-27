@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class NoItemPage extends StatelessWidget {
   final VoidCallback? onTap;

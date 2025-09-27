@@ -38,6 +38,8 @@ export '../customWidget/MyChipWidget.dart';
 export '../customWidget/CustomListView.dart';
 export '../customWidget/MyChoiceChip.dart';
 
+export '../widgets/ErrorHandler.dart';
+
 export '../main.dart';
 
 export '../Cart/CartBloc/CartCubit.dart';

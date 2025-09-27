@@ -1,10 +1,11 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
-import 'package:PixiDrugs/Cart/CartTab.dart';
-import 'package:PixiDrugs/Home/HomeTab.dart';
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
-import 'package:PixiDrugs/Stock/ProductList.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/Profile/profileTab.dart';
+import 'package:flutter/services.dart';
+import '../Cart/CartTab.dart';
+import '../Home/HomeTab.dart';
+
+import '../Stock/ProductList.dart';
+import '../../constant/all.dart';
+import '../Profile/profileTab.dart';
 
 import '../ListScreenNew/LedgerListScreen.dart';
 
@@ -34,6 +35,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: AppColors.kPrimary,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
   }
   Widget getBody() {
     switch (selectedPos) {

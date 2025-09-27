@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Cart/address_widget.dart';
 import 'ReturnItemTile.dart';
@@ -11,10 +11,10 @@ class ReturnCustomerCart extends StatefulWidget {
   CustomerReturnsResponse? customerReturnModel;
   bool detail;
   CustomerModel? selectedCustomer;
-  final List<CustomerModel>?CustomerList;
+  List<InvoiceItem> searchResults = [];
   bool isEdit = false;
   ReturnCustomerCart({Key? key,
-    this.customerReturnModel,this.selectedCustomer,this.CustomerList,
+    this.customerReturnModel,this.selectedCustomer,this.searchResults=const[],
     this.detail = false,this.isEdit = false,}) : super(key: key);
 
   @override
@@ -35,7 +35,6 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
   String? selectedReason='Select return reason';
   String userId = '';
   CustomerModel? selectedCustomer;
-  List<InvoiceItem> searchResults = [];
   List<CustomerModel> _detail_Customer = [];
 
   Future<void> _loadUserId() async {
@@ -49,8 +48,45 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
     super.initState();
     _loadUserId();
     edit=widget.isEdit;
-    if(widget.CustomerList !=null){
-      _detail_Customer=widget.CustomerList!;
+    if(widget.searchResults.length==1){
+      var customer = CustomerModel(
+        id: widget.searchResults.first.customerId ?? 0,
+        name: widget.searchResults.first.customerName ?? '',
+        phone: widget.searchResults.first.customerPhone ?? '',
+        address: '',
+      );
+      selectedCustomer=customer;
+      if(selectedCustomer!=null) {
+        print('🛒 Adding single search result item to cart');
+        print('🛒 Customer: ${selectedCustomer!.name}');
+        print('🛒 Item: ${widget.searchResults[0].product}');
+        
+        // Update the item with customer details before adding to cart
+        final itemToAdd = widget.searchResults[0];
+        itemToAdd.customerId = selectedCustomer!.id;
+        itemToAdd.customerName = selectedCustomer!.name;
+        itemToAdd.customerPhone = selectedCustomer!.phone;
+        
+        final cartCubit = context.read<CartCubit>();
+        cartCubit.addToCart(
+          itemToAdd,
+          1,
+          type: CartType.main,
+          isCustomerReturn: true, // Important: Mark as customer return
+        );
+        
+        print('🛒 Single item successfully added to cart');
+      }
+    }else if(widget.searchResults.length>1){
+        for(var item in widget.searchResults){
+          var customer = CustomerModel(
+          id: item.customerId ?? 0,
+          name: item.customerName ?? '',
+          phone: item.customerPhone ?? '',
+          address: '',
+          );
+          _detail_Customer.add(customer);
+        }
     }else {
       if (widget.customerReturnModel != null) {
         selectedCustomer = CustomerModel(
@@ -98,7 +134,9 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
               AppUtils.showSnackBar(context,'Failed to add StockReturn stock');
             }
           } else if (state is SaleReturnAddError) {
-            AppUtils.showSnackBar(context,'Failed to load data: ${state.error}');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () =>  CustomerReturnApiCall());
+            });
           }else if (state is SaleReturnEditLoaded) {
             if(state.success) {
               AppUtils.showSnackBar(context,'Successfully Updated');
@@ -108,7 +146,9 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
               AppUtils.showSnackBar(context,'Failed to Update');
             }
           } else if (state is SaleReturnEditError) {
-            AppUtils.showSnackBar(context,'Failed to update api : ${state.error}');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () => CustomerReturnApiCall());
+            });
           }
         },
         child: BlocBuilder<CartCubit, CartState>(
@@ -243,6 +283,9 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
                     });
                     print("API=${item.qty}");
                   },
+                  onDelete: (edit || !widget.detail) ? () {
+                    context.read<CartCubit>().removeItemFromCart(item, type: CartType.main);
+                  } : null,
                 ),
 
               ),
@@ -426,8 +469,8 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             ],
           ),
           child: ListTile(
-            title: MyTextfield.textStyle_w600( displayName ?? '', SizeConfig.screenWidth! * 0.035,AppColors.kPrimary),
-            subtitle: MyTextfield.textStyle_w400( phone ?? '', SizeConfig.screenWidth! * 0.025,Colors.green),
+            title: MyTextfield.textStyle_w600( displayName ?? '', SizeConfig.screenWidth! * 0.055,AppColors.kPrimary),
+            subtitle: MyTextfield.textStyle_w400( phone ?? '', SizeConfig.screenWidth! * 0.045,Colors.green),
             onTap: () => _onDetailItemSelected(index),
           ),
         );
@@ -435,16 +478,35 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
     );
   }
   void _onDetailItemSelected(int index) {
+    print('🛒 _onDetailItemSelected called with index: $index');
+    print('🛒 Customer selected: ${_detail_Customer[index].name}');
+    print('🛒 SearchResults length: ${widget.searchResults.length}');
+    print('🛒 Item to add: ${widget.searchResults.length > index ? widget.searchResults[index].product : 'Index out of range'}');
+    
     setState(() {
       selectedCustomer = _detail_Customer[index];
       _detail_Customer = [];
-      if(searchResults.isNotEmpty) {
+      
+      if(selectedCustomer != null && widget.searchResults.length > index) {
+        print('🛒 Adding item to cart for customer: ${selectedCustomer!.name}');
+        
+        // Update the item with customer details before adding to cart
+        final itemToAdd = widget.searchResults[index];
+        itemToAdd.customerId = selectedCustomer!.id;
+        itemToAdd.customerName = selectedCustomer!.name;
+        itemToAdd.customerPhone = selectedCustomer!.phone;
+        
         final cartCubit = context.read<CartCubit>();
         cartCubit.addToCart(
-          searchResults[index],
+          itemToAdd,
           1,
           type: CartType.main,
+          isCustomerReturn: true, // Important: Mark as customer return
         );
+        
+        print('🛒 Item successfully added to cart');
+      } else {
+        print('🛒 Failed to add item: selectedCustomer=${selectedCustomer?.name}, searchResults length=${widget.searchResults.length}, index=$index');
       }
     });
   }

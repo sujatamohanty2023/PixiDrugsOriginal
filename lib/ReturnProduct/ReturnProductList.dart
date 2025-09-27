@@ -1,5 +1,7 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../../constant/all.dart';
 
 import '../search/customerModel.dart';
 import 'ReturnCustomerCart.dart';
@@ -80,7 +82,7 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
       TextEditingController searchController, VoidCallback onclearTap) {
     var tittle='Search Product';
     return PreferredSize(
-      preferredSize: const Size.fromHeight(110),
+      preferredSize: const Size.fromHeight(115),
       child: Container(
         color: AppColors.kPrimary,
         child: SafeArea(
@@ -113,29 +115,70 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: 40,
-                      width: 100,
-                      child: MyElevatedButton(
-                        onPressed: () {
-                          if (widget.cartTypeSelection == CartTypeSelection.StockiestReturn) {
-                            AppRoutes.navigateTo(
-                              context,
-                              ReturnStockiestCart(selectedCustomer: widget.selectedCustomer),
-                            );
-                          } else if (widget.cartTypeSelection ==
-                              CartTypeSelection.CustomerReturn) {
-                            AppRoutes.navigateTo(
-                              context,
-                              ReturnCustomerCart(selectedCustomer: widget.selectedCustomer),
-                            );
-                          }
-                        },
-                        backgroundColor: AppColors.kPrimaryLight,
-                        titleColor:AppColors.kPrimary,
-                        custom_design: true,
-                        buttonText: "Next",
-                      ),
+                    BlocBuilder<CartCubit, CartState>(
+                      builder: (context, cartState) {
+                        final hasCartItems = cartState is CartLoaded && cartState.cartItems.isNotEmpty;
+                        if (hasCartItems) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context, {"goToReturnCart": true});
+                            },
+                            child: Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [AppColors.kPrimary, AppColors.secondaryColor],
+                                    ),
+                                    borderRadius: BorderRadius.circular(50),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.shopping_cart, color: Colors.white, size: SizeConfig.screenWidth! * 0.05),
+                                      const SizedBox(width: 8),
+                                      MyTextfield.textStyle_w600('Go to Cart', SizeConfig.screenWidth! * 0.045, Colors.white),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: -4,
+                                  top: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 18,
+                                      minHeight: 18,
+                                    ),
+                                    child: Text(
+                                      '${cartState.cartItems.length}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
                     ),
                   ],
                 ),
@@ -207,8 +250,11 @@ class _ReturnProductListPageState extends State<ReturnProductListPage> {
             Widget content;
 
             if (isLoading) {
-              content = const Center(
-                child: CircularProgressIndicator(color: AppColors.kPrimary),
+              content = Center(
+                child: SpinKitThreeBounce(
+                  color: AppColors.kPrimary,
+                  size: 30.0,
+                ),
               );
             } else {
               content = ListView.builder(

@@ -1,12 +1,12 @@
 
 import 'dart:async';
 
-import 'package:PixiDrugs/BarcodeScan/utilScanner/CornerPainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScanLinePainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
+import '../BarcodeScan/utilScanner/CornerPainter.dart';
+import '../BarcodeScan/utilScanner/ScanLinePainter.dart';
+import '../BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:just_audio/just_audio.dart';
+// import 'package:just_audio/just_audio.dart'; // Temporarily disabled
 
 import '../Dialog/edit_value_dialog.dart';
 import '../constant/color.dart';
@@ -25,7 +25,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  final AudioPlayer _player = AudioPlayer();
+  // final AudioPlayer _player = AudioPlayer(); // Temporarily disabled
 
   Timer? _timeoutTimer;
 
@@ -42,7 +42,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
-    _player.setAsset('assets/sound/scanner.mpeg');
+    // _player.setAsset('assets/sound/scanner.mpeg'); // Temporarily disabled
 
     _startTimeout(); // Start timeout timer
   }
@@ -59,7 +59,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
   @override
   void dispose() {
     _animationController.dispose();
-    _player.dispose();
+    // _player.dispose(); // Temporarily disabled
     _timeoutTimer?.cancel();
     super.dispose();
   }
@@ -74,8 +74,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage>
         isScanned = true;
       });
       _timeoutTimer?.cancel(); // Cancel timeout
-      _player.seek(Duration.zero);
-      _player.play();
+      // _player.seek(Duration.zero);
+      // _player.play(); // Temporarily disabled
       Navigator.pop(context, {'code':scannedCode});
     }
   }

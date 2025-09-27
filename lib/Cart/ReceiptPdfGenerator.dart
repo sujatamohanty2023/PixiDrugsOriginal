@@ -5,7 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../SaleList/sale_model.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../shareFileToWhatsApp.dart';
 
 class ReceiptPdfGenerator {
@@ -20,7 +20,7 @@ class ReceiptPdfGenerator {
     // ✅ Load logo image
     pw.MemoryImage? logoImage;
     try {
-      final bytes = (await rootBundle.load(AppImages.AppIcon)).buffer.asUint8List();
+      final bytes = (await rootBundle.load(AppImages.pdf_logo)).buffer.asUint8List();
       logoImage = pw.MemoryImage(bytes);
     } catch (_) {}
 
@@ -114,35 +114,28 @@ class ReceiptPdfGenerator {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        if (logoImage != null)
-          pw.Align(
-            alignment: pw.Alignment.topRight,
-            child: pw.Image(logoImage, height: 80),
-          ),
-        pw.Align(
-          alignment: pw.Alignment.topRight,
-          child: pw.Text(user.name ?? "-",
+        pw.SizedBox(height: 30),
+        pw.Center(
+          child: pw.Text(user.name.toUpperCase() ?? "-",
               style: pw.TextStyle(
                   font: ttf,
-                  fontSize: 20,
+                  fontSize: 25,
                   fontWeight: pw.FontWeight.bold,
-                  color: PdfColor.fromInt(0xFF062A49))),
+                  color: PdfColor.fromInt(0xFF1976D2))),
         ),
-        pw.Align(
-            alignment: pw.Alignment.topRight,
+        pw.Center(
             child: pw.Text("Phone: ${user.phoneNumber ?? '-'}",
-                style: pw.TextStyle(font: ttf, fontSize: 9))),
-        pw.Align(
-            alignment: pw.Alignment.topRight,
-            child: pw.Text("Address: ${user.address ?? '-'}",
-                style: pw.TextStyle(font: ttf, fontSize: 9))),
+                style: pw.TextStyle(font: ttf, fontSize: 12))),
+        pw.Center(
+            child: pw.Text("Address: ${_capitalizeFirstLetter(user.address ?? '-')}",
+                style: pw.TextStyle(font: ttf, fontSize: 12))),
         pw.Divider(color: PdfColors.grey400, thickness: 1, height: 20),
 
         // Invoice info
         pw.Row(children: [
           pw.Text('Invoice No:',
               style: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
-          pw.Text('#${saleItem.invoiceNo}', style: pw.TextStyle(font: ttf)),
+          pw.Text('#${saleItem.invoiceNo}', style: pw.TextStyle(font: ttf,color: PdfColors.deepOrange,fontSize: 15)),
         ]),
         pw.Row(children: [
           pw.Text('Date:',
@@ -158,13 +151,13 @@ class ReceiptPdfGenerator {
                 fontWeight: pw.FontWeight.bold,
                 fontSize: 12,
                 color: PdfColor.fromInt(0xFF062A49))),
-        pw.Text('Name: ${saleItem.customer.name ?? ''}',
+        pw.Text('Name: ${_capitalizeFirstLetter(saleItem.customer.name ?? '')}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
         pw.Text('Phone: ${saleItem.customer.phone ?? ''}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
-        pw.Text('Address: ${saleItem.customer.address ?? ''}',
+        pw.Text('Address: ${_capitalizeFirstLetter(saleItem.customer.address ?? '')}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
-        pw.Text('Sale Person: ${saleItem.soldBy.name ?? ''}',
+        pw.Text('Sale Person: ${_capitalizeFirstLetter(saleItem.soldBy.name ?? '')}',
             style: pw.TextStyle(font: ttf, fontSize: 11)),
         pw.SizedBox(height: 20),
 
@@ -259,12 +252,24 @@ class ReceiptPdfGenerator {
 
         pw.SizedBox(height: 30),
         _termsAndConditions(ttf),
-        pw.SizedBox(height: 20),
+        pw.SizedBox(height: 30),
         pw.Center(
-          child: pw.Text('Thank you for shopping at PixiDrugs!',
+          child: pw.Text('Thank you for shopping at ${_capitalizeFirstLetter(user.name)}',
               style: pw.TextStyle(
                   font: ttf, fontSize: 12, color: PdfColors.grey600)),
         ),
+        pw.Center(
+          child: pw.Text('Powered by PixiDrugs by PixiZip',
+              style: pw.TextStyle(
+                  font: ttf, fontSize: 12, color: PdfColors.cyan)),
+        ),
+
+        pw.SizedBox(height: 30),
+        if (logoImage != null)
+          pw.Align(
+            alignment: pw.Alignment.center,
+            child: pw.Image(logoImage, height: 80),
+          ),
       ],
     );
   }
@@ -349,5 +354,11 @@ Best regards,
 PixiDrugs
 ''',
     );
+  }
+
+  /// Helper function to capitalize first letter and make rest lowercase
+  static String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 }

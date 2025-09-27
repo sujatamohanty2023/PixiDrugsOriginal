@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class MyElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;

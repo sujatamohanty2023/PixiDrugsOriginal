@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/login/RegisterResponse.dart';
+import '../../constant/all.dart';
+import '../login/RegisterResponse.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import '../Address/MapScreen.dart';
@@ -146,14 +146,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       } else if (state is RegisterError) {
         setState(() => _isLoading = false);
-        AppUtils.showSnackBar(context, state.error);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.handleApiError(state.error, () => _onSignUpPressed());
+        });
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(

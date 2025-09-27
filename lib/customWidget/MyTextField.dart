@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class MyTextfield {
   // Helper method for generating text with a specific font weight and style

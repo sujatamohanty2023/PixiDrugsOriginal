@@ -1,12 +1,12 @@
 // api_cubit.dart
 
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
-import 'package:PixiDrugs/Ledger/Payment.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/search/customerModel.dart';
-import 'package:PixiDrugs/search/sellerModel.dart';
+import '../Ledger/LedgerModel.dart';
+import '../Ledger/Payment.dart';
+import '../SaleList/sale_model.dart';
+import '../SaleReturn/BillingModel.dart';
+import '../../constant/all.dart';
+import '../search/customerModel.dart';
+import '../search/sellerModel.dart';
 
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
@@ -36,7 +36,7 @@ class ApiCubit extends Cubit<ApiState> {
         emit(RegisterError('Error: ${response['message']}'));
       }
     } catch (e) {
-      emit(RegisterError('Error: $e'));
+      emit(RegisterError('$e'));
     }
   }
 //------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ class ApiCubit extends Cubit<ApiState> {
       final loginModel = LoginResponse.fromJson(response);
       emit(LoginLoaded(loginResponse: loginModel));
     } catch (e) {
-      emit(LoginError('Error: $e'));
+      emit(LoginError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -63,13 +63,29 @@ class ApiCubit extends Cubit<ApiState> {
           banner.map((json) => BannerModel.fromJson(json)).toList();
       emit(BannerLoaded(banner: bannerModel));
     } catch (e) {
-      emit(BannerError('Error: $e'));
+      emit(BannerError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
   UserProfileResponse? _cachedUserModel;
 
   UserProfileResponse? get cachedUser => _cachedUserModel;
+
+  void clearUserCache() {
+    _cachedUserModel = null;
+  }
+
+  Future<UserProfileResponse?> getUserProfileIfCached() async {
+    if (_cachedUserModel != null) {
+      return _cachedUserModel;
+    }
+
+    String? userId = await SessionManager.getParentingId();
+    if (userId != null) {
+      GetUserData(userId: userId);
+    }
+    return null;
+  }
 
   Future<void> GetUserData({required String userId,bool useCache = true}) async {
     if (useCache && _cachedUserModel != null) {
@@ -86,7 +102,7 @@ class ApiCubit extends Cubit<ApiState> {
       _cachedUserModel = model;
       emit(UserProfileLoaded(userModel: model));
     } catch (e) {
-      emit(UserProfileError('Error: $e'));
+      emit(UserProfileError('$e'));
     }
   }
 
@@ -105,9 +121,10 @@ class ApiCubit extends Cubit<ApiState> {
       final data = response['user'];
       final message = response['message'];
       final model = UserProfile.fromJson(data);
+      clearUserCache();
       emit(EditProfileLoaded(userModel: model, message: message));
     } catch (e) {
-      emit(EditProfileError('Error: $e'));
+      emit(EditProfileError('$e'));
     }
   }
 
@@ -123,7 +140,7 @@ class ApiCubit extends Cubit<ApiState> {
 
       emit(UpdateFCMTokenLoaded(message: data));
     } catch (e) {
-      emit(UpdateFCMTokenError('Error: $e'));
+      emit(UpdateFCMTokenError('$e'));
     }
   }
 
@@ -147,7 +164,7 @@ class ApiCubit extends Cubit<ApiState> {
         emit(BarcodeScanLoaded(list: list, source: source));
       }
     } catch (e) {
-      emit(BarcodeScanError('Error: $e'));
+      emit(BarcodeScanError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -170,7 +187,7 @@ class ApiCubit extends Cubit<ApiState> {
         emit(CustomerBarcodeScanLoaded(list: list, source: source));
       }
     } catch (e) {
-      emit(CustomerBarcodeScanError('Error: $e'));
+      emit(CustomerBarcodeScanError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -182,7 +199,7 @@ class ApiCubit extends Cubit<ApiState> {
         final list = data.map((json) => Seller.fromJson(json)).toList();
         emit(SearchSellerLoaded(sellerList: list));
       } catch (e) {
-        emit(SearchSellerError('Error: $e'));
+        emit(SearchSellerError('$e'));
       }
   }
   //------------------------------------------------------------------------------------
@@ -194,7 +211,7 @@ class ApiCubit extends Cubit<ApiState> {
       final list = data.map((json) => CustomerModel.fromJson(json)).toList();
       emit(SearchUserLoaded(customerList: list));
     } catch (e) {
-      emit(SearchUserError('Error: $e'));
+      emit(SearchUserError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -209,11 +226,11 @@ class ApiCubit extends Cubit<ApiState> {
         final saleModel = SaleModel.fromBillingResponse(response);
         emit(OrderPlaceLoaded(message: message,saleModel: saleModel));
       }else{
-        emit(OrderPlaceError('Error: $message'));
+        emit(OrderPlaceError('$message'));
       }
 
     } catch (e) {
-      emit(OrderPlaceError('Error: $e'));
+      emit(OrderPlaceError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -226,10 +243,10 @@ class ApiCubit extends Cubit<ApiState> {
       if(status=='success') {
         emit(InvoiceAddLoaded(message: message, status: status));
       }else{
-        emit(InvoiceAddError('Error: $message'));
+        emit(InvoiceAddError('$message'));
       }
     } catch (e) {
-      emit(InvoiceAddError('Error: $e'));
+      emit(InvoiceAddError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -242,21 +259,21 @@ class ApiCubit extends Cubit<ApiState> {
       if(status=='success') {
         emit(InvoiceEditLoaded(message: message, status: status));
       }else{
-        emit(InvoiceEditError('Error: $message'));
+        emit(InvoiceEditError('$message'));
       }
     } catch (e) {
-      emit(InvoiceEditError('Error: $e'));
+      emit(InvoiceEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> InvoiceDelete({required String invoice_id}) async {
+  Future<void> InvoiceDelete({required String id,required String storeId}) async {
     try {
       emit(InvoiceDeleteLoading());
-      final response = await apiRepository.invoiceDelete(invoice_id);
+      final response = await apiRepository.invoiceDelete(id,storeId);
       final message = response['message'];
       emit(InvoiceDeleteLoaded(message: message));
     } catch (e) {
-      emit(InvoiceDeleteError('Error: $e'));
+      emit(InvoiceDeleteError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -269,7 +286,7 @@ class ApiCubit extends Cubit<ApiState> {
       final last_page = response['last_page'];
       emit(InvoiceListLoaded(invoiceList: list,last_page: last_page));
     } catch (e) {
-      emit(InvoiceListError('Error: $e'));
+      emit(InvoiceListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -283,7 +300,7 @@ class ApiCubit extends Cubit<ApiState> {
       final last_page = response['pagination']['last_page'];
       emit(StockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
-      emit(StockListError('Error: $e'));
+      emit(StockListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -296,7 +313,7 @@ class ApiCubit extends Cubit<ApiState> {
       final last_page = response['pagination']['last_page'];
       emit(ExpiredStockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
-      emit(ExpiredStockListError('Error: $e'));
+      emit(ExpiredStockListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -309,7 +326,7 @@ class ApiCubit extends Cubit<ApiState> {
       final last_page = response['pagination']['last_page'];
       emit(ExpireSoonStockListLoaded(stockList: list,last_page: last_page));
     } catch (e) {
-      emit(ExpireSoonStockListError('Error: $e'));
+      emit(ExpireSoonStockListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -325,7 +342,7 @@ class ApiCubit extends Cubit<ApiState> {
       print(totals['cash']);
       emit(SaleListLoaded(saleList: list,last_page: last_page,totals:totals));
     } catch (e) {
-      emit(SaleListError('Error: $e'));
+      emit(SaleListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -338,18 +355,18 @@ class ApiCubit extends Cubit<ApiState> {
 
       emit(SaleEditLoaded(message: data/*, billing_id: billing_id*/));
     } catch (e) {
-      emit(SaleEditError('Error: $e'));
+      emit(SaleEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
-  Future<void> SaleDelete({required String billing_id}) async {
+  Future<void> SaleDelete({required String billing_id,required String storeId}) async {
     try {
       emit(SaleDeleteLoading());
-      final response = await apiRepository.saleDelete(billing_id);
+      final response = await apiRepository.saleDelete(billing_id,storeId);
       final message = response['message'];
       emit(SaleDeleteLoaded(message: message));
     } catch (e) {
-      emit(SaleDeleteError('Error: $e'));
+      emit(SaleDeleteError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -363,7 +380,7 @@ class ApiCubit extends Cubit<ApiState> {
       final last_page = response['pagination']['last_page'];
       emit(LedgerListLoaded(leadgerList: list,last_page: last_page));
     } catch (e) {
-      emit(LedgerListError('Error: $e'));
+      emit(LedgerListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -374,7 +391,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(StorePaymentLoaded(message: message));
     } catch (e) {
-      emit(StorePaymentError('Error: $e'));
+      emit(StorePaymentError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -385,7 +402,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(UpdatePaymentLoaded(message: message));
     } catch (e) {
-      emit(UpdatePaymentError('Error: $e'));
+      emit(UpdatePaymentError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -396,7 +413,7 @@ class ApiCubit extends Cubit<ApiState> {
       final message = response['message'];
       emit(DeletePaymentLoaded(message: message));
     } catch (e) {
-      emit(DeletePaymentError('Error: $e'));
+      emit(DeletePaymentError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -408,12 +425,12 @@ class ApiCubit extends Cubit<ApiState> {
       String error='';
       if(!success){
         error = response['error'];
-        emit(StockReturnAddError('Error: $error'));
+        emit(StockReturnAddError('$error'));
       }else {
         emit(StockReturnAddLoaded(success: success));
       }
     } catch (e) {
-      emit(StockReturnAddError('Error: $e'));
+      emit(StockReturnAddError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -424,12 +441,12 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       final message = response['message'];
       if(!success){
-        emit(StockReturnEditError('Error: $message'));
+        emit(StockReturnEditError('$message'));
       }else {
         emit(StockReturnEditLoaded(success: success));
       }
     } catch (e) {
-      emit(StockReturnEditError('Error: $e'));
+      emit(StockReturnEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -440,7 +457,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       emit(StockReturnDeleteLoaded(success: success));
     } catch (e) {
-      emit(StockReturnDeleteError('Error: $e'));
+      emit(StockReturnDeleteError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -454,7 +471,7 @@ class ApiCubit extends Cubit<ApiState> {
       var last_page=response['meta']['last_page'];
       emit(StockReturnListLoaded(returnList: list,last_page:last_page));
     } catch (e) {
-      emit(StockReturnListError('Error: $e'));
+      emit(StockReturnListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -465,7 +482,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = Invoice.fromJson_StockReturn(response);
       emit(GetInvoiceDetailLoaded(invoiceModel: model));
     } catch (e) {
-      emit(GetInvoiceDetailError('Error: $e'));
+      emit(GetInvoiceDetailError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -476,7 +493,7 @@ class ApiCubit extends Cubit<ApiState> {
       final model = Billing.fromJson(response);
       emit(GetSaleBillDetailLoaded(billingModel: model));
     } catch (e) {
-      emit(GetSaleBillDetailError('Error: $e'));
+      emit(GetSaleBillDetailError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -488,12 +505,12 @@ class ApiCubit extends Cubit<ApiState> {
       String error='';
       if(!success){
         error = response['error'];
-        emit(SaleReturnAddError('Error: $error'));
+        emit(SaleReturnAddError('$error'));
       }else {
         emit(SaleReturnAddLoaded(success: success));
       }
     } catch (e) {
-      emit(SaleReturnAddError('Error: $e'));
+      emit(SaleReturnAddError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -504,12 +521,12 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['success'];
       final message = response['message'];
       if(!success){
-        emit(SaleReturnEditError('Error: $message'));
+        emit(SaleReturnEditError('$message'));
       }else {
         emit(SaleReturnEditLoaded(success: success));
       }
     } catch (e) {
-      emit(SaleReturnEditError('Error: $e'));
+      emit(SaleReturnEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -523,7 +540,7 @@ class ApiCubit extends Cubit<ApiState> {
       var last_page=response['pagination']['last_page'];
       emit(SaleReturnListLoaded(billList: list,last_page: last_page));
     } catch (e) {
-      emit(SaleReturnListError('Error: $e'));
+      emit(SaleReturnListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -535,7 +552,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['status'];
       emit(ExpenseAddLoaded(success: success));
     } catch (e) {
-      emit(ExpenseAddError('Error: $e'));
+      emit(ExpenseAddError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -547,7 +564,7 @@ class ApiCubit extends Cubit<ApiState> {
       final success = response['status'];
       emit(ExpenseEditLoaded(success: success));
     } catch (e) {
-      emit(ExpenseEditError('Error: $e'));
+      emit(ExpenseEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -561,7 +578,7 @@ class ApiCubit extends Cubit<ApiState> {
       var last_page=response['last_page'];
       emit(ExpenseListLoaded(list: list,last_page: last_page));
     } catch (e) {
-      emit(ExpenseListError('Error: $e'));
+      emit(ExpenseListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -574,7 +591,7 @@ class ApiCubit extends Cubit<ApiState> {
       var last_page=response['pagination']['last_page'];
       emit(StaffListLoaded(staffList: list,last_page: last_page));
     } catch (e) {
-      emit(StaffListError('Error: $e'));
+      emit(StaffListError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -599,7 +616,7 @@ class ApiCubit extends Cubit<ApiState> {
       final status1 = response['status'];
       emit(StaffEditLoaded(message: data,status:status1));
     } catch (e) {
-      emit(StaffEditError('Error: $e'));
+      emit(StaffEditError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -622,7 +639,7 @@ class ApiCubit extends Cubit<ApiState> {
       final status = response['status'];
       emit(StaffAddLoaded(message: message,status:status ));
     } catch (e) {
-      emit(StaffAddError('Error: $e'));
+      emit(StaffAddError('$e'));
     }
   }
   //------------------------------------------------------------------------------------
@@ -633,7 +650,7 @@ class ApiCubit extends Cubit<ApiState> {
       final report = Report.fromJson(response);
       emit(ReportLoaded(report: report));
     } catch (e) {
-      emit(ReportError('Error: $e'));
+      emit(ReportError('$e'));
     }
   }
 }

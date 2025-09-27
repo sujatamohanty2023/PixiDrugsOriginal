@@ -168,6 +168,7 @@ class Item {
   final double? discountRate;
   final double? discountAmount;
   final double? taxableAmount;
+  final double? gstRate;
   final double? cgstRate;
   final double? cgstAmount;
   final double? sgstRate;
@@ -195,6 +196,7 @@ class Item {
      this.discountRate,
      this.discountAmount,
      this.taxableAmount,
+      this.gstRate,
      this.cgstRate,
      this.cgstAmount,
      this.sgstRate,
@@ -224,6 +226,7 @@ class Item {
       discountRate: _parseDouble(json['discount_rate']),
       discountAmount: _parseDouble(json['discount_amount']),
       taxableAmount: _parseDouble(json['taxable_amount']),
+      gstRate: _parseDouble(json['gst_rate']),
       cgstRate: _parseDouble(json['cgst_rate']),
       cgstAmount: _parseDouble(json['cgst_amount']),
       sgstRate: _parseDouble(json['sgst_rate']),

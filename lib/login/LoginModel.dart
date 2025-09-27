@@ -17,12 +17,22 @@ class LoginResponse {
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
-      isNewUser: json['is_new_user'],
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      accessToken: json['access_token'],
+      success: ApiParserUtils.parseBool(json['success']),
+      message: ApiParserUtils.parseString(json['message']),
+      isNewUser: ApiParserUtils.parseBool(json['is_new_user']),
+      user: json['user'] != null ? UserModel.fromJson(ApiParserUtils.parseMap(json['user'])) : null,
+      accessToken: ApiParserUtils.parseString(json['access_token']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'is_new_user': isNewUser,
+      'user': user?.toJson(),
+      'access_token': accessToken,
+    };
   }
 }
 class UserModel {
@@ -90,5 +100,29 @@ class UserModel {
       updatedAt: ApiParserUtils.parseString(json['updated_at']),
       phoneNumber: ApiParserUtils.parseString(json['phone_number']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'email_verified_at': emailVerifiedAt,
+      'photo': photo,
+      'profile_picture': profilePicture,
+      'role': role,
+      'provider': provider,
+      'provider_id': providerId,
+      'status': status,
+      'remember_token': rememberToken,
+      'fcm_token': fcmToken,
+      'dob': dob,
+      'gander': gander,
+      'address': address,
+      'parent_id': parentId,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'phone_number': phoneNumber,
+    };
   }
 }

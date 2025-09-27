@@ -1,5 +1,5 @@
 
-import '../constant/all.dart';
+import '../../constant/all.dart';
 
 class GradientInitialsBox extends StatelessWidget {
   final double size;

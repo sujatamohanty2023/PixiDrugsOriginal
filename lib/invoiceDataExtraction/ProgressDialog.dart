@@ -1,4 +1,4 @@
-import '../constant/all.dart';
+import '../../constant/all.dart';
 
 class ProgressDialog extends StatefulWidget {
   final int current;

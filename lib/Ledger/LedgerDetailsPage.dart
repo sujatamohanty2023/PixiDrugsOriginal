@@ -1,13 +1,14 @@
 
-import 'package:PixiDrugs/Ledger/LedgerPdfGenerator.dart';
+import '../Api/app_initialization_service.dart';
+import '../Ledger/LedgerPdfGenerator.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
-import 'package:PixiDrugs/Ledger/PaymentOutBottomSheet.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/shareFileToWhatsApp.dart';
+import '../Ledger/LedgerModel.dart';
+import '../Ledger/PaymentOutBottomSheet.dart';
+import '../../constant/all.dart';
+import '../shareFileToWhatsApp.dart';
 
 import '../customWidget/GradientInitialsBox.dart';
 
@@ -39,11 +40,9 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
   }
 
   void loadUserData() async {
-    role = await SessionManager.getRole();
-    String? userId = await SessionManager.getUserId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
-    }
+    role = await AppInitializationService.getRole();
+    user=AppInitializationService.getCachedProfile(context);
+    // Profile is already loaded at app startup, no need to call API
   }
   @override
   Widget build(BuildContext context) {
@@ -726,7 +725,7 @@ class _LedgerDetailsPageState extends State<LedgerDetailsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 50),
             ],
           ),
         );

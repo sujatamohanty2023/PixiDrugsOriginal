@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,4 +1,4 @@
-import '../constant/all.dart';
+import '../../constant/all.dart';
 class StockFilterWidget extends StatefulWidget {
   final void Function(
       String? sellerName,
@@ -37,8 +37,8 @@ class _FilterWidgetState extends State<StockFilterWidget> {
   String selectedStockStatus = '';
   String selectedExpiryStatus = "";
 
-  final List<String> stockStatusList = ['Select','In stock', 'Out of stock','Highest stock','Lowest stock'];
-  final List<String> expiryStatusList = ['Select','Expired', 'Expiring Soon'];
+  final List<String> stockStatusList = ['In stock', 'Out of stock','Highest stock','Lowest stock'];
+  final List<String> expiryStatusList = ['Expired', 'Expiring Soon'];
 
   @override
   void initState() {
@@ -225,7 +225,7 @@ class _FilterWidgetState extends State<StockFilterWidget> {
                           medicineController.text,
                           compositionController.text,
                           selectedStockStatus,
-                          selectedExpiryStatus,
+                          selectedExpiryStatus
                         );
                       },
                       buttonText: 'Apply Filters',

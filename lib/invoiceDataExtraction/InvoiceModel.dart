@@ -131,6 +131,7 @@ class Invoice {
   }
 }
 class InvoiceItem {
+  int? billingId;
   int? id;
   String hsn;
   String product;
@@ -167,6 +168,7 @@ class InvoiceItem {
 
 
   InvoiceItem({
+    this.billingId,
     this.id,
     this.hsn='',
     this.product='',
@@ -202,6 +204,7 @@ class InvoiceItem {
   });
 
   InvoiceItem copyWith({
+    int? billingId,
     int? id,
     String? hsn,
     String? product,
@@ -236,6 +239,7 @@ class InvoiceItem {
     String? customerPhone,
   }) {
     return InvoiceItem(
+      billingId: billingId ?? this.billingId,
       id: id ?? this.id,
       hsn: hsn ?? this.hsn,
       product: product ?? this.product,
@@ -394,6 +398,7 @@ class InvoiceItem {
     final qtyFree = parseQtyFree(qtyRaw);
 
     return InvoiceItem(
+      billingId: parseId(normalized['billing_id']),
       id: parseId(normalized['id']),
       hsn:  ApiParserUtils.parseString(
               normalized['product_code']??

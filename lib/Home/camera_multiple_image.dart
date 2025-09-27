@@ -1,18 +1,18 @@
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:camera/camera.dart';
+import '../../constant/all.dart';
+// import 'package:camera/camera.dart'; // Temporarily disabled
 import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/services.dart';
 
 class MultiShotCameraScreen extends StatefulWidget {
-  final List<CameraDescription> cameras;
-  const MultiShotCameraScreen({Key? key, required this.cameras}) : super(key: key);
+  // final List<CameraDescription> cameras; // Temporarily disabled
+  //const MultiShotCameraScreen({Key? key, required this.cameras}) : super(key: key);
 
   @override
   State<MultiShotCameraScreen> createState() => _MultiShotCameraScreenState();
 }
 
 class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
-  late CameraController _cameraController;
+  // late CameraController _cameraController; // Temporarily disabled
   bool _isCameraInitialized = false;
   bool _isFlashOn = false;
   final List<File> _clickedImages = [];
@@ -22,23 +22,25 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    // _initCamera(); // Temporarily disabled
+    setState(() => _isCameraInitialized = true); // Placeholder
   }
 
-  Future<void> _initCamera() async {
-    _cameraController = CameraController(
-      widget.cameras.first,
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.jpeg,
-    );
-    await _cameraController.initialize();
-    if (!mounted) return;
-    setState(() => _isCameraInitialized = true);
-  }
+  // Future<void> _initCamera() async {
+  //   _cameraController = CameraController(
+  //     widget.cameras.first,
+  //     ResolutionPreset.high,
+  //     enableAudio: false,
+  //     imageFormatGroup: ImageFormatGroup.jpeg,
+  //   );
+  //   await _cameraController.initialize();
+  //   if (!mounted) return;
+  //   setState(() => _isCameraInitialized = true);
+  // } // Temporarily disabled
 
-  Future<void> _takePicture() async {
-    if (!_cameraController.value.isInitialized) return;
+  /*Future<void> _takePicture() async {
+    // if (!_cameraController.value.isInitialized) return; // Temporarily disabled
+    return; // Disabled functionality
 
     // ✅ Enforce max 5
     if (_clickedImages.length >= 5 && _replaceIndex == null) {
@@ -69,7 +71,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
     } catch (e) {
       _showLimitMessage("Failed to capture/crop");
     }
-  }
+  }*/
   void _showLimitMessage(String message) {
     OverlayEntry? overlayEntry;
     overlayEntry = OverlayEntry(
@@ -165,9 +167,9 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
 
   Future<void> _toggleFlash() async {
     if (_isFlashOn) {
-      await _cameraController.setFlashMode(FlashMode.off);
+      //await _cameraController.setFlashMode(FlashMode.off);
     } else {
-      await _cameraController.setFlashMode(FlashMode.torch);
+      //await _cameraController.setFlashMode(FlashMode.torch);
     }
     setState(() => _isFlashOn = !_isFlashOn);
   }
@@ -242,7 +244,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
 
   @override
   void dispose() {
-    _cameraController.dispose();
+    // _cameraController.dispose(); // Temporarily disabled
     super.dispose();
   }
 
@@ -309,7 +311,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
                 builder: (context, constraints) {
                   return SizedBox(
                     width: constraints.maxWidth,
-                    child: CameraPreview(_cameraController),
+                    child: Container(color: Colors.black, child: Center(child: Text('Camera Disabled', style: TextStyle(color: Colors.white)))), // CameraPreview disabled
                   );
                 },
               )
@@ -361,7 +363,7 @@ class _MultiShotCameraScreenState extends State<MultiShotCameraScreen> {
                   ),
                   // Shutter
                   GestureDetector(
-                    onTap: _takePicture,
+                    onTap:(){} /*_takePicture*/,
                     child: SvgPicture.asset(
                       AppImages.camera,
                       width: screenW * 0.16,

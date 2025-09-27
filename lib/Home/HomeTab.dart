@@ -1,6 +1,7 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import '../BarcodeScan/ScanPage.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../Api/app_initialization_service.dart';
+import '../../constant/all.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Dialog/update_bottom_sheet.dart';
 import '../ListScreenNew/InvoiceReportScreen.dart';
@@ -8,11 +9,8 @@ import '../ListScreenNew/SaleReportScreen.dart';
 import '../ListScreenNew/SaleReturnListScreen.dart';
 import '../ListScreenNew/StockistReturnList.dart';
 import '../Profile/contact_us.dart';
-import '../ReturnProduct/ReturnCustomerCart.dart';
-import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../login/mobileLoginScreen.dart';
 import '../report/report_page.dart';
-import '../search/customerModel.dart';
 import 'YoutubeVideoListPage.dart';
 
 class DashboardItem {
@@ -44,8 +42,11 @@ class _HomeTabState extends State<HomeTab> {
   String? email = '';
   String? image = '';
   StreamSubscription? _profileSubscription;
+  StreamSubscription? _bannerSubscription;
   var dashboardItems = [];
   bool _showReport = false;
+  bool _bannerLoading = true;
+  bool _bannerLoadError = false;
 
   @override
   void initState() {
@@ -53,19 +54,6 @@ class _HomeTabState extends State<HomeTab> {
     _GetProfileCall();
     _GetStaffStatusCheck();
     _GetBanner();
-
-    _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
-      if (_currentPage < bannerList.length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
     dashboardItems = [
       DashboardItem(title: "New Sale Entry",desc: "Record a new sale", icon:AppImages.sale,
           onTap:() {
@@ -158,12 +146,23 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void _GetProfileCall() async {
-    String? userId = await SessionManager.getParentingId();
     String? role = await SessionManager.getRole();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId,useCache: false);
-    }
+    String? userId = await SessionManager.getParentingId();
+    final apiCubit = context.read<ApiCubit>();
 
+    // Profile is already loaded during app startup, just use cached data
+    if (apiCubit.cachedUser != null) {
+      name = apiCubit.cachedUser!.user.name;
+      email = apiCubit.cachedUser!.user.email;
+      image = apiCubit.cachedUser!.user.profilePicture;
+
+      if (role == 'owner' && apiCubit.cachedUser!.user.status != 'active') {
+        showLoginFailedDialog(context);
+      }
+    } else {
+      // ❌ ID is null or user not cached – make API call
+      apiCubit.GetUserData(userId:userId!); // You might already have this method
+    }
     await _profileSubscription?.cancel();
 
     _profileSubscription = context.read<ApiCubit>().stream.listen((state) {
@@ -181,10 +180,13 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void _GetStaffStatusCheck() async {
-    String? userId = await SessionManager.getUserId();
-    String? role = await SessionManager.getRole();
-    if (role == 'staff' && userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId,);
+    String? role = await AppInitializationService.getRole();
+    final apiCubit = context.read<ApiCubit>();
+
+    // Profile is already loaded during app startup, just use cached data for staff check
+    if (role == 'staff' && apiCubit.cachedUser != null) {
+      // Staff status check using cached data
+      // Add your staff status check logic here if needed
     }
 
     await _profileSubscription?.cancel();
@@ -205,18 +207,60 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
-  void _GetBanner() {
-    context.read<ApiCubit>().fetchBanner();
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is BannerLoaded) {
-        setState(() {
-          bannerList.clear();
-          bannerList.addAll(state.banner.map((e) => e.photo ?? '').toList());
-        });
-      } else if (state is BannerError) {
-        AppUtils.showSnackBar(context, 'Failed: ${state.error}');
+  void _GetBanner() async {
+    // Cancel previous subscription to avoid memory leaks
+    await _bannerSubscription?.cancel();
+    
+    // Fetch banner data
+    setState(() {
+      _bannerLoading = true;
+      _bannerLoadError = false;
+    });
+    
+    final apiCubit = context.read<ApiCubit>();
+    apiCubit.fetchBanner();
+    
+    _bannerSubscription = apiCubit.stream.listen((state) {
+      if (mounted) {
+        if (state is BannerLoaded) {
+          setState(() {
+            bannerList.clear();
+            bannerList.addAll(state.banner.map((e) => e.photo ?? '').where((photo) => photo.isNotEmpty).toList());
+            _bannerLoading = false;
+            _bannerLoadError = false;
+          });
+          _startBannerTimer();
+        } else if (state is BannerError) {
+          setState(() {
+            _bannerLoading = false;
+            _bannerLoadError = true;
+          });
+          if (mounted) {
+            AppUtils.showSnackBar(context, 'Failed to load banners');
+          }
+        }
       }
     });
+  }
+  
+  void _startBannerTimer() {
+    _timer?.cancel(); // Cancel existing timer
+    if (bannerList.length > 1) {
+      _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) {
+        if (mounted && _pageController.hasClients) {
+          if (_currentPage < bannerList.length - 1) {
+            _currentPage++;
+          } else {
+            _currentPage = 0;
+          }
+          _pageController.animateToPage(
+            _currentPage,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -224,6 +268,7 @@ class _HomeTabState extends State<HomeTab> {
     _timer?.cancel();
     _pageController.dispose();
     _profileSubscription?.cancel();
+    _bannerSubscription?.cancel();
     super.dispose();
   }
 
@@ -279,16 +324,50 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: widget.onGoToCart,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: SvgPicture.asset(
-                  AppImages.cart,
-                  height: 30,
-                  color: Colors.white,
-                ),
-              ),
+            BlocBuilder<CartCubit, CartState>(
+              builder: (context, cartState) {
+                final itemCount = cartState is CartLoaded ? cartState.cartItems.length : 0;
+
+                return GestureDetector(
+                  onTap: widget.onGoToCart,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 5.0),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        SvgPicture.asset(
+                          AppImages.cart,
+                          height: 30,
+                          color: Colors.white,
+                        ),
+                        if (itemCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: -8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 15,
+                                minHeight: 15,
+                              ),
+                              child: Center(
+                                child: MyTextfield.textStyle_w600(
+                                  itemCount > 99 ? '99+' : itemCount.toString(),
+                                  12,
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -354,22 +433,7 @@ class _HomeTabState extends State<HomeTab> {
                 ),*/
                 SizedBox(
                   height: screenHeight * 0.2,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: bannerList.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(
-                            image: NetworkImage('https://pixidrugs.com/${bannerList[index]}'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildBannerSection(),
                 ),
 
                 const SizedBox(height: 10),
@@ -439,7 +503,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _setSelectedImage(List<File> files) async {
-    print("🔍 Raw scannedDocuments = ${files.first}");
+    print("🔍 Raw scannedDocuments = ${files.length}");
     if (files.isNotEmpty) {
       Navigator.push(
         context,
@@ -486,6 +550,122 @@ class _HomeTabState extends State<HomeTab> {
       MaterialPageRoute(builder: (context) => QuikScanPage(cartTypeSelection: type)),
     );
   }
+  Widget _buildBannerSection() {
+    if (_bannerLoading) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: SpinKitThreeBounce(
+            color: Colors.blue,
+            size: 30.0,
+          ),
+        ),
+      );
+    }
+    
+    if (_bannerLoadError || bannerList.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.image_not_supported_outlined,
+                size: 48,
+                color: Colors.grey.shade400,
+              ),
+              SizedBox(height: 8),
+              MyTextfield.textStyle_w400(
+                _bannerLoadError ? 'Failed to load banners' : 'No banners available',
+                14,
+                Colors.grey.shade600,
+              ),
+              if (_bannerLoadError) ...[
+                SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _GetBanner,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.kPrimary,
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: MyTextfield.textStyle_w600('Retry', 12, Colors.white),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: bannerList.length,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              'https://pixidrugs.com/${bannerList[index]}',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: AppColors.kPrimary,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.broken_image, size: 48, color: Colors.grey.shade400),
+                        SizedBox(height: 8),
+                        MyTextfield.textStyle_w400('Failed to load image', 12, Colors.grey.shade600),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTaskCard({
     required String title,
     required String tasks,

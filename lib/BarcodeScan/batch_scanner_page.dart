@@ -1,14 +1,10 @@
-import 'package:PixiDrugs/BarcodeScan/utilScanner/CornerPainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScanLinePainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
-import 'package:camera/camera.dart';
+import '../BarcodeScan/utilScanner/CornerPainter.dart';
+import '../BarcodeScan/utilScanner/ScanLinePainter.dart';
+import '../BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 import '../AIResponse/BatchInfoResponse.dart';
-import '../constant/all.dart';
-import 'package:image/image.dart' as img;
+import '../../constant/all.dart';
 
 class BatchScannerPage extends StatefulWidget {
   final int? flag;
@@ -20,21 +16,21 @@ class BatchScannerPage extends StatefulWidget {
 
 class _BatchScannerPageState extends State<BatchScannerPage>
     with SingleTickerProviderStateMixin {
-  CameraController? _cameraController;
+  // CameraController? _cameraController; // Temporarily disabled
   bool _isBusy = false;
   bool _found = false;
   bool _showedManualEntry = false;
   String? scannedText;
   late AnimationController _animationController;
   late Animation<double> _animation;
-  final AudioPlayer _player = AudioPlayer();
+  // final AudioPlayer _player = AudioPlayer(); // Temporarily disabled
   final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   Timer? _timeoutTimer;
 
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    //_initCamera();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -42,7 +38,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     _animation = Tween<double>(begin: 0, end: 250).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
-    _player.setAsset('assets/sound/scanner.mpeg');
+    // _player.setAsset('assets/sound/scanner.mpeg'); // Temporarily disabled
     _startTimeout();
   }
 
@@ -55,63 +51,63 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     });
   }
 
-  Future<void> _initCamera() async {
-    try {
-      final cameras = await availableCameras();
-      final backCamera = cameras.firstWhere(
-            (cam) => cam.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
-      );
+  // Future<void> _initCamera() async {
+  //   try {
+  //     final cameras = await availableCameras();
+  //     final backCamera = cameras.firstWhere(
+  //           (cam) => cam.lensDirection == CameraLensDirection.back,
+  //       orElse: () => cameras.first,
+  //     );
+  //
+  //     _cameraController = CameraController(
+  //       backCamera,
+  //       ResolutionPreset.high,
+  //       enableAudio: false,
+  //       imageFormatGroup: ImageFormatGroup.yuv420,
+  //     );
+  //
+  //     await _cameraController!.initialize();
+  //     _cameraController!.startImageStream(_processCameraImage);
+  //
+  //     if (mounted) setState(() {});
+  //   } catch (e) {
+  //     print('Camera initialization error: $e');
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Failed to initialize camera: $e')),
+  //       );
+  //     }
+  //   }
+  // }  // Temporarily disabled
 
-      _cameraController = CameraController(
-        backCamera,
-        ResolutionPreset.high,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.yuv420,
-      );
-
-      await _cameraController!.initialize();
-      _cameraController!.startImageStream(_processCameraImage);
-
-      if (mounted) setState(() {});
-    } catch (e) {
-      print('Camera initialization error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to initialize camera: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _processCameraImage(CameraImage image) async {
-    if (_isBusy || _found) return;
-    _isBusy = true;
-
-    try {
-      final inputImage = _convertCameraImage(
-          image,
-          _cameraController!.description.sensorOrientation
-      );
-
-      if (inputImage == null) {
-        print('Image format not supported');
-        return;
-      }
-
-      //await scanBatchNumber(inputImage);
-      //await scanBatchNumberAI(image);
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      if(recognizedText.text.isNotEmpty){
-        await scanBatchNumberAIText(recognizedText.text);
-      }
-
-    } catch (e) {
-      print("Batch OCR error: $e");
-    } finally {
-      _isBusy = false;
-    }
-  }
+  // Future<void> _processCameraImage(CameraImage image) async {
+  //   if (_isBusy || _found) return;
+  //   _isBusy = true;
+  //
+  //   try {
+  //     final inputImage = _convertCameraImage(
+  //         image,
+  //         _cameraController!.description.sensorOrientation
+  //     );
+  //
+  //     if (inputImage == null) {
+  //       print('Image format not supported');
+  //       return;
+  //     }
+  //
+  //     //await scanBatchNumber(inputImage);
+  //     //await scanBatchNumberAI(image);
+  //     final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+  //     if(recognizedText.text.isNotEmpty){
+  //       await scanBatchNumberAIText(recognizedText.text);
+  //     }
+  //
+  //   } catch (e) {
+  //     print("Batch OCR error: $e");
+  //   } finally {
+  //     _isBusy = false;
+  //   }
+  // }  // Temporarily disabled
   Future<Map<String, String>?> scanBatchNumberAIText(String text) async {
     try {
       final formData = FormData.fromMap({
@@ -142,9 +138,9 @@ class _BatchScannerPageState extends State<BatchScannerPage>
               _found = true;
               scannedText = first.batch;
               _timeoutTimer?.cancel();
-              await _player.seek(Duration.zero);
-              await _player.play();
-              await _cameraController?.stopImageStream();
+              // await _player.seek(Duration.zero);
+              // await _player.play(); // Temporarily disabled
+              // await _cameraController?.stopImageStream(); // Temporarily disabled
               AppUtils.showSnackBar(context, "${first.batch}");
               Navigator.pop(context, {'code': first.batch});
             } else {
@@ -158,9 +154,9 @@ class _BatchScannerPageState extends State<BatchScannerPage>
               _found = true;
               scannedText = first.name;
               _timeoutTimer?.cancel();
-              await _player.seek(Duration.zero);
-              await _player.play();
-              await _cameraController?.stopImageStream();
+              // await _player.seek(Duration.zero);
+              // await _player.play(); // Temporarily disabled
+              // await _cameraController?.stopImageStream(); // Temporarily disabled
               AppUtils.showSnackBar(context, "${first.name}");
               Navigator.pop(context, {'code': first.name});
             } else {
@@ -176,7 +172,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     }
     return null;
   }
-  InputImage? _convertCameraImage(CameraImage image, int rotation) {
+  /*InputImage? _convertCameraImage(CameraImage image, int rotation) {
     try {
       // Handle YUV_420_888 format
       if (image.format.group == ImageFormatGroup.yuv420) {
@@ -294,7 +290,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
       print("❌ Error converting YUV to JPEG: $e");
       return null;
     }
-  }
+  }*/
 
   Future<void> scanBatchNumber(InputImage inputImage) async {
     try {
@@ -378,9 +374,9 @@ class _BatchScannerPageState extends State<BatchScannerPage>
         _found = true;
         scannedText = batchNo;
         _timeoutTimer?.cancel();
-        await _player.seek(Duration.zero);
-        await _player.play();
-        await _cameraController?.stopImageStream();
+        //await _player.seek(Duration.zero);
+        //await _player.play();
+       // await _cameraController?.stopImageStream();
 
         Navigator.pop(context, {'code':batchNo});
       } else if (!_showedManualEntry) {
@@ -394,7 +390,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     }
   }
 
-  Future<void> scanBatchNumberAI(CameraImage image) async {
+  /*Future<void> scanBatchNumberAI(CameraImage image) async {
     try {
       // Convert InputImage to JPEG file
       final file = await convertYUV420ToJPEG(image);
@@ -431,8 +427,8 @@ class _BatchScannerPageState extends State<BatchScannerPage>
             _found = true;
             scannedText = batchNumber;
             _timeoutTimer?.cancel();
-            await _player.seek(Duration.zero);
-            await _player.play();
+           // await _player.seek(Duration.zero);
+            //await _player.play();
             await _cameraController?.stopImageStream();
             Navigator.pop(context, {'code':batchNumber});
           }else if (MedicineName != null && MedicineName.isNotEmpty) {
@@ -440,8 +436,8 @@ class _BatchScannerPageState extends State<BatchScannerPage>
             _found = true;
             scannedText = MedicineName;
             _timeoutTimer?.cancel();
-            await _player.seek(Duration.zero);
-            await _player.play();
+            //await _player.seek(Duration.zero);
+            //await _player.play();
             await _cameraController?.stopImageStream();
             Navigator.pop(context, {'code':MedicineName});
           } else {
@@ -456,7 +452,7 @@ class _BatchScannerPageState extends State<BatchScannerPage>
     } catch (e) {
       print("❌ Error in scanBatchNumberAI: $e");
     }
-  }
+  }*/
   Future<MultipartFile> createMultipartFile(String path) async {
     String extension = path.split('.').last.toLowerCase();
     MediaType contentType;
@@ -501,8 +497,8 @@ class _BatchScannerPageState extends State<BatchScannerPage>
 
   @override
   void dispose() {
-    _cameraController?.dispose();
-    _player.dispose();
+    // _cameraController?.dispose(); // Temporarily disabled
+    // _player.dispose(); // Temporarily disabled
     _timeoutTimer?.cancel();
     textRecognizer.close();
     _animationController.dispose();
@@ -511,16 +507,16 @@ class _BatchScannerPageState extends State<BatchScannerPage>
 
   @override
   Widget build(BuildContext context) {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    // if (_cameraController == null || !_cameraController!.value.isInitialized) {
+    //   return const Scaffold(
+    //     body: Center(child: CircularProgressIndicator()),
+    //   );
+    // }  // Temporarily disabled - always show placeholder
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-            child: CameraPreview(_cameraController!),
+            child: Container(color: Colors.black), // CameraPreview disabled
           ),
           // Overlay
           Positioned.fill(

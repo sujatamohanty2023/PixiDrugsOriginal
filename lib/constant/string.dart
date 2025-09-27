@@ -3,6 +3,10 @@ import 'all.dart';
 
 class AppString {
   static String baseUrl = 'https://pixidrugs.com/';
+  
+  // Google Cloud Vision API Configuration
+  static String googleCloudVisionApiKey = 'YOUR_GOOGLE_CLOUD_VISION_API_KEY_HERE';
+  static String googleCloudVisionEndpoint = 'https://vision.googleapis.com/v1/images:annotate';
 
   static String loginText = 'Login with Mobile Number';
   static String logindesc = 'Enter your mobile number to receive an OTP';

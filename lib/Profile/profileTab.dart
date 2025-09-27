@@ -1,12 +1,12 @@
-import 'package:PixiDrugs/Expense/AddExpenseScreen.dart';
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
-import 'package:PixiDrugs/ListScreenNew/StaffListScreen.dart';
+import '../Expense/AddExpenseScreen.dart';
+
+import '../ListScreenNew/StaffListScreen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:PixiDrugs/Staff/AddStaffScreen.dart';
-import 'package:PixiDrugs/Profile/WebviewScreen.dart';
-import 'package:PixiDrugs/Profile/edit_profile.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/login/mobileLoginScreen.dart';
+import '../Staff/AddStaffScreen.dart';
+import '../Profile/WebviewScreen.dart';
+import '../Profile/edit_profile.dart';
+import '../../constant/all.dart';
+import '../login/mobileLoginScreen.dart';
 
 import '../ListScreenNew/ExpenseListScreen.dart';
 import 'contact_us.dart';
@@ -17,7 +17,7 @@ class ProfileScreen extends StatefulWidget {
   }
 
   class _ProfileScreenState extends State<ProfileScreen> {
-    String? name = 'Guest';
+    String? name = '';
     String? email = '';
     String? image = '';
     String? role = '';
@@ -42,30 +42,19 @@ class ProfileScreen extends StatefulWidget {
     }
 
     void _GetProfileCall() async {
-      String? userId = await SessionManager.getParentingId();
       role=await SessionManager.getRole();
-      if (userId != null) {
-        context.read<ApiCubit>().GetUserData(userId: userId,useCache: false);
-      } else {
-        setState(() {
+      final apiCubit = context.read<ApiCubit>();
 
+      // Use cached profile data - NO API CALL needed
+      if (apiCubit.cachedUser != null) {
+        setState(() {
+          user = apiCubit.cachedUser!.user;
+          name = apiCubit.cachedUser!.user.name;
+          email = apiCubit.cachedUser!.user.email;
+          image = apiCubit.cachedUser!.user.profilePicture;
         });
       }
-      context
-          .read<ApiCubit>()
-          .stream
-          .listen((state) {
-        if (state is UserProfileLoaded) {
-          setState(() {
-            user=state.userModel.user;
-            name = state.userModel.user.name;
-            email = state.userModel.user.email;
-            image = state.userModel.user.profilePicture;
-          });
-        } else if (state is UserProfileError) {
-          AppUtils.showSnackBar(context,'Failed: ${state.error}');
-        }
-      });
+
     }
 
     @override
@@ -123,7 +112,7 @@ class ProfileScreen extends StatefulWidget {
                       if(role=='owner')
                         GestureDetector(
                         onTap: () {
-                          AppRoutes.navigateTo(context, EditProfileScreen(user:user));
+                          AppRoutes.navigateTo(context, EditProfileScreen());
                         },
                         child: _buildMenuItem(
                             Icons.edit, "Owner Profile", Colors.blue),

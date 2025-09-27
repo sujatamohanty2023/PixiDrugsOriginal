@@ -1,8 +1,9 @@
-
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
+import '../../Api/ApiUtil/ApiParserUtils.dart';
 
 enum CartType { main }
 enum CartTypeSelection { StockiestReturn,CustomerReturn }
+enum ListType { expense,staff,invoice,sale,stockReturn,saleReturn,ledger }
 
 class CartCubit extends Cubit<CartState> {
   Timer? _cartDebounce;
@@ -17,12 +18,12 @@ class CartCubit extends Cubit<CartState> {
 
     for (var item in updatedCart) {
       final bool isTablet = item.unitType == UnitType.Tablet;
-      final double mrpPerStrip = double.tryParse(item.mrp) ?? 0.0;
-      final double unitMrp = double.tryParse(item.unitMrp ?? '0') ?? 0.0;
+      final double mrpPerStrip = ApiParserUtils.parsePrice(item.mrp);
+      final double unitMrp = ApiParserUtils.parsePrice(item.unitMrp);
       final int packQty = _extractPackingQuantity(item.packing);
 
       double appliedMrp = isTablet && packQty > 0
-          ? (unitMrp > 0 ? unitMrp : mrpPerStrip / packQty)
+          ? (unitMrp > 0 ? unitMrp : (packQty > 0 ? mrpPerStrip / packQty : mrpPerStrip))
           : mrpPerStrip;
 
       print('--- ITEM DEBUG (ID ${item.id}) ---');
@@ -36,7 +37,7 @@ class CartCubit extends Cubit<CartState> {
       final double itemTotal = appliedMrp * item.qty;
       print(' itemTotal: $itemTotal');
 
-      final double discountRate = double.tryParse(item.discountSale ?? '0') ?? 0.0;
+      final double discountRate = ApiParserUtils.parsePrice(item.discountSale ?? '0');
       final double itemDiscount = item.discountType == DiscountType.flat
           ? (discountRate * item.qty)
           : (appliedMrp * discountRate / 100) * item.qty;
@@ -100,22 +101,38 @@ class CartCubit extends Cubit<CartState> {
         break;
     }
   }
-  void updateItemDiscount(int productId, double discountSale, {required DiscountType discountType,CartType type = CartType.main}) {
+  void updateItemDiscount(int productId, double discountSale, {required DiscountType discountType, CartType type = CartType.main, int? billingId}) {
     final cartList = _getCartList(type);
     final updatedCart = cartList.map((item) {
-      if (item.id == productId) {
-        return item.copyWith(discountSale: discountSale.toString(), discountType: discountType,);
+      if (billingId != null) {
+        // For CustomerReturn, check both id and billingId
+        if (item.id == productId && item.billingId == billingId) {
+          return item.copyWith(discountSale: discountSale.toString(), discountType: discountType,);
+        }
+      } else {
+        // For other cases, check only id
+        if (item.id == productId) {
+          return item.copyWith(discountSale: discountSale.toString(), discountType: discountType,);
+        }
       }
       return item;
     }).toList();
 
     _emitUpdatedCartState(type, updatedCart);
   }
-  void updateItemUnitRate(int productId, double unitRate, {required UnitType unitType,CartType type = CartType.main}) {
+  void updateItemUnitRate(int productId, double unitRate, {required UnitType unitType, CartType type = CartType.main, int? billingId}) {
     final cartList = _getCartList(type);
     final updatedCart = cartList.map((item) {
-      if (item.id == productId) {
-        return item.copyWith(unitMrp: unitRate.toString(), unitType: unitType,);
+      if (billingId != null) {
+        // For CustomerReturn, check both id and billingId
+        if (item.id == productId && item.billingId == billingId) {
+          return item.copyWith(unitMrp: unitRate.toString(), unitType: unitType,);
+        }
+      } else {
+        // For other cases, check only id
+        if (item.id == productId) {
+          return item.copyWith(unitMrp: unitRate.toString(), unitType: unitType,);
+        }
       }
       return item;
     }).toList();
@@ -141,9 +158,15 @@ class CartCubit extends Cubit<CartState> {
     ));
   }
   void addToCart(InvoiceItem product, int quantity,
-      {CartType type = CartType.main, bool detailPage = false}) {
+      {CartType type = CartType.main, bool detailPage = false,bool isCustomerReturn = false}) {
     final cartList = _getCartList(type);
-    final index = cartList.indexWhere((item) => item.id == product.id);
+    int index = cartList.indexWhere((item) {
+      if (isCustomerReturn) {
+        return item.id == product.id && item.billingId == product.billingId;
+      } else {
+        return item.id == product.id;
+      }
+    });
     final updatedCart = List<InvoiceItem>.from(cartList);
 
     if (index == -1) {
@@ -159,16 +182,25 @@ class CartCubit extends Cubit<CartState> {
 
     _emitUpdatedCartState(type, updatedCart);
   }
+
   void loadItemsToCart(List<InvoiceItem> items, {required CartType type}) {
     _emitUpdatedCartState(type, items);
   }
 
 
-  void incrementQuantity(int productId, {CartType type = CartType.main}) {
+  void incrementQuantity(int productId, {CartType type = CartType.main, int? billingId}) {
     final cartList = _getCartList(type);
     final updatedCart = cartList.map((item) {
-      if (item.id == productId) {
-        return item.copyWith(qty: item.qty + 1);
+      if (billingId != null) {
+        // For CustomerReturn, check both id and billingId
+        if (item.id == productId && item.billingId == billingId) {
+          return item.copyWith(qty: item.qty + 1);
+        }
+      } else {
+        // For other cases, check only id
+        if (item.id == productId) {
+          return item.copyWith(qty: item.qty + 1);
+        }
       }
       return item;
     }).toList();
@@ -176,11 +208,19 @@ class CartCubit extends Cubit<CartState> {
     _emitUpdatedCartState(type, updatedCart);
   }
 
-  void decrementQuantity(int productId, {CartType type = CartType.main}) {
+  void decrementQuantity(int productId, {CartType type = CartType.main, int? billingId}) {
     final cartList = _getCartList(type);
     final updatedCart = cartList.map((item) {
-      if (item.id == productId && item.qty > 1) {
-        return item.copyWith(qty: item.qty - 1);
+      if (billingId != null) {
+        // For CustomerReturn, check both id and billingId
+        if (item.id == productId && item.billingId == billingId && item.qty > 1) {
+          return item.copyWith(qty: item.qty - 1);
+        }
+      } else {
+        // For other cases, check only id
+        if (item.id == productId && item.qty > 1) {
+          return item.copyWith(qty: item.qty - 1);
+        }
       }
       return item;
     }).toList();
@@ -199,8 +239,23 @@ class CartCubit extends Cubit<CartState> {
     _emitUpdatedCartState(type, updatedCart);
   }
 
-  void removeFromCart(int productId, {CartType type = CartType.main}) {
-    final updatedCart = _getCartList(type).where((item) => item.id != productId).toList();
+  void removeFromCart(int productId, {CartType type = CartType.main, int? billingId}) {
+    final cartList = _getCartList(type);
+    final updatedCart = cartList.where((item) {
+      if (billingId != null) {
+        // For CustomerReturn, check both id and billingId
+        return !(item.id == productId && item.billingId == billingId);
+      } else {
+        // For other cases, check only id
+        return item.id != productId;
+      }
+    }).toList();
+    _emitUpdatedCartState(type, updatedCart);
+  }
+
+  void removeItemFromCart(InvoiceItem item, {CartType type = CartType.main}) {
+    final updatedCart = _getCartList(type).where((cartItem) => 
+        !(cartItem.id == item.id && cartItem.batch == item.batch)).toList();
     _emitUpdatedCartState(type, updatedCart);
   }
   void clearCart({CartType type = CartType.main, bool clearCustomer = true}) {
@@ -232,7 +287,7 @@ class CartCubit extends Cubit<CartState> {
 
 
   Future<void> _loadDataFromPreferences() async {
-    try {
+    try{
       final prefs = await SharedPreferences.getInstance();
       final cartData = prefs.getString('cartState');
 
@@ -242,13 +297,31 @@ class CartCubit extends Cubit<CartState> {
       String customerAddress = '';
 
       if (cartData != null) {
-        final decodedBarcode = jsonDecode(cartData);
-        final List items = decodedBarcode['items'] ?? [];
-
-        cartList = items.map((e) => InvoiceItem.fromJson(e)).toList();
-        customerName = decodedBarcode['customerName'] ?? '';
-        customerPhone = decodedBarcode['customerPhone'] ?? '';
-        customerAddress = decodedBarcode['customerAddress'] ?? '';
+        try {
+          final decodedBarcode = jsonDecode(cartData);
+          if (decodedBarcode is Map<String, dynamic>) {
+            final List items = decodedBarcode['items'] ?? [];
+            
+            cartList = items.map((e) {
+              try {
+                return InvoiceItem.fromJson(e is Map<String, dynamic> ? e : {});
+              } catch (itemError) {
+                print('Error parsing cart item: $itemError');
+                // Return a default empty item if parsing fails
+                return InvoiceItem();
+              }
+            }).where((item) => item.product.isNotEmpty).toList();
+            
+            customerName = ApiParserUtils.parseString(decodedBarcode['customerName']);
+            customerPhone = ApiParserUtils.parseString(decodedBarcode['customerPhone']);
+            customerAddress = ApiParserUtils.parseString(decodedBarcode['customerAddress']);
+          }
+        } catch (parseError) {
+          print('Error parsing cart data: $parseError');
+          // Clear invalid cart data
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('cartState');
+        }
       }
 
       final cartTotals = _recalculateCartTotals(cartList);

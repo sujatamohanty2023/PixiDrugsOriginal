@@ -1,15 +1,18 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../Api/app_initialization_service.dart';
+
 import 'package:intl/intl.dart';
 import '../Cart/ReceiptPrinterPage.dart';
 import '../Cart/ReceiptPdfGenerator.dart';
 import '../Home/HomePageScreen.dart';
 import '../SaleList/sale_details.dart';
 import '../SaleList/sale_model.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
 import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
+import 'FilterWidget.dart';
 
 class Salereportscreen extends StatefulWidget {
   final bool? topDebitor;
@@ -28,6 +31,8 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   bool isLoadingMore = false;
   bool hasMoreData = true;
   bool isRefresh = false;
+  bool isInitialLoad = true;
+  bool isApiLoading = false;
 
   final saleList = <SaleModel>[];
   List<Map<String, dynamic>> summaryItems=[];
@@ -40,6 +45,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   UserProfile? user;
+  int? deletRecordId=0;
 
   @override
   void initState() {
@@ -47,7 +53,6 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
     if(widget.topDebitor==true){
       selectedPaymentType='Due';
     }
-    _GetProfileCall();
     _loadUserRole();
     WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_onSearch);
@@ -55,21 +60,9 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
     _fetchRecord(refresh: true);
   }
   Future<void> _loadUserRole() async {
-    role = await SessionManager.getRole();
+    role = await AppInitializationService.getRole();
+    user=AppInitializationService.getCachedProfile(context);
     if (mounted) setState(() {});
-  }
-  void _GetProfileCall() async {
-    String? userId = await SessionManager.getParentingId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
-    }
-    context.read<ApiCubit>().stream.listen((state) {
-      if (state is UserProfileLoaded) {
-        setState(() {
-          user=state.userModel.user;
-        });
-      }
-    });
   }
 
   @override
@@ -110,6 +103,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   void didPopNext() => _fetchRecord();*/
 
   Future<void> _fetchRecord({bool refresh = false}) async {
+    print('SaleReportScreen: _fetchRecord called with refresh=$refresh');
     final userId = await SessionManager.getParentingId();
     if (userId == null) return;
 
@@ -117,6 +111,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
       currentPage = 1;
       hasMoreData = true;
       isRefresh=true;
+      print('SaleReportScreen: refresh mode activated, currentPage reset to 1');
     }
 
     if (isLoadingMore || !hasMoreData) return;
@@ -176,16 +171,9 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   }
 
   void _deleteRecord(int id) async {
-    try {
-
+    deletRecordId=id;
       final apiCubit = context.read<ApiCubit>();
-      await apiCubit.SaleDelete(billing_id: id.toString());
-      saleList.removeWhere((sale) => sale.invoiceNo == id);
-      AppUtils.showSnackBar(context, "Record deleted successfully");
-      setState(() {});
-    } catch (e) {
-      AppUtils.showSnackBar(context, "Failed to delete record: $e");
-    }
+      await apiCubit.SaleDelete(billing_id: id.toString(),storeId:user!.id);
   }
 
   // ---- Build Method ----
@@ -199,6 +187,9 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
         builder: (context, state) {
           if (state is UserProfileLoaded) {
             user=state.userModel.user;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {});
+            });
           }
           final isLoading = state is SaleListLoading;
 
@@ -212,7 +203,21 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
               {"title": 'Total', "value":total},
             ];
             _updatePaginatedList(saleList, state.saleList, state.last_page);
-          }
+          }else if(state is SaleListError){
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+               context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+             });
+           }else if(state is SaleDeleteLoaded){
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+               AppUtils.showSnackBar(context, "Record deleted successfully");
+               saleList.removeWhere((sale) => sale.invoiceNo == deletRecordId);
+               setState(() {});
+             });
+           }else if(state is SaleDeleteError){
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+               context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+             });
+           }
 
           return Container(
             color: AppColors.kPrimary,
@@ -236,7 +241,12 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                         ),
                       ),
                       child:(isLoading || isRefresh) && saleList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
+                      Center(
+                        child: SpinKitThreeBounce(
+                          color: AppColors.kPrimary,
+                          size: 30.0,
+                        ),
+                      )
                       : (!isLoading && !isRefresh) && saleList.isEmpty
                           ? NoItemPage(
                         onTap: (){},
@@ -305,6 +315,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                   initialPaymentType:selectedPaymentType,
                   initialPaymentReason: selectedPaymentReason,
                   onApply: (from, to, range, paymentType,paymentReason) async {
+                    Navigator.pop(context); // Close dialog FIRST
                     setState(() {
                       fromDate = from;
                       toDate = to;
@@ -313,9 +324,9 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                       selectedPaymentReason = paymentReason??'';
                     });
                     _fetchRecord(refresh: true);
-                    Navigator.pop(context);
                   },
                   onReset:() async {
+                    Navigator.pop(context); // Close dialog FIRST
                     setState(() {
                       fromDate = null;
                       toDate = null;
@@ -324,7 +335,6 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                       selectedPaymentReason='';
                     });
                     _fetchRecord(refresh: true);
-                    Navigator.pop(context);
                   }
               ),
             ),
@@ -470,13 +480,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
   Widget _buildSaleCard(sale, double screenWidth, BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SaleDetailsPage(sale: sale, edit: false),),
-        );
-        if (result==true) {
-          _fetchRecord(refresh: true);
-        }
+        GoNextPageFun(items: sale);
       },
       child: Card(
         color: Colors.white,
@@ -523,7 +527,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
                           ReceiptPdfGenerator.generateAndSharePdf(context, sale,user!);
                           break;
                         case 'edit':
-                          AppRoutes.navigateTo(context, SaleDetailsPage(sale: sale, edit: true));
+                          GoNextPageFun(items: sale,edit: true);
                           break;
                         case 'delete':
                           _showDeleteDialog(context, sale.invoiceNo!);
@@ -579,6 +583,16 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
           ),
         ),
       ),
+    );
+  }
+  Future<void> GoNextPageFun({bool edit=false, required SaleModel items}) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SaleDetailsPage(sale: items, edit: edit,
+        onSaleUpdated:() {
+          print('SaleReportScreen: onSaleUpdated callback received');
+          _fetchRecord(refresh: true);
+        }))
     );
   }
 }

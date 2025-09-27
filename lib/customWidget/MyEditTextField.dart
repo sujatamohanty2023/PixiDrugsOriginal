@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class MyEdittextfield extends StatefulWidget {
 

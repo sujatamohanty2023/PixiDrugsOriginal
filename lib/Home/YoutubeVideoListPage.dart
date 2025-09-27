@@ -1,5 +1,5 @@
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 
 class YoutubeVideoListPage extends StatefulWidget {
   const YoutubeVideoListPage({Key? key}) : super(key: key);

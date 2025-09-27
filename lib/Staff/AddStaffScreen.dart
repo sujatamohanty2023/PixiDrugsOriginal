@@ -1,7 +1,8 @@
 
 import 'package:intl/intl.dart';
 
-import '../constant/all.dart';
+import '../../constant/all.dart';
+import '../widgets/app_loader.dart';
 import 'StaffModel.dart';
 
 class AddStaffScreen extends StatefulWidget {
@@ -76,31 +77,41 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         return;
       }
       print('API $name,\n$email,\n$mobile,\n$dob1,\n$address,\n$password,\n$password_confirm,\n$selectedGender,\n$status');
+      
       final userId = await SessionManager.getParentingId() ?? '';
-      if (edit && widget.staff != null) {
-        context.read<ApiCubit>().StaffEdit(id: widget.staff!.id.toString(),
-          store_id: userId,
-          name: name,
-          email: email,
-          phone_number: mobile,
-          gender: selectedGender!,
-          dob: dob1,
-          address: address,
-          password:password,
-          password_confirmation:password_confirm,
-          status:status!,
-        );
-      } else {
-        context.read<ApiCubit>().StaffAdd(store_id: userId,
-          name: name,
-          email: email,
-          phone_number: mobile,
-          gender: selectedGender!,
-          dob: dob1,
-          address: address,
-          password:password,
-          password_confirmation:password_confirm,
-        );
+      
+      // Show loader
+      AppLoader.show(context, message: edit ? "Updating staff member..." : "Adding staff member...");
+      
+      try {
+        if (edit && widget.staff != null) {
+          await context.read<ApiCubit>().StaffEdit(id: widget.staff!.id.toString(),
+            store_id: userId,
+            name: name,
+            email: email,
+            phone_number: mobile,
+            gender: selectedGender!,
+            dob: dob1,
+            address: address,
+            password:password,
+            password_confirmation:password_confirm,
+            status:status!,
+          );
+        } else {
+          await context.read<ApiCubit>().StaffAdd(store_id: userId,
+            name: name,
+            email: email,
+            phone_number: mobile,
+            gender: selectedGender!,
+            dob: dob1,
+            address: address,
+            password:password,
+            password_confirmation:password_confirm,
+          );
+        }
+      } finally {
+        // Hide loader
+        AppLoader.hide();
       }
     }
   }

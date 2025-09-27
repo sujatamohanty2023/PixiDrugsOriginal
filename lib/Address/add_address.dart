@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-import '../constant/all.dart';
+import '../../constant/all.dart';
 
 class AddAddressScreen extends StatefulWidget {
   final String? address;

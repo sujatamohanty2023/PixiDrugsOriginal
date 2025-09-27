@@ -1,7 +1,8 @@
 import '../Ledger/Payment.dart';
 import '../SaleReturn/SaleReturnRequest.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
+import '../constant/utils.dart';
 import '../login/FCMService.dart';
 import '../login/RegisterResponse.dart';
 import 'ApiUtil/api_exception.dart';
@@ -10,6 +11,31 @@ class ApiRepository {
   final Dio dio;
 
   ApiRepository({Dio? dio}) : dio = dio ?? Dio();
+
+  /// Sanitize response data to handle inconsistent data types from API
+  T _sanitizeResponseData<T>(dynamic data) {
+    if (data == null) return {} as T;
+    
+    // If it's already the expected type, return as-is
+    if (data is T) return data;
+    
+    // For Map responses, ensure all values are safely accessible
+    if (data is Map && T == Map<String, dynamic>) {
+      final sanitized = <String, dynamic>{};
+      data.forEach((key, value) {
+        sanitized[key.toString()] = value;
+      });
+      return sanitized as T;
+    }
+    
+    // For List responses, ensure each item is properly formatted
+    if (data is List && T == List<dynamic>) {
+      return data.map((item) => item).toList() as T;
+    }
+    
+    // Default: return the data as-is with type casting
+    return data as T;
+  }
 
    Future<T> _safeApiCall<T>(Future<Response> Function() request) async {
     if (!await ConnectivityService.isConnected()) {
@@ -26,13 +52,26 @@ class ApiRepository {
       print('✅ API RESPONSE [${response.statusCode}]: ${response.data}');
 
       if (response.statusCode == 200) {
-        return response.data;
+        return _sanitizeResponseData(response.data);
+      } else if (response.statusCode == 201) {
+        final sanitizedData = _sanitizeResponseData(response.data);
+        // Check for inactive account on 201 status
+        if (AppUtils.checkForInactiveAccount(sanitizedData)) {
+          throw ApiException(
+            sanitizedData['message']?.toString() ?? 'Account is inactive',
+            statusCode: response.statusCode,
+            data: sanitizedData,
+            isInactiveAccount: true,
+          );
+        }
+        return sanitizedData;
       } else {
         print('❌ API ERROR URL: ${response.requestOptions.uri}');
+        final sanitizedData = _sanitizeResponseData(response.data);
         throw ApiException(
-          response.data['message'] ?? 'Unknown server error',
+          sanitizedData['message']?.toString() ?? 'Unknown server error',
           statusCode: response.statusCode,
-          data: response.data,
+          data: sanitizedData,
         );
       }
     } on DioError catch (dioError) {
@@ -40,8 +79,7 @@ class ApiRepository {
       if (dioError.response?.statusCode == 401) {
         try {
           print('🔁 Token expired. Refreshing...');
-          await _refreshToken();
-
+          await _refreshToken();          
           // 👇 Retry the original request with updated token
           final retryResponse = await request();
           return retryResponse.data;
@@ -239,11 +277,12 @@ class ApiRepository {
       ),
     )).then((data) => Map<String, dynamic>.from(data));
   }
-  Future<Map<String, dynamic>> invoiceDelete(String invoiceId) {
+  Future<Map<String, dynamic>> invoiceDelete(String id,String storeId) {
     return _safeApiCall(() async => dio.post(
       '${AppString.baseUrl}api/deleteitem',
       queryParameters: {
-        'invoice_id': invoiceId,
+        'id': id,
+        'store_id':storeId,
         'access_token': await SessionManager.getAccessToken()
       },
     )).then((data) => Map<String, dynamic>.from(data));
@@ -339,11 +378,12 @@ class ApiRepository {
     ));
   }
 
-  Future<Map<String, dynamic>> saleDelete(String billingid) {
+  Future<Map<String, dynamic>> saleDelete(String billingid,String storeId) {
     return _safeApiCall(() async => dio.get(
       '${AppString.baseUrl}api/saleldelete/',
       queryParameters: {
         'billingid': billingid,
+        'String storeId':storeId,
         'access_token': await SessionManager.getAccessToken()
       },
     ));

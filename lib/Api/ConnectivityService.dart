@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:PixiDrugs/constant/all.dart'; // Adjust this to your correct import
+import '../../constant/all.dart'; // Adjust this to your correct import
 
 class ConnectivityService {
   static final Connectivity _connectivity = Connectivity();

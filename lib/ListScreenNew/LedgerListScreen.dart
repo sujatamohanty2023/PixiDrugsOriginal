@@ -1,12 +1,14 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+
 import 'package:intl/intl.dart';
 import '../Home/HomePageScreen.dart';
 import '../Ledger/LedgerDetailsPage.dart';
 import '../Ledger/LedgerModel.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
+import 'FilterWidget.dart';
 
 class LedgerListScreen extends StatefulWidget {
 
@@ -24,6 +26,7 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
   bool isLoadingMore = false;
   bool hasMoreData = true;
   bool isRefresh = false;
+  bool isInitialLoad = true;
 
   final ledgerList = <LedgerModel>[];
 
@@ -88,43 +91,56 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
     if (refresh) {
       currentPage = 1;
       hasMoreData = true;
-      isRefresh=true;
+      isRefresh = true;
+      if (!isInitialLoad) {
+        setState(() {}); // Only trigger rebuild if not initial load
+      }
     }
 
     if (isLoadingMore || !hasMoreData) return;
 
-    setState(() => isLoadingMore = true);
+    setState(() {
+      isLoadingMore = true;
+    });
 
     String? from = fromDate != null ? DateFormat('yyyy-MM-dd').format(fromDate!) : null;
     String? to = toDate != null ? DateFormat('yyyy-MM-dd').format(toDate!) : null;
 
-    await context.read<ApiCubit>().fetchLedgerList(user_id: userId,page: currentPage,from:from??'',to:to??'',payment_type:selectedPaymentType,payment_reason:selectedPaymentReason,filter: searchQuery);
-    setState(() => isLoadingMore = false);
+    try {
+      await context.read<ApiCubit>().fetchLedgerList(
+        user_id: userId,
+        page: currentPage,
+        from: from ?? '',
+        to: to ?? '',
+        payment_type: selectedPaymentType,
+        payment_reason: selectedPaymentReason,
+        filter: searchQuery
+      );
+    } catch (e) {
+      print("Error fetching ledger list: $e");
+    }
+
+    setState(() {
+      isLoadingMore = false;
+    });
   }
 
-  void _updatePaginatedList<T extends Object>(
-      List<T> targetList,
-      List<T> newItems,
+  void _updateLedgerList(
+      List<LedgerModel> targetList,
+      List<LedgerModel> newItems,
       int lastPage,
       ) {
-    if (isRefresh) {
+    if (isRefresh || isInitialLoad) {
       targetList.clear();
       isRefresh = false;
     }
 
     for (var newItem in newItems) {
-      final index = targetList.indexWhere((oldItem) {
-        if (oldItem is Invoice && newItem is Invoice) {
-          return oldItem.id == newItem.id; // ✅ compare by unique ID
-        }
-        return oldItem == newItem; // fallback for other types
-      });
+      final index = targetList.indexWhere((oldItem) => oldItem.partyId == newItem.partyId);
 
       if (index >= 0) {
-        // Item already exists → check if changed
-        if (targetList[index] != newItem) {
-          targetList[index] = newItem; // ✅ replace with updated one
-        }
+        // Item already exists → replace with updated one
+        targetList[index] = newItem;
       } else {
         // Item not found → add it
         targetList.add(newItem);
@@ -169,49 +185,70 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
         builder: (context, state) {
           final isLoading = state is LedgerListLoading;
 
-          // Populate lists from state
-          if (state is LedgerListLoaded) {
-            _updatePaginatedList(ledgerList, state.leadgerList, state.last_page);
+          // Handle API errors globally
+          if (state is LedgerListError) {
+            final errorMessage = state.error;
+            // Handle all API errors through global handler
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AppUtils.handleApiError(context, errorMessage);
+            });
           }
 
-          return Container(
-            color: AppColors.kPrimary,
-            padding: EdgeInsets.only(top: screenWidth * 0.06),
-            child: Column(
-              children: [
-                _buildTopBar(screenWidth),
-                SizedBox(height: screenWidth * 0.01,),
-                _buildSearchBar(screenWidth),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () => _fetchRecord(refresh: true),
-                    color: AppColors.kPrimary,
-                    backgroundColor: AppColors.kPrimaryLight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.myGradient,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(screenWidth * 0.07),
-                          topRight: Radius.circular(screenWidth * 0.07),
+          // Populate lists from state
+          if (state is LedgerListLoaded) {
+            _updateLedgerList(ledgerList, state.leadgerList, state.last_page);
+            if (isInitialLoad) {
+              isInitialLoad = false;
+            }
+          }
+
+          return Stack(
+            children: [
+              Container(
+                color: AppColors.kPrimary,
+                padding: EdgeInsets.only(top: screenWidth * 0.06),
+                child: Column(
+                  children: [
+                    _buildTopBar(screenWidth),
+                    SizedBox(height: screenWidth * 0.01,),
+                    _buildSearchBar(screenWidth),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () => _fetchRecord(refresh: true),
+                        color: AppColors.kPrimary,
+                        backgroundColor: AppColors.kPrimaryLight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppColors.myGradient,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(screenWidth * 0.07),
+                              topRight: Radius.circular(screenWidth * 0.07),
+                            ),
+                          ),
+                          child: isInitialLoad || ((isLoading || isRefresh) && ledgerList.isEmpty)?
+                          Center(
+                            child: SpinKitThreeBounce(
+                              color:AppColors.kPrimary,
+                              size: 30.0,
+                            ),
+                          )
+                              : ledgerList.isEmpty
+                              ?  NoItemPage(
+                            onTap: (){},
+                            image: AppImages.no_sale,
+                            tittle: 'No Ledger Record Found',
+                            description:
+                            "Please add important details about the new party such as name, address, GSTIN, total due amount",
+                            button_tittle: /*'Add New Party'*/'',
+                          )
+                              : _buildListBody(isLoading),
                         ),
                       ),
-                      child:(isLoading || isRefresh) && ledgerList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
-                          : (!isLoading && !isRefresh) && ledgerList.isEmpty
-                          ?  NoItemPage(
-                        onTap: (){},
-                        image: AppImages.no_sale,
-                        tittle: 'No Ledger Record Found',
-                        description:
-                        "Please add important details about the new party such as name, address, GSTIN, total due amount",
-                        button_tittle: /*'Add New Party'*/'',
-                      )
-                          : _buildListBody(isLoading),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -232,7 +269,7 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
             ),
             Expanded(
               child: MyTextfield.textStyle_w400(
-                'Ledger List',
+                'Stockist List',
                 screenWidth * 0.052,
                 Colors.white,
               ),
@@ -351,7 +388,9 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
             searchQuery = query;
           });
         }
-        _fetchRecord(refresh: true);
+        await _fetchRecord(refresh: true);
+        setState(() {
+        });
       }
     });
   }
@@ -361,7 +400,7 @@ class _LedgerListScreenState extends State<LedgerListScreen> with WidgetsBinding
       _searchController.clear();
       searchQuery='';
     });
-    _fetchRecord(refresh: true);
+    await _fetchRecord(refresh: true);
   }
   Widget _buildListBody(bool isLoading) {
     final screenWidth = MediaQuery.of(context).size.width;

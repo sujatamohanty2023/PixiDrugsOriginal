@@ -1,5 +1,5 @@
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class Webviewscreen extends StatefulWidget {
   final String? tittle;

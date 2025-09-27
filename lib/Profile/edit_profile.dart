@@ -1,10 +1,12 @@
-import 'package:PixiDrugs/AWS/S3Service.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../AWS/S3Service.dart';
+import '../../constant/all.dart';
+import '../Api/app_initialization_service.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
+import '../widgets/app_loader.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  UserProfile? user;
-  EditProfileScreen({required this.user});
+  const EditProfileScreen({super.key});
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
@@ -33,7 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    user=widget.user;
+    user=AppInitializationService.getCachedProfile(context);
     setState(() {
       _imageFile = user!.profilePicture;
       storeNameController.text = user!.name;
@@ -49,6 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _UpdateButtonClick() {
     setState(() => _isUploading = true);
+    AppLoader.show(context, message: "updating...");
     if (image_changed) {
       _uploadFilestoS3();
     } else {
@@ -75,7 +78,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
     if (_urlList.isNotEmpty) {
       print(_UploadUrl);
-      AppUtils.showSnackBar(context,"✅ Upload successful!");
       _saveProfileData(_UploadUrl);
     }
   }
@@ -90,13 +92,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         gander:'',
         dob: '',
         profile_picture: profile_url);
-    context.read<ApiCubit>().stream.listen((state) {
+    context.read<ApiCubit>().stream.listen((state) async {
       if (state is EditProfileLoaded) {
        AppUtils.showSnackBar(context,state.message);
+       await AppInitializationService.refreshProfile(context);
+       AppLoader.hide();
         Navigator.pop(context);
         setState(() => _isUploading = false);
       } else if (state is EditProfileError) {
-       AppUtils.showSnackBar(context,'Failed: ${state.error}');
+        AppLoader.hide();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.handleApiError(state.error, () => _saveProfileData(profile_url));
+        });
        setState(() => _isUploading = false);
       }
     });

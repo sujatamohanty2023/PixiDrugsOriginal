@@ -1,8 +1,9 @@
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../Profile/contact_us.dart';
 import 'OtpVerificationScreen.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import 'FCMService.dart';
 import 'RegistationPage.dart';
 
@@ -16,7 +17,15 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
   bool _isLoading = false;
   User? user;
   StreamSubscription? _loginSubscription;
-
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: AppColors.secondaryColor,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ));
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -251,7 +260,9 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
         }
       } else if (state is LoginError) {
         setState(() => _isLoading = false);
-        AppUtils.showSnackBar(context, state.error);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.handleApiError(state.error, () => loginApiCall(text));
+        });
       }
     });
   }

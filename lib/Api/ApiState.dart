@@ -1,8 +1,8 @@
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
-import 'package:PixiDrugs/SaleList/sale_model.dart';
-import 'package:PixiDrugs/SaleReturn/BillingModel.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:PixiDrugs/report/reportResponse.dart';
+import '../Ledger/LedgerModel.dart';
+import '../SaleList/sale_model.dart';
+import '../SaleReturn/BillingModel.dart';
+import '../../constant/all.dart';
+import '../report/reportResponse.dart';
 
 import '../Expense/ExpenseResponse.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';

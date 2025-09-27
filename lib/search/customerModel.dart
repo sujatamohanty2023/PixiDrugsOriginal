@@ -1,4 +1,6 @@
 
+import '../Api/ApiUtil/ApiParserUtils.dart';
+
 class CustomerModel {
   final int id;
   final String name;
@@ -16,11 +18,11 @@ class CustomerModel {
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
     return CustomerModel(
-      id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      email: json['email'],
-      address: json['address'],
+      id: ApiParserUtils.parseInt(json['id']),
+      name: ApiParserUtils.parseString(json['name']),
+      phone: ApiParserUtils.parseString(json['phone']),
+      email: ApiParserUtils.parseString(json['email']),
+      address: ApiParserUtils.parseString(json['address']),
     );
   }
 

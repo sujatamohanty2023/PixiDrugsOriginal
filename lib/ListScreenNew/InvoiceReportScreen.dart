@@ -1,12 +1,14 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+
 import 'package:intl/intl.dart';
 import '../Dialog/AddPurchaseBottomSheet.dart';
 import '../Home/HomePageScreen.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
 import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
+import 'FilterWidget.dart';
 
 class Invoicereportscreen extends StatefulWidget {
   final bool? topCreditor;
@@ -20,6 +22,8 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
   String searchQuery = "";
   final ScrollController _scrollController = ScrollController();
   String? role;
+  String? userId='';
+  int? deletRecordId=0;
 
   int currentPage = 1;
   bool isLoadingMore = false;
@@ -49,6 +53,7 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
   }
   Future<void> _loadUserRole() async {
     role = await SessionManager.getRole();
+    userId = await SessionManager.getParentingId()??'';
     if (mounted) setState(() {});
   }
 
@@ -157,22 +162,16 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
   }
 
   void _deleteRecord(int id) async {
-    try {
-
+    deletRecordId=id;
       final apiCubit = context.read<ApiCubit>();
-      await apiCubit.InvoiceDelete(invoice_id: id.toString());
-      invoiceList.removeWhere((inv) => inv.id == id);
-      AppUtils.showSnackBar(context, "Record deleted successfully");
-      setState(() {});
-    } catch (e) {
-      AppUtils.showSnackBar(context, "Failed to delete record: $e");
-    }
+      print('API=$id/$userId');
+      await apiCubit.InvoiceDelete(id: id.toString(),storeId:userId!);
   }
   Future<void> _onAddInvoicePressed() async {
     AddPurchaseBottomSheet(context, _setSelectedImage, pdf: true, pick_Size: 5, ManualAdd: true);
   }
   Future<void> _setSelectedImage(List<File> files) async {
-    print("🔍 Raw scannedDocuments = ${files.first}");
+    print("🔍 Raw scannedDocuments = ${files.length}");
     if (files.isNotEmpty) {
       final result = await Navigator.push(
         context,
@@ -201,6 +200,20 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
           // Populate lists from state
           if (state is InvoiceListLoaded) {
             _updatePaginatedList(invoiceList, state.invoiceList, state.last_page);
+          }else if(state is InvoiceListError){
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () =>_fetchRecord(refresh: true));
+            });
+          }else if(state is InvoiceDeleteLoaded){
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AppUtils.showSnackBar(context, "Record deleted successfully");
+              invoiceList.removeWhere((inv) => inv.id == deletRecordId);
+              setState(() {});
+            });
+          }else if(state is InvoiceDeleteError){
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+            });
           }
 
           return Container(
@@ -225,7 +238,12 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
                         ),
                       ),
                       child:(isLoading || isRefresh) && invoiceList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
+                      Center(
+                        child: SpinKitThreeBounce(
+                          color: AppColors.kPrimary,
+                          size: 30.0,
+                        ),
+                      )
                           : (!isLoading && !isRefresh) && invoiceList.isEmpty
                           ? NoItemPage(
                         onTap: _onAddInvoicePressed,
@@ -243,6 +261,23 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
           );
         },
       ),
+     /* floatingActionButton: BlocBuilder<ApiCubit, ApiState>(
+        builder: (context, state) {
+          // Show floating action button only when list is not empty
+          if (invoiceList.isNotEmpty) {
+            return FloatingActionButton(
+              onPressed: _onAddInvoicePressed,
+              backgroundColor: AppColors.kPrimary,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              tooltip: 'Add Invoice',
+            );
+          }
+          return SizedBox.shrink(); // Hide when list is empty
+        },
+      ),*/
     );
   }
   Widget _buildTopBar(double screenWidth) {

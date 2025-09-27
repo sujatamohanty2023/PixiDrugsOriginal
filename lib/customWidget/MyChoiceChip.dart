@@ -1,4 +1,4 @@
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class Mychoicechip extends StatelessWidget {
   String label;

@@ -1,18 +1,8 @@
-import 'package:PixiDrugs/BarcodeScan/utilScanner/CornerPainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScanLinePainter.dart';
-import 'package:PixiDrugs/BarcodeScan/utilScanner/ScannerOverlayPainter.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:just_audio/just_audio.dart';
+import '../../constant/all.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:path_provider/path_provider.dart';
-
-import '../AIResponse/BatchInfoResponse.dart';
 import '../ReturnProduct/ReturnProductList.dart';
-import '../ReturnProduct/ReturnStockiestCart.dart';
 import '../Stock/ProductList.dart';
 import '../search/customerModel.dart';
-import '../search/sellerModel.dart';
 import 'barcode_screen_page.dart';
 import 'batch_scanner_page.dart';
 
@@ -30,7 +20,7 @@ class QuikScanPageOld extends StatefulWidget {
 class _QuikScanPageOldState extends State<QuikScanPageOld>
     with SingleTickerProviderStateMixin {
   int selectedTab = 0; // 0 =Barcode, 1 =  Batch Info
-  final player = AudioPlayer();
+  // final player = AudioPlayer(); // Temporarily disabled
 
   bool isLoading = false;
   bool isProcessing = false;
@@ -58,13 +48,13 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
-    player.setAsset('assets/sound/scanner.mpeg');
+    // player.setAsset('assets/sound/scanner.mpeg'); // Temporarily disabled
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    player.dispose();
+    // player.dispose(); // Temporarily disabled
     super.dispose();
   }
 
@@ -76,11 +66,12 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
 
   /// ✅ Play beep
   Future<void> playBeep() async {
-    try {
-      await player.play();
-    } catch (e) {
-      debugPrint("Error playing sound: $e");
-    }
+    // Temporarily disabled audio
+    // try {
+    //   await player.play();
+    // } catch (e) {
+    //   debugPrint("Error playing sound: $e");
+    // }
   }
 
   /// ✅ Manual scan
@@ -147,42 +138,94 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 40.0),
-        child: GestureDetector(
-          onTap: () async {
-            if (widget.cartTypeSelection != null) {
-              AddManualClickReturn();
-            } else {
-              AddManualClick();
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.kPrimary,
-                    AppColors.secondaryColor,
-                  ],
-                  stops: [0.0, 1.0],
-                  tileMode: TileMode.clamp),
-              borderRadius: BorderRadius.circular(50),
-              border: Border.all(width: 0.5, color: AppColors.secondaryColor),
-              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
             ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Icon(Icons.search, color: Colors.white),
-                const SizedBox(width: 8),
-                MyTextfield.textStyle_w600(
-                  "Search Product",
-                  SizeConfig.screenWidth! * 0.040,
-                  Colors.white,
+                // Left corner - 2 buttons vertically stacked
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: _buildBottomButton(
+                        icon: Icons.search,
+                        label: "Search Product",
+                        color: AppColors.kPrimary,
+                        onTap: () async {
+                          if (widget.cartTypeSelection != null) {
+                            AddManualClickReturn();
+                          } else {
+                            AddManualClick();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: 120,
+                      child: _buildBottomButton(
+                        icon: Icons.camera_alt,
+                        label: "Camera Scan",
+                        color: AppColors.secondaryColor,
+                        onTap: () {
+                          // Camera scan functionality
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                // Center spacer
+                const Expanded(child: SizedBox()),
+                // Right corner - 2 buttons vertically stacked
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: _buildBottomButton(
+                        icon: Icons.qr_code,
+                        label: "QR Code",
+                        color: const Color(0xFF4CAF50),
+                        onTap: () {
+                          setState(() {
+                            selectedTab = 0;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: 120,
+                      child: _buildBottomButton(
+                        icon: Icons.inventory,
+                        label: "Batch Info",
+                        color: const Color(0xFFFF9800),
+                        onTap: () {
+                          setState(() {
+                            selectedTab = 1;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -243,6 +286,54 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
             SizeConfig.screenWidth! * 0.045,
             isSelected ? Colors.white : Colors.white70,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              color,
+              color.withOpacity(0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            MyTextfield.textStyle_w600(
+              label,
+              SizeConfig.screenWidth! * 0.032,
+              Colors.white,
+            ),
+          ],
         ),
       ),
     );

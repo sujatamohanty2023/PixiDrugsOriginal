@@ -25,3 +25,18 @@
 # Kotlin
 -dontwarn kotlin.**
 -dontwarn kotlinx.**
+
+# Flutter TextInput and EditableText
+-keep class io.flutter.embedding.android.** { *; }
+-keep class io.flutter.plugin.editing.** { *; }
+-keep class io.flutter.plugins.** { *; }
+
+# Flutter TextField and TextEditingController
+-keep class ** extends io.flutter.plugin.common.MethodChannel { *; }
+-keep class ** extends io.flutter.plugin.common.EventChannel { *; }
+
+# Prevent obfuscation of text input methods
+-keepclassmembers class * {
+    @io.flutter.plugin.common.MethodChannel.Result *;
+    @io.flutter.plugin.common.EventChannel.StreamHandler *;
+}

@@ -1,4 +1,7 @@
-import '../constant/all.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../../constant/all.dart';
+import '../customWidget/CustomAppBar.dart';
 import 'ProductTile.dart';
 import 'StockFilterWidget.dart';
 
@@ -27,6 +30,8 @@ class _ProductListPageState extends State<ProductListPage> {
   String? selectedStockStatus='';
   String? selectedExpiryStatus='';
 
+  bool isInitialLoading = true;
+
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
@@ -46,7 +51,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 ),
                 padding: const EdgeInsets.all(10),
                 child: StockFilterWidget(
-                  onApply: (sellerName, medicineName, composition, stockStatus, expiryStatus) {
+                  onApply: (sellerName1, medicineName1, composition1, stockStatus, expiryStatus) {
                     var stockStatusApi='';
                     if(stockStatus=='In stock'){
                       stockStatusApi='in_stock';
@@ -57,13 +62,14 @@ class _ProductListPageState extends State<ProductListPage> {
                     }else if(stockStatus=='Lowest stock'){
                       stockStatusApi='lowstock';
                     }
+
                     setState(() {
                       // Update the filter parameters
-                      this.sellerName = sellerName;
-                      this.medicineName = medicineName;
-                      this.composition = composition;
-                      this.selectedStockStatus = !stockStatus!.contains('Select')?stockStatus:stockStatusApi;
-                      this.selectedExpiryStatus = !expiryStatus!.contains('Select')?expiryStatus:'';
+                      sellerName = sellerName1;
+                      medicineName = medicineName1;
+                      composition = composition1;
+                      selectedStockStatus = stockStatusApi;
+                      selectedExpiryStatus = expiryStatus?.toLowerCase();
                     });
                     _fetchStockList(refresh: true);
                     Navigator.pop(context);  // Close the filter sheet
@@ -71,11 +77,11 @@ class _ProductListPageState extends State<ProductListPage> {
                   onReset: () {
                     setState(() {
                       // Reset all filters
-                      this.sellerName = '';
-                      this.medicineName = '';
-                      this.composition = '';
-                      this.selectedStockStatus = '';  // Default value for stock status
-                      this.selectedExpiryStatus = '';  // Default value for expiry status
+                      sellerName = '';
+                      medicineName = '';
+                      composition = '';
+                      selectedStockStatus = '';  // Default value for stock status
+                      selectedExpiryStatus = '';  // Default value for expiry status
                     });
                     _fetchStockList(refresh: true);
                   },
@@ -98,8 +104,11 @@ class _ProductListPageState extends State<ProductListPage> {
     super.initState();
     _searchController.addListener(_onSearch);
     _scrollController.addListener(_onScroll);
+    print("API${widget.searchResults.length}");
     if(widget.flag==4 && widget.searchResults.isNotEmpty){
       _products.addAll(widget.searchResults);
+      hasMoreData = false;
+      isInitialLoading=false;
     }else {
       _fetchStockList(refresh: true);
     }
@@ -130,6 +139,9 @@ class _ProductListPageState extends State<ProductListPage> {
       currentPage = 1;
       hasMoreData = true;
       _products.clear();
+      setState(() {
+        isInitialLoading = true;
+      });
     }
 
     if (isLoadingMore || !hasMoreData) return;
@@ -146,8 +158,8 @@ class _ProductListPageState extends State<ProductListPage> {
     };
 
     if (widget.flag == 1) {
-      context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query,filters: filter );
-    }if (widget.flag == 4 && widget.searchResults.isEmpty) {
+      context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query, filters: filter);
+    } else if (widget.flag == 4) {
       context.read<ApiCubit>().fetchStockList(user_id: userId, page: currentPage, query: query);
     } else if (widget.flag == 2) {
       context.read<ApiCubit>().expiredStockList(user_id: userId, page: currentPage, query: query);
@@ -155,6 +167,7 @@ class _ProductListPageState extends State<ProductListPage> {
       context.read<ApiCubit>().expireSoonStockList(user_id: userId, page: currentPage, query: query);
     }
   }
+
 
   void _onSearch() {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
@@ -166,8 +179,12 @@ class _ProductListPageState extends State<ProductListPage> {
       String? userId = await SessionManager.getParentingId();
 
       if (query.isNotEmpty && query.length >= 3 && widget.flag == 4) {
+        // For barcode scan, disable pagination
+        hasMoreData = false;
         context.read<ApiCubit>().BarcodeScan(code: query, storeId: userId!, source: 'manual');
       } else {
+        // For regular search and other operations, enable pagination
+        hasMoreData = true;
         _fetchStockList(refresh: true);
       }
     });
@@ -177,6 +194,7 @@ class _ProductListPageState extends State<ProductListPage> {
     setState(() {
       _searchController.clear();
       _products.clear();
+      hasMoreData = true; // Re-enable pagination when clearing search
     });
     _fetchStockList(refresh: true);
   }
@@ -184,136 +202,19 @@ class _ProductListPageState extends State<ProductListPage> {
   void _onAddProduct() {
     AppRoutes.navigateTo(context, AddPurchaseBill());
   }
-  PreferredSizeWidget customAppBar(
-      BuildContext context,
-      TextEditingController searchController,
-      VoidCallback onclearTap,{
-        required int flag,
-      }) {
-    String getTitle(int flag) {
-      switch (flag) {
-        case 1:
-          return 'My Stock';
-        case 2:
-          return 'Expired Stock';
-        case 3:
-          return 'ExpireSoon Stock';
-        case 4:
-          return 'Search Product';
-        default:
-          return 'Stock';
-      }
+  String getTitle(int flag) {
+    switch (flag) {
+      case 1:
+        return 'My Stock';
+      case 2:
+        return 'Expired Stock';
+      case 3:
+        return 'ExpireSoon Stock';
+      case 4:
+        return 'Search Product';
+      default:
+        return 'Stock';
     }
-
-    return PreferredSize(
-      preferredSize: Size.fromHeight(widget.flag == 4?100:85),
-      child: Container(
-        color: AppColors.kPrimary,
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0,right: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        if (flag == 2 || flag == 3 || flag == 4)
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: SvgPicture.asset(
-                              AppImages.back,
-                              height: 24,
-                              color: AppColors.kWhiteColor,
-                            ),
-                          ),
-                        const SizedBox(width: 10),
-                        MyTextfield.textStyle_w600(
-                          getTitle(flag),
-                          SizeConfig.screenWidth! * 0.045,
-                          Colors.white,
-                        ),
-                      ],
-                    ),
-                    // Right side: Custom button
-                    if(widget.flag == 4)
-                    SizedBox(
-                      height: 40,
-                      width: 100,
-                      child: MyElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context, {"goToCart": true});
-                        },
-                        backgroundColor: AppColors.kPrimaryLight,
-                        titleColor:AppColors.kPrimary,
-                        custom_design: true,
-                        buttonText: "Next",
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.screenWidth! *0.02),
-              Padding(
-                padding: const EdgeInsets.only(left:10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0,right: 8),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 12),
-                              const Icon(Icons.search, color: Colors.grey),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  controller: searchController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search Product/Stockiest Name...',
-                                    hintStyle: MyTextfield.textStyle(
-                                        16, Colors.grey, FontWeight.w300),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                              if(searchController.text.isNotEmpty)
-                              IconButton(
-                                  onPressed: onclearTap,
-                                  icon: const Icon(Icons.clear_rounded, color: Colors.grey),
-                                ),
-                              if(searchController.text.isEmpty && widget.flag == 4)
-                              IconButton(
-                                onPressed: (){
-                                  Navigator.pop(context);
-                                },
-                                icon: const Icon(Icons.qr_code_scanner, color: AppColors.kPrimary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    flag==1?IconButton(
-                      icon: const Icon(Icons.tune, color: Colors.white),
-                      onPressed:_showFilterSheet,
-                    ):SizedBox(),
-                  ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.screenWidth! *0.01),
-            ],
-          ),
-        ),
-      ),
-    );
   }
   @override
   Widget build(BuildContext context) {
@@ -327,19 +228,37 @@ class _ProductListPageState extends State<ProductListPage> {
         },
         child:  Scaffold(
       backgroundColor: AppColors.kPrimary,
-      appBar: customAppBar(context, _searchController, _onclearTap, flag: widget.flag,),
+      appBar: widget.flag == 4 
+        ? CustomAppBar(
+            title: getTitle(widget.flag),
+            showSearch: true,
+            searchController: _searchController,
+            searchHint: 'Search Product/Stockiest Name...',
+            onSearchClear: _onclearTap,
+            onSearchChanged: (value) => setState(() {}),
+            showCartButton: true,
+            onCartPressed: () => Navigator.pop(context, {"goToCart": true}),
+          )
+        : CustomAppBar(
+            title: getTitle(widget.flag),
+            showSearch: true,
+            searchController: _searchController,
+            searchHint: 'Search Product/Stockiest Name...',
+            showBackButton: widget.flag == 2 || widget.flag == 3,
+            onSearchClear: _onclearTap,
+            onSearchChanged: (value) => setState(() {}),
+            showFilterButton: widget.flag == 1,
+            onFilterPressed: widget.flag == 1 ? _showFilterSheet : null,
+          ),
       body: BlocConsumer<ApiCubit, ApiState>(
         listener: (context, state) {
-          if (state is StockListLoaded ||
-              state is ExpiredStockListLoaded ||
-              state is ExpireSoonStockListLoaded ||
-              state is BarcodeScanLoaded) {
+          if (state is StockListLoaded || state is ExpiredStockListLoaded || state is ExpireSoonStockListLoaded || state is BarcodeScanLoaded) {
+            // Add data to list
             if (widget.flag == 4 && state is BarcodeScanLoaded) {
               _products.clear();
               _products.addAll(state.list);
             } else {
               if (currentPage == 1) _products.clear();
-
               if (state is StockListLoaded) {
                 _products.addAll(state.stockList);
                 hasMoreData = state.last_page > currentPage;
@@ -355,10 +274,12 @@ class _ProductListPageState extends State<ProductListPage> {
             }
 
             setState(() {
+              isInitialLoading = false; // Mark initial load complete
               isLoadingMore = false;
             });
           }
         },
+
         builder: (context, state) {
           final isLoading = state is StockListLoading ||
               state is ExpiredStockListLoading ||
@@ -367,11 +288,14 @@ class _ProductListPageState extends State<ProductListPage> {
 
           Widget content;
 
-          if (isLoading && currentPage == 1) {
-            content = const Center(
-              child: CircularProgressIndicator(color: AppColors.kPrimary),
+          if (isInitialLoading) {
+            content = Center(
+                child: SpinKitThreeBounce(
+                  color:AppColors.kPrimary,
+                  size: 30.0,
+                )
             );
-          } else if (!isLoading && widget.flag != 4 && _products.isEmpty) {
+          } else if (_products.isEmpty) {
             content = _buildEmptyPage(flag: widget.flag, onAddProduct: _onAddProduct);
           } else {
             content = Column(
@@ -383,10 +307,12 @@ class _ProductListPageState extends State<ProductListPage> {
                     backgroundColor: AppColors.kPrimaryLight,
                     child: ListView.builder(
                       controller: _scrollController,
-                      itemCount: widget.flag == 4
-                          ? _products.length
-                          : _products.length + (hasMoreData ? 1 : 0),
+                      itemCount: _products.length + (hasMoreData ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index >= _products.length) {
+                          return _buildBottomLoader();
+                        }
+                        
                         if (widget.flag == 4) {
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -396,9 +322,6 @@ class _ProductListPageState extends State<ProductListPage> {
                             ),
                           );
                         } else {
-                          if (index >= _products.length) {
-                            return _buildBottomLoader();
-                          }
                           return ProductTile(product: _products[index]);
                         }
                       },

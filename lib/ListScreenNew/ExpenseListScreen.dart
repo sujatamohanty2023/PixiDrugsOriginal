@@ -1,16 +1,16 @@
 
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../Api/app_initialization_service.dart';
+
 import 'package:intl/intl.dart';
 import '../Expense/AddExpenseScreen.dart';
 import '../Expense/ExpenseResponse.dart';
 import '../Home/HomePageScreen.dart';
-import '../ReturnProduct/ReturnPdfGenerator.dart';
-import '../ReturnProduct/ReturnStockiestCart.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import '../customWidget/BottomLoader.dart';
-import '../customWidget/CustomPopupMenuItemData.dart';
 import '../customWidget/GradientInitialsBox.dart';
-import '../ListPageScreen/FilterWidget.dart';
+import 'FilterWidget.dart';
 
 class ExpenseListScreen extends StatefulWidget {
 
@@ -51,11 +51,9 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with WidgetsBindi
     _fetchRecord(refresh: true);
   }
   Future<void> _loadUserRole() async {
-    role = await SessionManager.getRole();
-    String? userId = await SessionManager.getUserId();
-    if (userId != null) {
-      context.read<ApiCubit>().GetUserData(userId: userId, useCache: false);
-    }
+    role = await AppInitializationService.getRole();
+    user=AppInitializationService.getCachedProfile(context);
+    // Profile is already loaded at app startup, no need to call API
   }
 
   @override
@@ -188,7 +186,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with WidgetsBindi
                         ),
                       ),
                       child:(isLoading || isRefresh) && expenseList.isEmpty?
-                      Center(child: CircularProgressIndicator(color: AppColors.kPrimary))
+                      Center(
+                        child: SpinKitThreeBounce(
+                          color: AppColors.kPrimary,
+                          size: 30.0,
+                        ),
+                      )
                           : (!isLoading && !isRefresh) && expenseList.isEmpty
                           ? NoItemPage(
                         onTap: _onAddExpense,
@@ -204,6 +207,23 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with WidgetsBindi
               ],
             ),
           );
+        },
+      ),
+      floatingActionButton: BlocBuilder<ApiCubit, ApiState>(
+        builder: (context, state) {
+          // Show floating action button only when list is not empty
+          if (expenseList.isNotEmpty) {
+            return FloatingActionButton(
+              onPressed: _onAddExpense,
+              backgroundColor: AppColors.kPrimary,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              tooltip: 'Add Expense',
+            );
+          }
+          return SizedBox.shrink(); // Hide when list is empty
         },
       ),
     );

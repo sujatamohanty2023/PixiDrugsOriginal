@@ -13,11 +13,13 @@ import '../Profile/UserProfileModel.dart';
 import '../ReturnStock/PurchaseReturnModel.dart';
 import '../SaleReturn/CustomerReturnsResponse.dart';
 import '../constant/images.dart';
-import '../invoiceDataExtraction/InvoiceModel.dart';
-import '../search/customerModel.dart';
 
 class ReturnPdfGenerator {
   /// Generate Customer Return PDF (Download + Open + Optional Share)
+  static String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
   static Future<String> generateCustomerReturnPdf(
       UserProfile user, {
         required CustomerReturnsResponse stockReturn,
@@ -29,7 +31,7 @@ class ReturnPdfGenerator {
     final now = DateFormat('dd-MM-yyyy hh:mm a').format(DateTime.now());
 
     // ✅ Load and resize logo properly
-    final ByteData data = await rootBundle.load(AppImages.AppIcon);
+    final ByteData data = await rootBundle.load(AppImages.pdf_logo);
     final Uint8List bytes = data.buffer.asUint8List();
     final img.Image? original = img.decodeImage(bytes);
     final img.Image resized = img.copyResize(original!, width: 100);
@@ -53,7 +55,7 @@ class ReturnPdfGenerator {
               //     ),
               //   ),
               // ),
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 30),
 
               /// ✅ Logo + User Name + Address in Row
               pw.Row(
@@ -64,7 +66,7 @@ class ReturnPdfGenerator {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        user.name ?? "-",
+                        user.name.toUpperCase() ?? "-",
                         style: pw.TextStyle(
                           font: ttf,
                           fontSize: 18,
@@ -78,7 +80,7 @@ class ReturnPdfGenerator {
                         style: pw.TextStyle(font: ttf, fontSize: 12),
                       ),
                       pw.Text(
-                        "Address: ${user.address ?? '-'}",
+                        "Address: ${_capitalizeFirstLetter(user.address ?? '-')}",
                         style: pw.TextStyle(font: ttf, fontSize: 12),
                       ),
                     ],
@@ -86,11 +88,11 @@ class ReturnPdfGenerator {
                 ],
               ),
 
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 20),
               pw.Divider(thickness: 1, color: PdfColors.grey),
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 20),
 
-              pw.Text("Customer: ${stockReturn.customer.name ?? '-'}",
+              pw.Text("Customer: ${_capitalizeFirstLetter(stockReturn.customer.name ?? '-')}",
                   style: pw.TextStyle(font: ttf, fontSize: 18,fontWeight: pw.FontWeight.bold)),
               pw.Text("Phone: ${stockReturn.customer.phone ?? '-'}",
                   style: pw.TextStyle(font: ttf, fontSize: 14)),
@@ -115,7 +117,7 @@ class ReturnPdfGenerator {
                   ];
                 }).toList(),
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 15),
               pw.Container(
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(color: PdfColor.fromInt(0xFFC4DAF6)),
@@ -140,7 +142,14 @@ class ReturnPdfGenerator {
               ),
               pw.SizedBox(height: 50),
               pw.Center(
-                child:  pw.Text('Thank you for shopping at PixiDrugs', style: pw.TextStyle(font: ttf)),
+                child: pw.Text('Thank you for shopping at ${_capitalizeFirstLetter(user.name)}',
+                    style: pw.TextStyle(
+                        font: ttf, fontSize: 12, color: PdfColors.grey600)),
+              ),
+              pw.Center(
+                child: pw.Text('Powered by PixiDrugs by PixiZip',
+                    style: pw.TextStyle(
+                        font: ttf, fontSize: 12, color: PdfColors.cyan)),
               ),
               pw.SizedBox(height: 50),
               pw.Align(
@@ -148,14 +157,14 @@ class ReturnPdfGenerator {
                 child: pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.center,
                     children: [
-                      pw.Image(pw.MemoryImage(logoBytes), width: 60, height: 60),
+                      pw.Image(pw.MemoryImage(logoBytes), height: 150),
                       // pw.SizedBox(width: 2),
-                      pw.Column(
+                    /*  pw.Column(
                           children: [
                             pw.Text('Powered by ', style: pw.TextStyle(font: ttf,color: PdfColor.fromInt(0xFF173C6E))),
                             pw.Text('PixiZip Solution', style: pw.TextStyle(font: ttf,color: PdfColor.fromInt(0xFF173C6E))),
                           ]
-                      )
+                      )*/
                     ]
                 ),
               ),
@@ -184,7 +193,7 @@ class ReturnPdfGenerator {
     final ttf = pw.Font.ttf(fontData);
     final now = DateFormat('dd-MM-yyyy hh:mm a').format(DateTime.now());
 
-    final ByteData data = await rootBundle.load(AppImages.AppIcon);
+    final ByteData data = await rootBundle.load(AppImages.pdf_logo);
     final Uint8List bytes = data.buffer.asUint8List();
     final img.Image? original = img.decodeImage(bytes);
     final img.Image resized = img.copyResize(original!, width: 100);
@@ -208,11 +217,13 @@ class ReturnPdfGenerator {
               //     ),
               //   ),
               // ),
+
+              pw.SizedBox(height: 30),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    user.name ?? "-",
+                    user.name.toUpperCase() ?? "-",
                     style: pw.TextStyle(
                       font: ttf,
                       fontSize: 18,
@@ -226,7 +237,7 @@ class ReturnPdfGenerator {
                     style: pw.TextStyle(font: ttf, fontSize: 12),
                   ),
                   pw.Text(
-                    "Address: ${user.address ?? '-'}",
+                    "Address: ${_capitalizeFirstLetter(user.address ?? '-')}",
                     style: pw.TextStyle(font: ttf, fontSize: 12),
                   ),
                 ],
@@ -236,7 +247,7 @@ class ReturnPdfGenerator {
           pw.SizedBox(height: 10),
 
               pw.SizedBox(height: 10),
-              pw.Text( stockReturn.sellerName ?? '-',
+              pw.Text( _capitalizeFirstLetter(stockReturn.sellerName ?? '-'),
                   style: pw.TextStyle(font: ttf, fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue,)),
               pw.Text("Date: $now",
                   style: pw.TextStyle(font: ttf, fontSize: 14)),
@@ -260,7 +271,7 @@ class ReturnPdfGenerator {
                 }).toList(),
               ),
 
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 15),
               // pw.Align(
               //   alignment: pw.Alignment.centerRight,
               //   child: pw.Text("Total: ${stockReturn.totalAmount}",
@@ -294,7 +305,14 @@ class ReturnPdfGenerator {
               ),
               pw.SizedBox(height: 50),
               pw.Center(
-                child:  pw.Text('Thank you for shopping at PixiDrugs', style: pw.TextStyle(font: ttf)),
+                child: pw.Text('Thank you for shopping at ${_capitalizeFirstLetter(user.name)}',
+                    style: pw.TextStyle(
+                        font: ttf, fontSize: 12, color: PdfColors.grey600)),
+              ),
+              pw.Center(
+                child: pw.Text('Powered by PixiDrugs by PixiZip',
+                    style: pw.TextStyle(
+                        font: ttf, fontSize: 12, color: PdfColors.cyan)),
               ),
               pw.SizedBox(height: 50),
               pw.Align(
@@ -302,14 +320,14 @@ class ReturnPdfGenerator {
                 child: pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.center,
                     children: [
-                      pw.Image(pw.MemoryImage(logoBytes), width: 60, height: 60),
+                      pw.Image(pw.MemoryImage(logoBytes),  height: 150),
                       // pw.SizedBox(width: 2),
-                      pw.Column(
+                     /* pw.Column(
                           children: [
                             pw.Text('Powered by ', style: pw.TextStyle(font: ttf,color: PdfColor.fromInt(0xFF173C6E))),
                             pw.Text('PixiZip Solution', style: pw.TextStyle(font: ttf,color: PdfColor.fromInt(0xFF173C6E))),
                           ]
-                      )
+                      )*/
                     ]
                 ),
               ),

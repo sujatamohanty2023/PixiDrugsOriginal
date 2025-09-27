@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class customerDetailWidget extends StatefulWidget {
   final name, phone, address, paymentType, referenceNumber,  referralName,  referralPhone, referralAmount ;

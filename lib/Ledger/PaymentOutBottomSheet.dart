@@ -1,11 +1,11 @@
 import 'dart:ffi';
 
 import 'package:intl/intl.dart';
-import 'package:PixiDrugs/Ledger/LedgerModel.dart';
-import 'package:PixiDrugs/Ledger/Payment.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../Ledger/LedgerModel.dart';
+import '../Ledger/Payment.dart';
+import '../../constant/all.dart';
 
-import '../ListPageScreen/FilterWidget.dart';
+import '../ListScreenNew/FilterWidget.dart';
 import '../customWidget/PaymentTypeWidget.dart';
 
 class PaymentOutEntryPage extends StatefulWidget {

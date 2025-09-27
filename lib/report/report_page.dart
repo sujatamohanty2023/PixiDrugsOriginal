@@ -1,6 +1,6 @@
-import 'package:PixiDrugs/ListScreenNew/ExpenseListScreen.dart';
-import 'package:PixiDrugs/constant/all.dart';
-import '../ListPageScreen/ListScreen.dart';
+import '../ListScreenNew/ExpenseListScreen.dart';
+import '../../constant/all.dart';
+
 import '../ListScreenNew/InvoiceReportScreen.dart';
 import '../ListScreenNew/SaleReportScreen.dart';
 import '../Stock/ProductList.dart';
@@ -47,7 +47,7 @@ class _ReportPageState extends State<ReportPage> {
 
   final List<DashboardCardModel> middleCards = [
     DashboardCardModel(
-        title: 'Sales Amt.',
+        title: 'Sales amt.',
         amount: '₹00.00',
         color: Colors.purple,
         svgAsset: AppImages.sale_amt,

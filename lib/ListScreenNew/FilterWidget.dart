@@ -1,6 +1,6 @@
-import 'package:PixiDrugs/ListPageScreen/ListScreen.dart';
+
 import 'package:intl/intl.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 import '../customWidget/PaymentTypeWidget.dart';
 
@@ -211,7 +211,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                       ),
                       SizedBox(height: 6),
                       GestureDetector(
-                        onTap: selectedRange == 'Custom' ? () => _pickDate(context, true) : null,
+                        onTap: () => _pickDate(context, true),
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           decoration: BoxDecoration(
@@ -240,7 +240,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                       ),
                       SizedBox(height: 6),
                       GestureDetector(
-                        onTap: selectedRange == 'Custom' ? () => _pickDate(context, false) : null,
+                        onTap: () => _pickDate(context, false),
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           decoration: BoxDecoration(

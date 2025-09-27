@@ -1,5 +1,5 @@
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class OrderPlaceModel {
   List<InvoiceItem> cartItems;
@@ -40,18 +40,20 @@ class OrderPlaceModel {
     }).toList();
   }
 
-  factory OrderPlaceModel.fromJson(Map<String, dynamic> json) =>
-      OrderPlaceModel(
-        cartItems: (json['cartItems'] as List<dynamic>)
-            .map((item) => InvoiceItem.fromJson(item))
-            .toList(),
-        seller_id: json['seller_id'] ?? '',
-        name: json['name'] ?? '',
-        phone: json['phone'] ?? '',
-        email: json['email'] ?? '',
-        address: json['address'] ?? '',
-        payment_type: json['payment_type'] ?? '',
-      );
+  factory OrderPlaceModel.fromJson(Map<String, dynamic> json) {
+    final cartItemsList = json['cartItems'] as List<dynamic>? ?? [];
+    return OrderPlaceModel(
+      cartItems: cartItemsList
+          .map((item) => InvoiceItem.fromJson(item as Map<String, dynamic>? ?? {}))
+          .toList(),
+      seller_id: json['seller_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      payment_type: json['payment_type']?.toString() ?? '',
+    );
+  }
 
   @override
   String toString() {

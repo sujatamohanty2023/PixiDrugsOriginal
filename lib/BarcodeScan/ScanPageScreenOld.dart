@@ -1,13 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../AIResponse/BatchInfoResponse.dart';
 import '../ReturnProduct/ReturnProductList.dart';
 import '../Stock/ProductList.dart';
 import '../search/customerModel.dart';
-import '../constant/all.dart';
+import '../../constant/all.dart';
 import 'utilScanner/CornerPainter.dart';
 import 'utilScanner/ScanLinePainter.dart';
 import 'utilScanner/ScannerOverlayPainter.dart';
@@ -37,7 +36,7 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  final AudioPlayer _player = AudioPlayer();
+  // final AudioPlayer _player = AudioPlayer(); // Temporarily disabled
   bool isloader=false;
 
   Timer? _scanTimer;
@@ -58,13 +57,13 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
-    _player.setAsset('assets/sound/scanner.mpeg');
+    // _player.setAsset('assets/sound/scanner.mpeg'); // Temporarily disabled
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _player.dispose();
+    // _player.dispose(); // Temporarily disabled
     _scanTimer?.cancel();
     _scannerController.dispose();
     super.dispose();
@@ -364,8 +363,8 @@ class _QuikScanPageOldState extends State<QuikScanPageOld>
   }
   Future<void> addToCart(String code) async {
     if (code.isNotEmpty) {
-      _player.seek(Duration.zero);
-      _player.play();
+      // _player.seek(Duration.zero);
+      // _player.play(); // Temporarily disabled
 
       if (widget.cartTypeSelection != null) {
         // Returning back with scanned code for return flow

@@ -1,50 +1,64 @@
 import 'package:intl/intl.dart';
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
 
 class ReturnItemTile extends StatefulWidget {
   final InvoiceItem product;
   final ValueChanged<String> onQtyChanged;
   final bool editable;
+  final VoidCallback? onDelete;
 
-  ReturnItemTile({super.key, required this.product,required this.onQtyChanged,required this.editable,});
+  ReturnItemTile({super.key, required this.product,required this.onQtyChanged,required this.editable, this.onDelete});
 
   @override
   State<ReturnItemTile> createState() => _ReturnItemTileState();
 }
 
 class _ReturnItemTileState extends State<ReturnItemTile> {
-  late final TextEditingController _returnQtyController;
+  int _quantity = 0;
 
   @override
   void initState() {
     super.initState();
-    _returnQtyController = TextEditingController(
-      text: widget.product.qty.toString(),
-    );
-
-    _returnQtyController.addListener(() {
-      widget.onQtyChanged(_returnQtyController.text);
-    });
+    _quantity = widget.product.qty;
   }
 
   @override
   void didUpdateWidget(covariant ReturnItemTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Sync controller if model is updated externally
-    final currentText = _returnQtyController.text;
-    final modelQtyText = widget.product.qty.toString();
-
-    if (currentText != modelQtyText) {
-      _returnQtyController.text = modelQtyText;
-      _returnQtyController.selection = TextSelection.collapsed(offset: modelQtyText.length);
+    if (_quantity != widget.product.qty) {
+      _quantity = widget.product.qty;
     }
   }
 
-  @override
-  void dispose() {
-    _returnQtyController.dispose();
-    super.dispose();
+  void _incrementQuantity() {
+    if (widget.editable) {
+      final currentStock = widget.product.stock;
+      if (_quantity >= currentStock) {
+        // Show error message when trying to exceed stock
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cannot add more than available stock (${currentStock})'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      
+      setState(() {
+        _quantity++;
+      });
+      widget.onQtyChanged(_quantity.toString());
+    }
+  }
+
+  void _decrementQuantity() {
+    if (widget.editable && _quantity > 0) {
+      setState(() {
+        _quantity--;
+      });
+      widget.onQtyChanged(_quantity.toString());
+    }
   }
 
   @override
@@ -52,18 +66,17 @@ class _ReturnItemTileState extends State<ReturnItemTile> {
     final product = widget.product;
     final DateTime now = DateTime.now();
     final expiryDate = parseFlexibleExpiry(product.expiry);
+    final stock=  product.stock;
 
     final bool isExpired = expiryDate.isBefore(now);
     final bool isExpiringSoon =
-        !isExpired && expiryDate.isBefore(now.add(const Duration(days: 120)));
+        !isExpired && expiryDate.isBefore(now.add(const Duration(days: 240)));
 
     final expColor = isExpired
         ? Colors.red
         : isExpiringSoon
         ? Colors.orange
         : AppColors.kBlackColor800;
-
-    _returnQtyController.text=product.qty.toString();
 
     return Column(
       children: [
@@ -86,8 +99,9 @@ class _ReturnItemTileState extends State<ReturnItemTile> {
                       children: [
                         MyTextfield.textStyle_w800('${product.product}(${product.packing})',16,AppColors.kPrimary,maxLines: 1),
                         const SizedBox(height: 4),
-                        MyTextfield.textStyle_w400("Batch: ${product.batch ?? '-'}",14,Colors.deepOrange),
-                        MyTextfield.textStyle_w400("Sale: ₹${product.rate}",16,Colors.teal),
+                        MyTextfield.textStyle_w400("Batch: ${product.batch ?? '-'}",14,Colors.grey),
+                        MyTextfield.textStyle_w400("Sale: ₹${product.rate}",16,Colors.deepOrange),
+                        MyTextfield.textStyle_w400('Stock:${stock}', 14, Colors.teal),
                         MyTextfield.textStyle_w600("Exp: ${DateFormat('dd MMM yyyy').format(parseFlexibleExpiry(product.expiry))}",16,expColor),
                       ],
                     ),
@@ -95,15 +109,92 @@ class _ReturnItemTileState extends State<ReturnItemTile> {
 
                   const SizedBox(width: 12),
 
-                  /// ✅ RIGHT SIDE: Checkbox or ✅ icon, Sale, MRP, Return Qty
+                  /// ✅ RIGHT SIDE: Checkbox or ✅ icon, Sale, MRP, Return Qty, Delete
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 35,
-                        width: 80,
-                        child: MyEdittextfield(readOnly:!widget.editable,controller: _returnQtyController, hintText: 'StockReturn Qty',keyboardType: TextInputType.number),
+                      if (widget.editable && widget.onDelete != null)
+                        GestureDetector(
+                          onTap: widget.onDelete,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: SvgPicture.asset(
+                              AppImages.delete,
+                              color: Colors.red,
+                              width: 18,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.kPrimaryLight),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: _decrementQuantity,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: widget.editable && _quantity > 0 
+                                    ? AppColors.kPrimary 
+                                    : Colors.grey.shade300,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8),
+                                    bottomLeft: Radius.circular(8),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.remove,
+                                  color: widget.editable && _quantity > 0 
+                                    ? Colors.white 
+                                    : Colors.grey.shade600,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                              ),
+                              child: MyTextfield.textStyle_w600(
+                                _quantity.toString(),
+                                16,
+                                Colors.black,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _incrementQuantity,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: widget.editable && _quantity < widget.product.stock
+                                    ? AppColors.kPrimary 
+                                    : Colors.grey.shade300,
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(8),
+                                    bottomRight: Radius.circular(8),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: widget.editable && _quantity < widget.product.stock
+                                    ? Colors.white 
+                                    : Colors.grey.shade600,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

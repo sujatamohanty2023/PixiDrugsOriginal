@@ -1,6 +1,8 @@
 import 'package:intl/intl.dart';
 
-import 'package:PixiDrugs/constant/all.dart';
+import '../../constant/all.dart';
+import '../login/mobileLoginScreen.dart';
+import '../Api/ApiUtil/api_exception.dart';
 
 class AppUtils {
   // Common spacing
@@ -112,7 +114,7 @@ class AppUtils {
     overlay.insert(overlayEntry);
 
     // Auto-remove after 2 seconds
-    Future.delayed(const Duration(seconds: 2)).then((_) => overlayEntry.remove());
+    Future.delayed(const Duration(seconds: 3)).then((_) => overlayEntry.remove());
 
   }
 
@@ -226,6 +228,136 @@ class AppUtils {
       'phone1': phone1,
       'phone2': phone2,
     };
+  }
+
+  // Session handling method
+  static void handleInactiveAccount(BuildContext context, {String? message}) {
+    showSessionFailedDialog(context, message: message ?? "Your account is inactive. Please contact support.");
+  }
+
+  static void showSessionFailedDialog(BuildContext context, {String? message}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.kRedColor,
+                size: 24,
+              ),
+              SizedBox(width: 8),
+              MyTextfield.textStyle_w600(
+                "Session Failed",
+                18,
+                AppColors.kRedColor,
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MyTextfield.textStyle_w400(
+                message ?? "Your session has expired or your account is inactive. Please login again.",
+                16,
+                AppColors.kBlackColor800,
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.kRedLightColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.kRedLightColor),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.kRedColor,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: MyTextfield.textStyle_w400(
+                        "You will be redirected to the login screen.",
+                        14,
+                        AppColors.kBlackColor800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await SessionManager.clearSession(); // Clear session
+                // Navigate to login screen
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => MobileLoginScreen()),
+                  (route) => false,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.kPrimary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: MyTextfield.textStyle_w600(
+                "Login Again",
+                16,
+                Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to check API response for inactive account
+  static bool checkForInactiveAccount(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      // Check for status code 201 and inactive account message
+      final statusCode = response['statusCode'] ?? response['status_code'] ?? response['code'];
+      final message = response['message'] ?? response['error'] ?? '';
+
+      if (statusCode == 201 || statusCode == "201") {
+        final messageStr = message.toString().toLowerCase();
+        return messageStr.contains('inactive') ||
+               messageStr.contains('deactive') ||
+               messageStr.contains('disabled') ||
+               messageStr.contains('suspended');
+      }
+    }
+    return false;
+  }
+
+  // Global error handler for ApiException
+  static void handleApiError(BuildContext context, dynamic error) {
+    if (error is ApiException && error.isInactiveAccount) {
+      // Handle inactive account error globally
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        handleInactiveAccount(context, message: error.message);
+      });
+    } else {
+      // Handle other API errors
+      final errorMessage = error is ApiException ? error.message : error.toString();
+      showSnackBar(context, errorMessage);
+    }
   }
 
 
