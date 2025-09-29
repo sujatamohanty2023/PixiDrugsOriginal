@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -261,7 +262,7 @@ class _MobileLoginScreenState extends State<MobileLoginScreen> {
       } else if (state is LoginError) {
         setState(() => _isLoading = false);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.handleApiError(state.error, () => loginApiCall(text));
+           ErrorHandler.showErrorRetry(context,state.error,() => loginApiCall(text));
         });
       }
     });

@@ -1,4 +1,6 @@
 
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
+
 import '../../constant/all.dart';
 import '../BarcodeScan/ScanPage.dart';
 import '../Cart/address_widget.dart';
@@ -135,7 +137,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             }
           } else if (state is SaleReturnAddError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () =>  CustomerReturnApiCall());
+               ErrorHandler.showErrorRetry(context,state.error,() =>  CustomerReturnApiCall());
             });
           }else if (state is SaleReturnEditLoaded) {
             if(state.success) {
@@ -147,7 +149,7 @@ class _ReturnCustomerCartState extends State<ReturnCustomerCart> {
             }
           } else if (state is SaleReturnEditError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () => CustomerReturnApiCall());
+               ErrorHandler.showErrorRetry(context,state.error,() => CustomerReturnApiCall());
             });
           }
         },

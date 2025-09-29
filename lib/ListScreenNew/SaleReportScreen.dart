@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../Api/app_initialization_service.dart';
@@ -205,7 +206,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
             _updatePaginatedList(saleList, state.saleList, state.last_page);
           }else if(state is SaleListError){
              WidgetsBinding.instance.addPostFrameCallback((_) {
-               context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+                ErrorHandler.showErrorRetry(context,state.error,() => _fetchRecord(refresh: true));
              });
            }else if(state is SaleDeleteLoaded){
              WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -215,7 +216,7 @@ class _SalereportscreenState extends State<Salereportscreen> with WidgetsBinding
              });
            }else if(state is SaleDeleteError){
              WidgetsBinding.instance.addPostFrameCallback((_) {
-               context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+                ErrorHandler.showErrorRetry(context,state.error,() => _fetchRecord(refresh: true));
              });
            }
 

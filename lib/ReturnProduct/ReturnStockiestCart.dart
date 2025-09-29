@@ -1,3 +1,5 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
+
 import '../../constant/all.dart';
 import '../search/customerModel.dart';
 import '../Cart/address_widget.dart';
@@ -89,7 +91,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             }
           } else if (state is StockReturnAddError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () => StockestReturnApiCall());
+               ErrorHandler.showErrorRetry(context,state.error,() => StockestReturnApiCall());
             });
           }else if (state is StockReturnEditLoaded) {
             if(state.success) {
@@ -101,7 +103,7 @@ class _ReturnStockiestCartState extends State<ReturnStockiestCart> {
             }
           } else if (state is StockReturnEditError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () => StockestReturnApiCall());
+               ErrorHandler.showErrorRetry(context,state.error,() => StockestReturnApiCall());
             });
           }
         },

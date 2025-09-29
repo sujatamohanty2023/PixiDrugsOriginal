@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 
@@ -202,7 +203,7 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
             _updatePaginatedList(invoiceList, state.invoiceList, state.last_page);
           }else if(state is InvoiceListError){
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () =>_fetchRecord(refresh: true));
+               ErrorHandler.showErrorRetry(context,state.error,() => _fetchRecord(refresh: true));
             });
           }else if(state is InvoiceDeleteLoaded){
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -212,7 +213,7 @@ class _InvoicereportscreenState extends State<Invoicereportscreen> with WidgetsB
             });
           }else if(state is InvoiceDeleteError){
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.handleApiError(state.error, () => _fetchRecord(refresh: true));
+               ErrorHandler.showErrorRetry(context,state.error,() => _fetchRecord(refresh: true));
             });
           }
 

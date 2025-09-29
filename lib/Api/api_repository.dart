@@ -37,66 +37,39 @@ class ApiRepository {
     return data as T;
   }
 
-   Future<T> _safeApiCall<T>(Future<Response> Function() request) async {
+  Future<T> _safeApiCall<T>(Future<Response> Function() request) async {
     if (!await ConnectivityService.isConnected()) {
-      throw ApiException('No internet connection');
+      throw ApiException('No internet connection',errorType:ApiErrorType.network);
     }
-
     try {
       final response = await request();
 
-      print('📡 API CALL: ${response.requestOptions.method} ${response.requestOptions.uri}');
-      if (response.requestOptions.data != null) {
-        print('📦 Request Data: ${response.requestOptions.data}');
-      }
-      print('✅ API RESPONSE [${response.statusCode}]: ${response.data}');
-
-      if (response.statusCode == 200) {
-        return _sanitizeResponseData(response.data);
-      } else if (response.statusCode == 201) {
-        final sanitizedData = _sanitizeResponseData(response.data);
-        // Check for inactive account on 201 status
-        if (AppUtils.checkForInactiveAccount(sanitizedData)) {
-          throw ApiException(
-            sanitizedData['message']?.toString() ?? 'Account is inactive',
-            statusCode: response.statusCode,
-            data: sanitizedData,
-            isInactiveAccount: true,
-          );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = _sanitizeResponseData<T>(response.data);
+        if (response.statusCode == 201 && AppUtils.checkForInactiveAccount(data)) {
+          throw ApiException( response.data['error'], isInactiveAccount: true,errorType:ApiErrorType.authentication);
         }
-        return sanitizedData;
+        return data;
       } else {
-        print('❌ API ERROR URL: ${response.requestOptions.uri}');
-        final sanitizedData = _sanitizeResponseData(response.data);
-        throw ApiException(
-          sanitizedData['message']?.toString() ?? 'Unknown server error',
-          statusCode: response.statusCode,
-          data: sanitizedData,
-        );
+        final message = response.data['message'] ?? 'Server error';
+        throw ApiException(message, statusCode: response.statusCode);
       }
     } on DioError catch (dioError) {
-      // 👇 Handle 401 token expiration
       if (dioError.response?.statusCode == 401) {
         try {
-          print('🔁 Token expired. Refreshing...');
-          await _refreshToken();          
-          // 👇 Retry the original request with updated token
+          await _refreshToken();
           final retryResponse = await request();
-          return retryResponse.data;
-        } catch (e) {
-          throw ApiException('Authentication failed after token refresh.');
+          return _sanitizeResponseData<T>(retryResponse.data);
+        } catch (_) {
+          throw ApiException('Authentication failed. Please login again.');
         }
-      }
-
-      print('🚨 API ERROR: ${dioError.message}');
-      if (dioError.response != null) {
-        print('❌ API RESPONSE ERROR: ${dioError.response?.data}');
       }
       throw handleDioError(dioError);
     } catch (e) {
-      throw ApiException('Unexpected error: $e');
+      throw ApiException('$e');
     }
   }
+
 
   Future<void> _refreshToken() async {
     try {

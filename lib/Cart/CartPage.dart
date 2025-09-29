@@ -1,3 +1,5 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
+
 import '../Cart/customerDetailWidget.dart';
 import '../Dialog/success_dialog.dart';
 import '../SaleList/sale_model.dart';
@@ -61,7 +63,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver, RouteA
           AppLoader.hide();
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.handleApiError(state.error, () => _paymentPageCall());
+             ErrorHandler.showErrorRetry(context,state.error,() => _paymentPageCall());
           });
         }
       },

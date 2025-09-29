@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:flutter/gestures.dart';
 import '../../constant/all.dart';
 import '../login/RegisterResponse.dart';
@@ -147,7 +148,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       } else if (state is RegisterError) {
         setState(() => _isLoading = false);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.handleApiError(state.error, () => _onSignUpPressed());
+           ErrorHandler.showErrorRetry(context,state.error,() => _onSignUpPressed());
         });
       }
     });

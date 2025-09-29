@@ -1,3 +1,5 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
+
 import '../AWS/S3Service.dart';
 import '../../constant/all.dart';
 import '../Api/app_initialization_service.dart';
@@ -102,7 +104,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       } else if (state is EditProfileError) {
         AppLoader.hide();
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.handleApiError(state.error, () => _saveProfileData(profile_url));
+           ErrorHandler.showErrorRetry(context,state.error,() async => _saveProfileData(profile_url));
         });
        setState(() => _isUploading = false);
       }

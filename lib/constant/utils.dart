@@ -328,23 +328,32 @@ class AppUtils {
     );
   }
 
-  // Method to check API response for inactive account
   static bool checkForInactiveAccount(dynamic response) {
     if (response is Map<String, dynamic>) {
-      // Check for status code 201 and inactive account message
-      final statusCode = response['statusCode'] ?? response['status_code'] ?? response['code'];
-      final message = response['message'] ?? response['error'] ?? '';
+      final statusCode = response['statusCode'] ?? response['status_code'];
+      final code = response['code']?.toString().toLowerCase() ?? '';
+      final status = response['status']?.toString().toLowerCase() ?? '';
+      final message = (response['message'] ?? response['error'] ?? '').toString().toLowerCase();
 
-      if (statusCode == 201 || statusCode == "201") {
-        final messageStr = message.toString().toLowerCase();
-        return messageStr.contains('inactive') ||
-               messageStr.contains('deactive') ||
-               messageStr.contains('disabled') ||
-               messageStr.contains('suspended');
-      }
+      // Check for numeric statusCode 201 or string '201'
+      bool isStatusCode201 = statusCode == 201 || statusCode == '201';
+
+      // Check for known inactive codes or statuses
+      bool isInactiveCode = code.contains('inactive') || code.contains('account_inactive');
+      bool isInactiveStatus = status == 'inactive';
+
+      // Check for keywords in message
+      bool messageIndicatesInactive = message.contains('inactive') ||
+          message.contains('deactive') ||
+          message.contains('disabled') ||
+          message.contains('suspended');
+
+      // Return true if any condition is met
+      return isStatusCode201 || isInactiveCode || isInactiveStatus || messageIndicatesInactive;
     }
     return false;
   }
+
 
   // Global error handler for ApiException
   static void handleApiError(BuildContext context, dynamic error) {

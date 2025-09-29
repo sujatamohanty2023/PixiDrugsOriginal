@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:intl/intl.dart';
 import '../ListScreenNew/InvoiceReportScreen.dart';
 import '../../constant/all.dart';
@@ -66,11 +67,11 @@ class _InvoiceSummaryPageState extends State<InvoiceSummaryPage> {
       });
     }  else if (state is InvoiceAddError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.handleApiError(state.error, () => AddInvoiceApiCall());
+        ErrorHandler.showErrorRetry(context,state.error,() => AddInvoiceApiCall());
       });
     }else if ( state is InvoiceEditError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.handleApiError(state.error, () => AddInvoiceApiCall());
+        ErrorHandler.showErrorRetry(context,state.error,() => AddInvoiceApiCall());
       });
     }
   }

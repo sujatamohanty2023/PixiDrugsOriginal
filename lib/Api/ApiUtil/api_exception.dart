@@ -1,5 +1,17 @@
 import 'package:dio/dio.dart';
 
+enum ApiErrorType {
+  server,
+  client,
+  network,
+  timeout,
+  authentication,
+  authorization,
+  notFound,
+  unknown,
+  validation,
+}
+
 class ApiException implements Exception {
   final String message;
   final int? statusCode;
@@ -7,23 +19,21 @@ class ApiException implements Exception {
   final bool isInactiveAccount;
   final ApiErrorType errorType;
 
-  ApiException(this.message, {this.statusCode, this.data, this.isInactiveAccount = false, this.errorType = ApiErrorType.unknown});
+  ApiException(
+      this.message, {
+        this.statusCode,
+        this.data,
+        this.isInactiveAccount = false,
+        this.errorType = ApiErrorType.unknown,
+      });
 
   @override
-  String toString() => 'ApiException: $message (code: $statusCode)';
+  String toString() => message;
 
   bool get isServerError => statusCode != null && statusCode! >= 500;
   bool get isClientError => statusCode != null && statusCode! >= 400 && statusCode! < 500;
   bool get isNetworkError => errorType == ApiErrorType.network;
   bool get isTimeoutError => errorType == ApiErrorType.timeout;
-}
-
-enum ApiErrorType {
-  server,
-  client,
-  network,
-  timeout,
-  unknown,
 }
 
 ApiException handleDioError(DioException error) {
@@ -41,13 +51,34 @@ ApiException handleDioError(DioException error) {
     String message = 'Something went wrong';
     ApiErrorType errorType = ApiErrorType.unknown;
 
-    if (data is Map && data['message'] != null) {
-      message = data['message'];
-    } else if (statusCode != null) {
-      if (statusCode >= 500) {
-        message = '$message.Please try again later.';
+    if (data is Map) {
+      // Detect validation errors - typical HTTP 422 or 'errors' key in response
+      if (statusCode == 422 || data['errors'] != null) {
+        if (data['message'] != null) {
+          message = data['message']; // General validation message from API
+        } else {
+          message = 'Validation failed. Please check your input.';
+        }
+        errorType = ApiErrorType.validation;
+      } else if (data['message'] != null) {
+        message = data['message'];
+      }
+    }
+
+    if (statusCode != null) {
+      if (statusCode == 401) {
+        message = 'Authentication failed. Please login again.';
+        errorType = ApiErrorType.authentication;
+      } else if (statusCode == 403) {
+        message = 'You do not have permission to perform this action.';
+        errorType = ApiErrorType.authorization;
+      } else if (statusCode == 404) {
+        message = 'Requested resource not found.';
+        errorType = ApiErrorType.notFound;
+      } else if (statusCode >= 500) {
+        message = 'Server error occurred. Please try again later.';
         errorType = ApiErrorType.server;
-      } else if (statusCode >= 400) {
+      } else if (statusCode >= 400 && errorType != ApiErrorType.validation) {
         message = 'Request failed. Please check your input.';
         errorType = ApiErrorType.client;
       }
@@ -67,7 +98,7 @@ ApiException handleDioError(DioException error) {
   }
 
   return ApiException(
-    'Unexpected error: ${error.message}',
+    '${error.message}',
     errorType: ApiErrorType.unknown,
   );
 }

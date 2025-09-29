@@ -1,3 +1,4 @@
+import 'package:PixiDrugs/widgets/ErrorHandler.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../Api/app_initialization_service.dart';
@@ -8,8 +9,6 @@ import '../ListScreenNew/InvoiceReportScreen.dart';
 import '../ListScreenNew/SaleReportScreen.dart';
 import '../ListScreenNew/SaleReturnListScreen.dart';
 import '../ListScreenNew/StockistReturnList.dart';
-import '../Profile/contact_us.dart';
-import '../login/mobileLoginScreen.dart';
 import '../report/report_page.dart';
 import 'YoutubeVideoListPage.dart';
 
@@ -96,55 +95,6 @@ class _HomeTabState extends State<HomeTab> {
 
   }
 
-  void _logoutFun() async {
-    await SessionManager.clearSession();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => MobileLoginScreen()),
-          (route) => false,
-    );
-  }
-  Future<void> showLoginFailedDialog(BuildContext context) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-            title: MyTextfield.textStyle_w600("Session Failed", 25, AppColors.kPrimary),
-            content: MyTextfield.textStyle_w300(
-              "Please contact our support team for assistance. Or try logging in again.",
-              16,
-              AppColors.kBlackColor800,
-            ),
-            actions: [
-              TextButton(
-                onPressed: _logoutFun,
-                child: MyTextfield.textStyle_w800('Login Again', 18, AppColors.kRedColor),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.kPrimary,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.kPrimaryDark, width: 1),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => ContactUsPage()/*Webviewscreen(tittle: 'Contact Us')*/),
-                    );
-                  },
-                  child: MyTextfield.textStyle_w800('Contact', 18, AppColors.kWhiteColor),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _GetProfileCall() async {
     String? role = await SessionManager.getRole();
     String? userId = await SessionManager.getParentingId();
@@ -157,7 +107,7 @@ class _HomeTabState extends State<HomeTab> {
       image = apiCubit.cachedUser!.user.profilePicture;
 
       if (role == 'owner' && apiCubit.cachedUser!.user.status != 'active') {
-        showLoginFailedDialog(context);
+        ErrorHandler.showAuthenticationErrorDialog(context);
       }
     } else {
       // ❌ ID is null or user not cached – make API call
@@ -171,10 +121,12 @@ class _HomeTabState extends State<HomeTab> {
         email = state.userModel.user.email;
         image = state.userModel.user.profilePicture;
         if (role == 'owner' && state.userModel.user.status != 'active') {
-          showLoginFailedDialog(context);
+          ErrorHandler.showAuthenticationErrorDialog(context);
         }
       } else if (state is UserProfileError) {
-        AppUtils.showSnackBar(context, 'Failed: ${state.error}');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ErrorHandler.showErrorRetry(context,state.error,() async => _GetProfileCall());
+        });
       }
     });
   }
@@ -199,7 +151,7 @@ class _HomeTabState extends State<HomeTab> {
           image = state.userModel.user.profilePicture;
         });
         if (role == 'staff' && state.userModel.user.status != 'active') {
-          showLoginFailedDialog(context);
+          ErrorHandler.showAuthenticationErrorDialog(context);
         }
       } else if (state is UserProfileError) {
         AppUtils.showSnackBar(context, 'Failed: ${state.error}');
@@ -235,9 +187,6 @@ class _HomeTabState extends State<HomeTab> {
             _bannerLoading = false;
             _bannerLoadError = true;
           });
-          if (mounted) {
-            AppUtils.showSnackBar(context, 'Failed to load banners');
-          }
         }
       }
     });
@@ -560,7 +509,7 @@ class _HomeTabState extends State<HomeTab> {
         ),
         child: Center(
           child: SpinKitThreeBounce(
-            color: Colors.blue,
+            color: AppColors.kPrimary,
             size: 30.0,
           ),
         ),
@@ -592,14 +541,6 @@ class _HomeTabState extends State<HomeTab> {
               ),
               if (_bannerLoadError) ...[
                 SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: _GetBanner,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.kPrimary,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  child: MyTextfield.textStyle_w600('Retry', 12, Colors.white),
-                ),
               ],
             ],
           ),
